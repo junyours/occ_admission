@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+
+/* Custom styles can be added here */
+
+/* Hide scrollbars while preserving scroll behavior */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Inertia Progress (NProgress) customization */
+#nprogress .bar {
+  background: #7C3AED !important; /* match violet */
+  height: 3px !important;
+}
+#nprogress .spinner {
+  display: block !important; /* force spinner visible */
+  position: fixed !important;
+  top: 14px !important;
+  left: 50% !important;  /* center horizontally */
+  right: auto !important;
+  transform: translateX(-50%);
+}
+#nprogress .spinner-icon {
+  border-top-color: #7C3AED !important;
+  border-left-color: #7C3AED !important;
+  width: 40px;  /* bigger */
+  height: 40px; /* bigger */
+  border-width: 4px;
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.25);
+}
+
+/* Subtle upward fade animation with per-element delays */
+@keyframes animateUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-up {
+  animation: animateUp .2s ease-out both; /* smooth and noticeable */
+}

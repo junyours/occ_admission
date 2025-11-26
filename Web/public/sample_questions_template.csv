@@ -1,0 +1,6 @@
+question,option1,option2,option3,option4,option5,correct_answer,category,direction,image,option1_image,option2_image,option3_image,option4_image,option5_image
+"What is the capital of the Philippines?","Manila","Cebu","Davao","Quezon City","Baguio","A","Geography","Directions(1-10) Find the correct meaning of the idiomatic expression","","","","","",""
+"Which programming language is this application built with?","PHP","Python","Java","JavaScript","C#","A","Programming","Directions(11-20) Choose the best answer","","","","","",""
+"What is 2 + 2?","3","4","5","6","7","B","Mathematics","Directions(21-30) Select the correct answer","","","","","",""
+"Which planet is closest to the Sun?","Venus","Mercury","Earth","Mars","Pluto","B","Science","Directions(31-40) Choose the correct option","","","","","",""
+"What is the largest ocean on Earth?","Atlantic","Pacific","Indian","Arctic","Southern","B","Geography","Directions(41-50) Select the best answer","","","","","",""

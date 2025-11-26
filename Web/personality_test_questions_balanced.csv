@@ -1,0 +1,211 @@
+question,dichotomy,positive_side,negative_side,category
+"Do you prefer to spend time with large groups of people?",E/I,E,I,personality
+"Do you feel energized after social interactions?",E/I,E,I,personality
+"Do you prefer to work alone rather than in teams?",E/I,I,E,personality
+"Do you enjoy being the center of attention?",E/I,E,I,personality
+"Do you prefer to think things through before speaking?",E/I,I,E,personality
+"Do you like to have many friends and acquaintances?",E/I,E,I,personality
+"Do you prefer to focus on one task at a time?",E/I,I,E,personality
+"Do you enjoy meeting new people?",E/I,E,I,personality
+"Do you prefer to process information internally?",E/I,I,E,personality
+"Do you like to express your thoughts out loud?",E/I,E,I,personality
+"Do you prefer to observe before participating?",E/I,I,E,personality
+"Do you feel energized by external activities?",E/I,E,I,personality
+"Do you prefer to work in quiet environments?",E/I,I,E,personality
+"Do you like to take charge in group situations?",E/I,E,I,personality
+"Do you prefer to reflect before making decisions?",E/I,I,E,personality
+"Do you enjoy being around people most of the time?",E/I,E,I,personality
+"Do you prefer to have a few close friends?",E/I,I,E,personality
+"Do you like to share your ideas with others?",E/I,E,I,personality
+"Do you prefer to work independently?",E/I,I,E,personality
+"Do you feel comfortable in large social gatherings?",E/I,E,I,personality
+"Do you prefer small intimate gatherings?",E/I,I,E,personality
+"Do you like to start conversations with strangers?",E/I,E,I,personality
+"Do you prefer to listen more than talk?",E/I,I,E,personality
+"Do you enjoy networking events?",E/I,E,I,personality
+"Do you prefer one-on-one conversations?",E/I,I,E,personality
+"Do you like being part of a team?",E/I,E,I,personality
+"Do you prefer working behind the scenes?",E/I,I,E,personality
+"Do you enjoy public speaking?",E/I,E,I,personality
+"Do you prefer written communication over verbal?",E/I,I,E,personality
+"Do you like organizing social events?",E/I,E,I,personality
+"Do you prefer attending rather than hosting parties?",E/I,I,E,personality
+"Do you enjoy being in the spotlight?",E/I,E,I,personality
+"Do you prefer staying home on weekends?",E/I,I,E,personality
+"Do you like brainstorming in groups?",E/I,E,I,personality
+"Do you prefer to brainstorm alone?",E/I,I,E,personality
+"Do you enjoy collaborative projects?",E/I,E,I,personality
+"Do you prefer independent projects?",E/I,I,E,personality
+"Do you like discussing your problems with others?",E/I,E,I,personality
+"Do you prefer to solve problems privately?",E/I,I,E,personality
+"Do you enjoy being around high-energy people?",E/I,E,I,personality
+"Do you prefer calm, peaceful environments?",E/I,I,E,personality
+"Do you like making decisions in groups?",E/I,E,I,personality
+"Do you prefer making decisions alone?",E/I,I,E,personality
+"Do you enjoy team-building activities?",E/I,E,I,personality
+"Do you prefer individual activities?",E/I,I,E,personality
+"Do you like being the life of the party?",E/I,E,I,personality
+"Do you prefer deep conversations over small talk?",E/I,I,E,personality
+"Do you enjoy meeting people at conferences?",E/I,E,I,personality
+"Do you prefer to prepare extensively before social events?",E/I,I,E,personality
+"Do you like spontaneous social interactions?",E/I,E,I,personality
+"Do you prefer to focus on concrete facts and details?",S/N,S,N,personality
+"Do you trust your five senses more than your intuition?",S/N,S,N,personality
+"Do you prefer to work with what is real and present?",S/N,S,N,personality
+"Do you like to follow established procedures?",S/N,S,N,personality
+"Do you prefer to focus on possibilities and what could be?",S/N,N,S,personality
+"Do you trust your gut feelings and hunches?",S/N,N,S,personality
+"Do you prefer to work with abstract concepts?",S/N,N,S,personality
+"Do you like to explore new ways of doing things?",S/N,N,S,personality
+"Do you prefer to rely on past experiences?",S/N,S,N,personality
+"Do you like to focus on the big picture?",S/N,N,S,personality
+"Do you prefer to work with specific, measurable data?",S/N,S,N,personality
+"Do you trust your imagination and creativity?",S/N,N,S,personality
+"Do you prefer to work with practical applications?",S/N,S,N,personality
+"Do you like to explore theoretical possibilities?",S/N,N,S,personality
+"Do you prefer to focus on what is proven and tested?",S/N,S,N,personality
+"Do you like to think about future possibilities?",S/N,N,S,personality
+"Do you prefer to work with hands-on, tangible tasks?",S/N,S,N,personality
+"Do you trust your ability to see patterns and connections?",S/N,N,S,personality
+"Do you prefer to work with step-by-step processes?",S/N,S,N,personality
+"Do you like to explore innovative solutions?",S/N,N,S,personality
+"Do you prefer to focus on what is realistic and practical?",S/N,S,N,personality
+"Do you like to think about what could be improved?",S/N,N,S,personality
+"Do you prefer to work with concrete examples?",S/N,S,N,personality
+"Do you trust your ability to see hidden meanings?",S/N,N,S,personality
+"Do you prefer to work with proven methods?",S/N,S,N,personality
+"Do you like to explore new theories and concepts?",S/N,N,S,personality
+"Do you prefer to focus on what is observable?",S/N,S,N,personality
+"Do you like to think about abstract ideas?",S/N,N,S,personality
+"Do you prefer to work with specific facts?",S/N,S,N,personality
+"Do you trust your ability to see future trends?",S/N,N,S,personality
+"Do you prefer traditional approaches to problems?",S/N,S,N,personality
+"Do you like to experiment with new ideas?",S/N,N,S,personality
+"Do you prefer to work with detailed instructions?",S/N,S,N,personality
+"Do you enjoy working with metaphors and symbols?",S/N,N,S,personality
+"Do you prefer to focus on immediate results?",S/N,S,N,personality
+"Do you like to envision long-term possibilities?",S/N,N,S,personality
+"Do you prefer to work with tangible materials?",S/N,S,N,personality
+"Do you enjoy theoretical discussions?",S/N,N,S,personality
+"Do you prefer to focus on practical skills?",S/N,S,N,personality
+"Do you like to explore creative alternatives?",S/N,N,S,personality
+"Do you prefer to work with established facts?",S/N,S,N,personality
+"Do you trust your intuitive insights?",S/N,N,S,personality
+"Do you prefer to focus on current realities?",S/N,S,N,personality
+"Do you like to imagine different scenarios?",S/N,N,S,personality
+"Do you prefer to work with sequential information?",S/N,S,N,personality
+"Do you enjoy brainstorming multiple possibilities?",S/N,N,S,personality
+"Do you prefer to focus on what works?",S/N,S,N,personality
+"Do you like to explore what might work?",S/N,N,S,personality
+"Do you prefer to use tried-and-true methods?",S/N,S,N,personality
+"Do you enjoy creating new approaches?",S/N,N,S,personality
+"Do you prefer to focus on practical outcomes?",S/N,S,N,personality
+"Do you like to explore conceptual frameworks?",S/N,N,S,personality
+"Do you prefer to work with precise measurements?",S/N,S,N,personality
+"Do you enjoy working with broad concepts?",S/N,N,S,personality
+"Do you prefer to make decisions based on logic and analysis?",T/F,T,F,personality
+"Do you value fairness and consistency over harmony?",T/F,T,F,personality
+"Do you prefer to focus on objective criteria when making decisions?",T/F,T,F,personality
+"Do you like to solve problems through systematic analysis?",T/F,T,F,personality
+"Do you prefer to consider how decisions will affect people's feelings?",T/F,F,T,personality
+"Do you value harmony and cooperation over being right?",T/F,F,T,personality
+"Do you prefer to make decisions based on personal values?",T/F,F,T,personality
+"Do you like to consider the impact on relationships when deciding?",T/F,F,T,personality
+"Do you prefer to be direct and straightforward in communication?",T/F,T,F,personality
+"Do you like to express appreciation and encouragement to others?",T/F,F,T,personality
+"Do you prefer to focus on efficiency and effectiveness?",T/F,T,F,personality
+"Do you value empathy and understanding in relationships?",T/F,F,T,personality
+"Do you prefer to analyze situations objectively?",T/F,T,F,personality
+"Do you like to consider how others will feel about your decisions?",T/F,F,T,personality
+"Do you prefer to be honest even if it might hurt someone's feelings?",T/F,T,F,personality
+"Do you like to help others feel good about themselves?",T/F,F,T,personality
+"Do you prefer to focus on facts rather than feelings?",T/F,T,F,personality
+"Do you value maintaining positive relationships?",T/F,F,T,personality
+"Do you prefer to be consistent in your principles?",T/F,T,F,personality
+"Do you like to be supportive and encouraging?",T/F,F,T,personality
+"Do you prefer to make decisions based on cause and effect?",T/F,T,F,personality
+"Do you value being tactful and diplomatic?",T/F,F,T,personality
+"Do you prefer to focus on what makes sense logically?",T/F,T,F,personality
+"Do you like to consider the human element in decisions?",T/F,F,T,personality
+"Do you prefer to be direct about problems and issues?",T/F,T,F,personality
+"Do you value being compassionate and caring?",T/F,F,T,personality
+"Do you prefer to focus on what is fair and just?",T/F,T,F,personality
+"Do you like to help others work through their feelings?",T/F,F,T,personality
+"Do you prefer to analyze situations from a logical perspective?",T/F,T,F,personality
+"Do you value being sensitive to others' needs?",T/F,F,T,personality
+"Do you prefer to make tough decisions based on logic?",T/F,T,F,personality
+"Do you like to consider everyone's feelings before deciding?",T/F,F,T,personality
+"Do you prefer to maintain professional boundaries?",T/F,T,F,personality
+"Do you value creating warm personal connections?",T/F,F,T,personality
+"Do you prefer to focus on competence and ability?",T/F,T,F,personality
+"Do you like to focus on personal growth and development?",T/F,F,T,personality
+"Do you prefer to evaluate ideas critically?",T/F,T,F,personality
+"Do you value supporting others emotionally?",T/F,F,T,personality
+"Do you prefer to make decisions based on data?",T/F,T,F,personality
+"Do you like to make decisions based on impact on people?",T/F,F,T,personality
+"Do you prefer to solve problems systematically?",T/F,T,F,personality
+"Do you value collaborative problem-solving?",T/F,F,T,personality
+"Do you prefer to focus on achieving results?",T/F,T,F,personality
+"Do you like to focus on building relationships?",T/F,F,T,personality
+"Do you prefer to be rational in your approach?",T/F,T,F,personality
+"Do you value being understanding and accepting?",T/F,F,T,personality
+"Do you prefer to focus on accuracy and precision?",T/F,T,F,personality
+"Do you like to focus on harmony and cooperation?",T/F,F,T,personality
+"Do you prefer to be objective in your evaluations?",T/F,T,F,personality
+"Do you value being warm and personable?",T/F,F,T,personality
+"Do you prefer to focus on standards and criteria?",T/F,T,F,personality
+"Do you like to focus on individual needs and circumstances?",T/F,F,T,personality
+"Do you prefer to have a structured and organized approach to life?",J/P,J,P,personality
+"Do you like to make plans and stick to them?",J/P,J,P,personality
+"Do you prefer to have deadlines and schedules?",J/P,J,P,personality
+"Do you like to have things decided and settled?",J/P,J,P,personality
+"Do you prefer to keep your options open?",J/P,P,J,personality
+"Do you like to be spontaneous and flexible?",J/P,P,J,personality
+"Do you prefer to work under pressure of deadlines?",J/P,J,P,personality
+"Do you like to explore and discover as you go?",J/P,P,J,personality
+"Do you prefer to have a clear plan before starting?",J/P,J,P,personality
+"Do you like to adapt to changing circumstances?",J/P,P,J,personality
+"Do you prefer to finish projects before starting new ones?",J/P,J,P,personality
+"Do you like to work on multiple projects simultaneously?",J/P,P,J,personality
+"Do you prefer to have a routine and predictable schedule?",J/P,J,P,personality
+"Do you like to keep your schedule flexible?",J/P,P,J,personality
+"Do you prefer to make decisions quickly and move on?",J/P,J,P,personality
+"Do you like to gather more information before deciding?",J/P,P,J,personality
+"Do you prefer to have clear expectations and guidelines?",J/P,J,P,personality
+"Do you like to improvise and go with the flow?",J/P,P,J,personality
+"Do you prefer to have a systematic approach to tasks?",J/P,J,P,personality
+"Do you like to be open to new possibilities and opportunities?",J/P,P,J,personality
+"Do you prefer to have a detailed plan for the future?",J/P,J,P,personality
+"Do you like to be spontaneous and take things as they come?",J/P,P,J,personality
+"Do you prefer to have a structured work environment?",J/P,J,P,personality
+"Do you like to work in a flexible and adaptable way?",J/P,P,J,personality
+"Do you prefer to have clear goals and objectives?",J/P,J,P,personality
+"Do you like to explore different options and alternatives?",J/P,P,J,personality
+"Do you prefer to have a methodical approach to problem-solving?",J/P,J,P,personality
+"Do you like to be creative and innovative in your approach?",J/P,P,J,personality
+"Do you prefer to have a systematic way of organizing information?",J/P,J,P,personality
+"Do you like to be open-minded and consider various perspectives?",J/P,P,J,personality
+"Do you prefer to have closure on decisions?",J/P,J,P,personality
+"Do you like to keep decisions open for reconsideration?",J/P,P,J,personality
+"Do you prefer to follow a set agenda?",J/P,J,P,personality
+"Do you like to let conversations flow naturally?",J/P,P,J,personality
+"Do you prefer to have everything in its place?",J/P,J,P,personality
+"Do you like to embrace a bit of chaos and spontaneity?",J/P,P,J,personality
+"Do you prefer to plan your vacations in detail?",J/P,J,P,personality
+"Do you like to travel without detailed itineraries?",J/P,P,J,personality
+"Do you prefer to have regular routines?",J/P,J,P,personality
+"Do you like to vary your daily activities?",J/P,P,J,personality
+"Do you prefer to complete tasks on time?",J/P,J,P,personality
+"Do you like to work best under last-minute pressure?",J/P,P,J,personality
+"Do you prefer to have definite answers?",J/P,J,P,personality
+"Do you like to explore multiple possibilities?",J/P,P,J,personality
+"Do you prefer to make lists and check them off?",J/P,J,P,personality
+"Do you like to go with whatever happens?",J/P,P,J,personality
+"Do you prefer to have a tidy workspace?",J/P,J,P,personality
+"Do you like to work in a more relaxed environment?",J/P,P,J,personality
+"Do you prefer to stick to deadlines?",J/P,J,P,personality
+"Do you like to be flexible with timing?",J/P,P,J,personality
+"Do you prefer to have things planned out?",J/P,J,P,personality
+"Do you like to leave room for spontaneous activities?",J/P,P,J,personality
+"Do you prefer to follow schedules strictly?",J/P,J,P,personality
+"Do you like to adjust plans as needed?",J/P,P,J,personality
