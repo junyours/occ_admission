@@ -67,7 +67,8 @@ export default function QuestionAnalysis({ user }) {
                     wrong_percentage_min: parsed.wrong_percentage_min || '',
                     wrong_percentage_max: parsed.wrong_percentage_max || '',
                     status: parsed.status || '',
-                    search_query: parsed.search_query || ''
+                    search_query: parsed.search_query || '',
+                    difficulty: parsed.difficulty || ''
                 };
             }
         } catch (error) {
@@ -78,7 +79,8 @@ export default function QuestionAnalysis({ user }) {
             wrong_percentage_min: '',
             wrong_percentage_max: '',
             status: '',
-            search_query: ''
+            search_query: '',
+            difficulty: ''
         };
     };
 
@@ -325,12 +327,115 @@ export default function QuestionAnalysis({ user }) {
             }]
         };
 
+        // Score Distribution (Question Difficulty Distribution)
+        // Multi-Tier Classification System for detailed question analysis
+        // Categories: Extreme Hard, Hard, Moderate, Easy, Super Easy
+        const scoreDistribution = (() => {
+            // Calculate correct percentage from wrong percentage
+            const extremeHard = question_stats.filter(q => {
+                const correctPct = 100 - parseFloat(q.wrong_percentage || 0);
+                return correctPct < 30; // <30% correct (>70% wrong) - Needs rewriting
+            });
+            
+            const hard = question_stats.filter(q => {
+                const correctPct = 100 - parseFloat(q.wrong_percentage || 0);
+                return correctPct >= 30 && correctPct < 50; // 30-50% correct (50-70% wrong) - Needs review
+            });
+            
+            const moderate = question_stats.filter(q => {
+                const correctPct = 100 - parseFloat(q.wrong_percentage || 0);
+                return correctPct >= 50 && correctPct < 70; // 50-70% correct (30-50% wrong) - Acceptable
+            });
+            
+            const easy = question_stats.filter(q => {
+                const correctPct = 100 - parseFloat(q.wrong_percentage || 0);
+                return correctPct >= 70 && correctPct < 85; // 70-85% correct (15-30% wrong) - Good
+            });
+            
+            const superEasy = question_stats.filter(q => {
+                const correctPct = 100 - parseFloat(q.wrong_percentage || 0);
+                return correctPct >= 85; // >85% correct (<15% wrong) - May be too easy
+            });
+
+            const totalQuestions = question_stats.length;
+            
+            return {
+                labels: [
+                    'Extreme Hard (<30% correct)',
+                    'Hard (30-50% correct)',
+                    'Moderate (50-70% correct)',
+                    'Easy (70-85% correct)',
+                    'Super Easy (>85% correct)'
+                ],
+                datasets: [{
+                    label: 'Number of Questions',
+                    data: [
+                        extremeHard.length,
+                        hard.length,
+                        moderate.length,
+                        easy.length,
+                        superEasy.length
+                    ],
+                    backgroundColor: [
+                        'rgba(127, 29, 29, 0.8)',   // Dark red for extreme hard
+                        'rgba(239, 68, 68, 0.8)',   // Red for hard
+                        'rgba(245, 158, 11, 0.8)',  // Amber for moderate
+                        'rgba(34, 197, 94, 0.8)',   // Green for easy
+                        'rgba(156, 163, 175, 0.8)'  // Gray for super easy
+                    ],
+                    borderColor: [
+                        'rgba(127, 29, 29, 1)',
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(156, 163, 175, 1)'
+                    ],
+                    borderWidth: 2
+                }],
+                // Additional metadata for display
+                metadata: {
+                    extremeHard: {
+                        count: extremeHard.length,
+                        percentage: totalQuestions > 0 ? ((extremeHard.length / totalQuestions) * 100).toFixed(1) : 0,
+                        idealRange: '<5%',
+                        description: 'Needs rewriting'
+                    },
+                    hard: {
+                        count: hard.length,
+                        percentage: totalQuestions > 0 ? ((hard.length / totalQuestions) * 100).toFixed(1) : 0,
+                        idealRange: '10-20%',
+                        description: 'Needs review'
+                    },
+                    moderate: {
+                        count: moderate.length,
+                        percentage: totalQuestions > 0 ? ((moderate.length / totalQuestions) * 100).toFixed(1) : 0,
+                        idealRange: '60-70%',
+                        description: 'Acceptable'
+                    },
+                    easy: {
+                        count: easy.length,
+                        percentage: totalQuestions > 0 ? ((easy.length / totalQuestions) * 100).toFixed(1) : 0,
+                        idealRange: '10-20%',
+                        description: 'Good'
+                    },
+                    superEasy: {
+                        count: superEasy.length,
+                        percentage: totalQuestions > 0 ? ((superEasy.length / totalQuestions) * 100).toFixed(1) : 0,
+                        idealRange: '<5%',
+                        description: 'May be too easy'
+                    },
+                    totalQuestions: totalQuestions
+                }
+            };
+        })();
+
         return {
             questionDifficulty: questionDifficultyData,
             slowQuestions: slowQuestionsData,
             examTrends: examTrendsData,
             wrongAnswers: wrongAnswersData,
-            wrongAnswersDistribution: wrongAnswersDistributionData
+            wrongAnswersDistribution: wrongAnswersDistributionData,
+            scoreDistribution: scoreDistribution
         };
     }, [data]);
 
@@ -371,7 +476,7 @@ export default function QuestionAnalysis({ user }) {
 
     const handleFilterChange = (key, value) => {
         // Check if this is a client-side filter (doesn't trigger API call)
-        const clientFilterKeys = ['category', 'wrong_percentage_min', 'wrong_percentage_max', 'status', 'search_query'];
+        const clientFilterKeys = ['category', 'wrong_percentage_min', 'wrong_percentage_max', 'status', 'search_query', 'difficulty'];
         
         // Reset to page 1 when filters change
         setCurrentPage(1);
@@ -398,7 +503,8 @@ export default function QuestionAnalysis({ user }) {
             wrong_percentage_min: '',
             wrong_percentage_max: '',
             status: '',
-            search_query: ''
+            search_query: '',
+            difficulty: ''
         });
         setItemsPerPage(20);
         setCurrentPage(1);
@@ -457,6 +563,28 @@ export default function QuestionAnalysis({ user }) {
                 }
             }
             
+            // Filter by difficulty category (Multi-Tier Classification)
+            if (clientFilters.difficulty) {
+                const correctPct = 100 - parseFloat(question.wrong_percentage || 0);
+                let questionDifficulty = '';
+                
+                if (correctPct < 30) {
+                    questionDifficulty = 'extreme_hard';
+                } else if (correctPct >= 30 && correctPct < 50) {
+                    questionDifficulty = 'hard';
+                } else if (correctPct >= 50 && correctPct < 70) {
+                    questionDifficulty = 'moderate';
+                } else if (correctPct >= 70 && correctPct < 85) {
+                    questionDifficulty = 'easy';
+                } else {
+                    questionDifficulty = 'super_easy';
+                }
+                
+                if (questionDifficulty !== clientFilters.difficulty) {
+                    return false;
+                }
+            }
+            
             return true;
         });
         
@@ -496,6 +624,24 @@ export default function QuestionAnalysis({ user }) {
                 const questionIdMatch = question.questionId?.toString().toLowerCase().includes(searchLower);
                 const questionTextMatch = question.question?.toLowerCase().includes(searchLower);
                 if (!questionIdMatch && !questionTextMatch) return false;
+            }
+            if (clientFilters.difficulty) {
+                const correctPct = 100 - parseFloat(question.wrong_percentage || 0);
+                let questionDifficulty = '';
+                
+                if (correctPct < 30) {
+                    questionDifficulty = 'extreme_hard';
+                } else if (correctPct >= 30 && correctPct < 50) {
+                    questionDifficulty = 'hard';
+                } else if (correctPct >= 50 && correctPct < 70) {
+                    questionDifficulty = 'moderate';
+                } else if (correctPct >= 70 && correctPct < 85) {
+                    questionDifficulty = 'easy';
+                } else {
+                    questionDifficulty = 'super_easy';
+                }
+                
+                if (questionDifficulty !== clientFilters.difficulty) return false;
             }
             return true;
         });
@@ -813,6 +959,165 @@ export default function QuestionAnalysis({ user }) {
                             </div>
                         )}
 
+                        {/* Score Distribution Section */}
+                        {chartData && chartData.scoreDistribution && data?.question_stats && (
+                            <div className="mb-8">
+                                <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-6">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-[#1D293D]">Question Difficulty Distribution</h2>
+                                            <p className="text-sm text-slate-600">Based on Item Difficulty (P-Value) - Research-based analysis of question difficulty levels</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                                        <ChartCard 
+                                            title="Score Distribution" 
+                                            subtitle="Distribution of questions by difficulty level (correct answer percentage)"
+                                        >
+                                            <div style={{ height: '400px' }}>
+                                                <Bar data={chartData.scoreDistribution} options={{
+                                                    ...chartOptions,
+                                                    plugins: {
+                                                        ...chartOptions.plugins,
+                                                        title: {
+                                                            display: true,
+                                                            text: 'Multi-Tier: Question Difficulty Distribution'
+                                                        },
+                                                        tooltip: {
+                                                            callbacks: {
+                                                                afterLabel: (context) => {
+                                                                    const index = context.dataIndex;
+                                                                    const metadata = chartData.scoreDistribution.metadata;
+                                                                    const keys = ['extremeHard', 'hard', 'moderate', 'easy', 'superEasy'];
+                                                                    const data = metadata[keys[index]];
+                                                                    return `Count: ${data.count} (${data.percentage}%) | Ideal: ${data.idealRange} | ${data.description}`;
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        ...chartOptions.scales,
+                                                        y: {
+                                                            ...chartOptions.scales.y,
+                                                            title: {
+                                                                display: true,
+                                                                text: 'Number of Questions'
+                                                            }
+                                                        }
+                                                    }
+                                                }} />
+                                            </div>
+                                        </ChartCard>
+
+                                        <div className="space-y-4">
+                                            <ChartCard 
+                                                title="Distribution Summary" 
+                                                subtitle="Current vs Ideal Distribution (Multi-Tier Classification)"
+                                            >
+                                                <div className="space-y-3 p-4">
+                                                    {/* Extreme Hard */}
+                                                    <div className="rounded-lg border border-red-300 bg-red-50 p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded bg-red-800"></div>
+                                                                <span className="text-xs font-semibold text-slate-700">Extreme Hard (&lt;30% correct)</span>
+                                                            </div>
+                                                            <span className="text-xs font-bold text-red-800">
+                                                                {chartData.scoreDistribution.metadata.extremeHard.count} ({chartData.scoreDistribution.metadata.extremeHard.percentage}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-600">
+                                                            Ideal: {chartData.scoreDistribution.metadata.extremeHard.idealRange} | {chartData.scoreDistribution.metadata.extremeHard.description}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Hard */}
+                                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded bg-red-600"></div>
+                                                                <span className="text-xs font-semibold text-slate-700">Hard (30-50% correct)</span>
+                                                            </div>
+                                                            <span className="text-xs font-bold text-red-700">
+                                                                {chartData.scoreDistribution.metadata.hard.count} ({chartData.scoreDistribution.metadata.hard.percentage}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-600">
+                                                            Ideal: {chartData.scoreDistribution.metadata.hard.idealRange} | {chartData.scoreDistribution.metadata.hard.description}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Moderate */}
+                                                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded bg-amber-500"></div>
+                                                                <span className="text-xs font-semibold text-slate-700">Moderate (50-70% correct)</span>
+                                                            </div>
+                                                            <span className="text-xs font-bold text-amber-700">
+                                                                {chartData.scoreDistribution.metadata.moderate.count} ({chartData.scoreDistribution.metadata.moderate.percentage}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-600">
+                                                            Ideal: {chartData.scoreDistribution.metadata.moderate.idealRange} | {chartData.scoreDistribution.metadata.moderate.description}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Easy */}
+                                                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded bg-emerald-600"></div>
+                                                                <span className="text-xs font-semibold text-slate-700">Easy (70-85% correct)</span>
+                                                            </div>
+                                                            <span className="text-xs font-bold text-emerald-700">
+                                                                {chartData.scoreDistribution.metadata.easy.count} ({chartData.scoreDistribution.metadata.easy.percentage}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-600">
+                                                            Ideal: {chartData.scoreDistribution.metadata.easy.idealRange} | {chartData.scoreDistribution.metadata.easy.description}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Super Easy */}
+                                                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-3 h-3 rounded bg-slate-400"></div>
+                                                                <span className="text-xs font-semibold text-slate-700">Super Easy (&gt;85% correct)</span>
+                                                            </div>
+                                                            <span className="text-xs font-bold text-slate-700">
+                                                                {chartData.scoreDistribution.metadata.superEasy.count} ({chartData.scoreDistribution.metadata.superEasy.percentage}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-600">
+                                                            Ideal: {chartData.scoreDistribution.metadata.superEasy.idealRange} | {chartData.scoreDistribution.metadata.superEasy.description}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Total */}
+                                                    <div className="mt-3 pt-3 border-t border-slate-200">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs font-bold text-slate-700">Total Questions</span>
+                                                            <span className="text-sm font-bold text-[#1447E6]">
+                                                                {chartData.scoreDistribution.metadata.totalQuestions}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ChartCard>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Wrong Answers Analysis Section */}
                         {chartData && data?.question_stats && (
                             <div className="mb-8">
@@ -829,7 +1134,7 @@ export default function QuestionAnalysis({ user }) {
                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                                    <div className="grid grid-cols-1 gap-8">
                                         <ChartCard title="Questions with Most Wrong Answers" subtitle="Top 10 questions with highest wrong answer percentage">
                                             <div style={{ height: '400px' }}>
                                                 <Bar data={chartData.wrongAnswers} options={{
@@ -850,22 +1155,6 @@ export default function QuestionAnalysis({ user }) {
                                                                 display: true,
                                                                 text: 'Wrong Answer Percentage (%)'
                                                             }
-                                                        }
-                                                    }
-                                                }} />
-                                            </div>
-                                        </ChartCard>
-
-                                        <ChartCard title="Wrong Answer Distribution" subtitle="Questions with high vs low wrong answer rates">
-                                            <div style={{ height: '400px' }}>
-                                                <Doughnut data={chartData.wrongAnswersDistribution} options={{
-                                                    ...chartOptions,
-                                                    scales: {},
-                                                    plugins: {
-                                                        ...chartOptions.plugins,
-                                                        title: {
-                                                            display: true,
-                                                            text: 'Wrong Answer Rate Distribution'
                                                         }
                                                     }
                                                 }} />
@@ -923,7 +1212,7 @@ export default function QuestionAnalysis({ user }) {
 
                                     {/* Filters Row */}
                                     <div className="border-t border-slate-200 pt-4">
-                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
                                             <div className="space-y-2">
                                                 <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Search Question</label>
                                                 <div className="relative">
@@ -991,10 +1280,25 @@ export default function QuestionAnalysis({ user }) {
                                                     <option value="very_slow">Very Slow</option>
                                                 </select>
                                             </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Difficulty</label>
+                                                <select
+                                                    value={clientFilters.difficulty}
+                                                    onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+                                                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-[#1D293D] shadow-sm transition-colors duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                >
+                                                    <option value="">All Difficulties</option>
+                                                    <option value="extreme_hard">Extreme Hard</option>
+                                                    <option value="hard">Hard</option>
+                                                    <option value="moderate">Moderate</option>
+                                                    <option value="easy">Easy</option>
+                                                    <option value="super_easy">Super Easy</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         {/* Active Filters Summary */}
-                                        {((clientFilters.category || clientFilters.wrong_percentage_min || clientFilters.wrong_percentage_max || clientFilters.status || clientFilters.search_query)) && (
+                                        {((clientFilters.category || clientFilters.wrong_percentage_min || clientFilters.wrong_percentage_max || clientFilters.status || clientFilters.search_query || clientFilters.difficulty)) && (
                                             <div className="mt-4 flex flex-wrap items-center gap-2">
                                                 <span className="text-xs font-semibold text-slate-600">Active:</span>
                                                 {clientFilters.category && (
@@ -1047,6 +1351,17 @@ export default function QuestionAnalysis({ user }) {
                                                         <button
                                                             onClick={() => handleFilterChange('search_query', '')}
                                                             className="ml-1 hover:text-slate-900"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                )}
+                                                {clientFilters.difficulty && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-xs font-medium text-purple-700">
+                                                        Difficulty: {clientFilters.difficulty.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                        <button
+                                                            onClick={() => handleFilterChange('difficulty', '')}
+                                                            className="ml-1 hover:text-purple-900"
                                                         >
                                                             ×
                                                         </button>
@@ -1125,6 +1440,14 @@ export default function QuestionAnalysis({ user }) {
                                                                 Wrong %
                                                             </div>
                                                         </th>
+                                                        <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 w-36 border-r border-slate-200">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                                </svg>
+                                                                Difficulty
+                                                            </div>
+                                                        </th>
                                                         <th className="px-4 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700 w-32">
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1143,6 +1466,43 @@ export default function QuestionAnalysis({ user }) {
                                                         const isHighWrong = wrongPct > 70;
                                                         const isMediumWrong = wrongPct > 50 && wrongPct <= 70;
                                                         const isLowWrong = wrongPct > 30 && wrongPct <= 50;
+                                                        
+                                                        // Calculate difficulty category based on Multi-Tier Classification
+                                                        // Extreme Hard: <30% correct (>70% wrong)
+                                                        // Hard: 30-50% correct (50-70% wrong)
+                                                        // Moderate: 50-70% correct (30-50% wrong)
+                                                        // Easy: 70-85% correct (15-30% wrong)
+                                                        // Super Easy: >85% correct (<15% wrong)
+                                                        const correctPct = 100 - wrongPct;
+                                                        let difficultyCategory = '';
+                                                        let difficultyColor = '';
+                                                        let difficultyBg = '';
+                                                        if (correctPct < 30) {
+                                                            // Extreme Hard: <30% correct (>70% wrong)
+                                                            difficultyCategory = 'Extreme Hard';
+                                                            difficultyColor = 'text-red-800';
+                                                            difficultyBg = 'bg-red-100 border-red-400';
+                                                        } else if (correctPct >= 30 && correctPct < 50) {
+                                                            // Hard: 30-50% correct (50-70% wrong)
+                                                            difficultyCategory = 'Hard';
+                                                            difficultyColor = 'text-rose-700';
+                                                            difficultyBg = 'bg-rose-100 border-rose-300';
+                                                        } else if (correctPct >= 50 && correctPct < 70) {
+                                                            // Moderate: 50-70% correct (30-50% wrong)
+                                                            difficultyCategory = 'Moderate';
+                                                            difficultyColor = 'text-amber-700';
+                                                            difficultyBg = 'bg-amber-100 border-amber-300';
+                                                        } else if (correctPct >= 70 && correctPct < 85) {
+                                                            // Easy: 70-85% correct (15-30% wrong)
+                                                            difficultyCategory = 'Easy';
+                                                            difficultyColor = 'text-emerald-700';
+                                                            difficultyBg = 'bg-emerald-100 border-emerald-300';
+                                                        } else {
+                                                            // Super Easy: >85% correct (<15% wrong)
+                                                            difficultyCategory = 'Super Easy';
+                                                            difficultyColor = 'text-slate-700';
+                                                            difficultyBg = 'bg-slate-100 border-slate-300';
+                                                        }
 
                                                         return (
                                                             <tr 
@@ -1220,6 +1580,14 @@ export default function QuestionAnalysis({ user }) {
                                                                             {question.wrong_attempts || 0} / {question.total_attempts || 0}
                                                                         </span>
                                                                     </div>
+                                                                </td>
+                                                                <td className="px-4 py-5 text-center border-r border-slate-100">
+                                                                    <span
+                                                                        className={`inline-flex items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${difficultyBg} ${difficultyColor}`}
+                                                                        title={`Wrong: ${wrongPct.toFixed(1)}% | Correct: ${correctPct.toFixed(1)}% | ${difficultyCategory}${correctPct < 30 ? ' (<30% correct)' : correctPct >= 30 && correctPct < 50 ? ' (30-50% correct)' : correctPct >= 50 && correctPct < 70 ? ' (50-70% correct)' : correctPct >= 70 && correctPct < 85 ? ' (70-85% correct)' : ' (>85% correct)'}`}
+                                                                    >
+                                                                        {difficultyCategory}
+                                                                    </span>
                                                                 </td>
                                                                 <td className="px-4 py-5 text-center">
                                                                     <span
