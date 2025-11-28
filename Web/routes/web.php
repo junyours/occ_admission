@@ -350,6 +350,8 @@ Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancel
         Route::post('/exam-progress/clear', [SettingsController::class, 'clearExamProgress'])->name('exam-progress.clear');
         Route::post('/exam-results/clear-in-progress', [SettingsController::class, 'clearInProgressExams'])->name('exam-results.clear-in-progress');
         Route::get('/exam-results/check-in-progress', [SettingsController::class, 'checkInProgressExams'])->name('exam-results.check-in-progress');
+        Route::get('/exam-results/check-all-in-progress', [SettingsController::class, 'checkAllInProgressExams'])->name('exam-results.check-all-in-progress');
+        Route::post('/exam-results/delete-selected-in-progress', [SettingsController::class, 'deleteSelectedInProgressExams'])->name('exam-results.delete-selected-in-progress');
         Route::post('/exam-results/fix-in-progress-remarks', [SettingsController::class, 'fixInProgressRemarks'])->name('exam-results.fix-in-progress-remarks');
     });
 });

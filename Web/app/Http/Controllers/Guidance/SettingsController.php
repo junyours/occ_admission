@@ -478,5 +478,139 @@ class SettingsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Check all exam results with "In Progress" remarks
+     * Returns list of all exams (finished or not) that are marked as "In Progress"
+     */
+    public function checkAllInProgressExams(Request $request)
+    {
+        try {
+            // Get all exams marked as "In Progress" (regardless of finished_at status)
+            $inProgressExams = ExamResult::where('remarks', 'In Progress')
+                ->with('examinee:id,lname,fname,mname')
+                ->get();
+            
+            $examsData = $inProgressExams->map(function($exam) {
+                // Build full name from lname, fname, mname
+                $fullName = 'Unknown';
+                if ($exam->examinee) {
+                    $fullName = trim(
+                        $exam->examinee->fname . ' ' . 
+                        ($exam->examinee->mname ? $exam->examinee->mname . ' ' : '') . 
+                        $exam->examinee->lname
+                    );
+                }
+                
+                return [
+                    'resultId' => $exam->resultId,
+                    'examineeId' => $exam->examineeId,
+                    'examinee_full_name' => $fullName,
+                    'examId' => $exam->examId,
+                    'started_at' => $exam->started_at ? $exam->started_at->format('Y-m-d H:i:s') : null,
+                    'finished_at' => $exam->finished_at ? $exam->finished_at->format('Y-m-d H:i:s') : null,
+                    'total_items' => $exam->total_items,
+                    'correct' => $exam->correct,
+                    'is_finished' => $exam->finished_at !== null,
+                    'created_at' => $exam->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'found_count' => $examsData->count(),
+                'exams' => $examsData
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error checking all in-progress exams', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error checking exam status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete selected exam results with "In Progress" remarks
+     * Allows deletion of specific exam results to fix bugs
+     */
+    public function deleteSelectedInProgressExams(Request $request)
+    {
+        try {
+            $examIds = $request->get('exam_ids', []);
+            
+            if (empty($examIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No exams selected for deletion'
+                ], 400);
+            }
+            
+            // Get selected exams that are marked as "In Progress"
+            $examsToDelete = ExamResult::where('remarks', 'In Progress')
+                ->whereIn('resultId', $examIds)
+                ->get();
+            
+            $deletedCount = 0;
+            $errors = [];
+            
+            // Log details before deletion
+            $examDetails = $examsToDelete->map(function($exam) {
+                return [
+                    'result_id' => $exam->resultId,
+                    'examinee_id' => $exam->examineeId,
+                    'exam_id' => $exam->examId,
+                    'started_at' => $exam->started_at,
+                    'finished_at' => $exam->finished_at,
+                    'total_items' => $exam->total_items,
+                    'correct' => $exam->correct,
+                    'remarks' => $exam->remarks,
+                    'created_at' => $exam->created_at
+                ];
+            })->toArray();
+            
+            // Delete the selected exams
+            foreach ($examsToDelete as $exam) {
+                try {
+                    $exam->delete();
+                    $deletedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Failed to delete exam result ID {$exam->resultId}: {$e->getMessage()}";
+                    Log::error('[Delete In Progress] Failed to delete exam result', [
+                        'result_id' => $exam->resultId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            $message = "Successfully deleted {$deletedCount} exam result(s)";
+            if (!empty($errors)) {
+                $message .= ". Errors: " . implode(', ', $errors);
+            }
+            
+            Log::info('[Delete Selected In Progress] Manually deleted selected exam results', [
+                'deleted_count' => $deletedCount,
+                'requested_count' => count($examIds),
+                'deleted_by' => Auth::user()->email,
+                'deleted_at' => now(),
+                'exam_details' => $examDetails
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+                'errors' => $errors
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting selected in-progress exams', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting exam results: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
