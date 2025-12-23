@@ -35,6 +35,8 @@ import userDataCache from '../utils/UserDataCache';
 import { validateExamAccess } from '../utils/examScheduleValidation';
 import globalFullscreen from '../utils/GlobalFullscreen';
 import { checkForceAllow, getCourses, updatePreferredCourse } from '../API/auth';
+import DeviceInfo from 'react-native-device-info';
+import NetInfo from '@react-native-community/netinfo';
 
 const { width, height } = Dimensions.get('window');
 
@@ -96,6 +98,16 @@ export default function DashboardScreen({ navigation }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [rescheduleLoading, setRescheduleLoading] = useState(false);
   const [availableDates, setAvailableDates] = useState([]);
+  const [batteryLevel, setBatteryLevel] = useState(null);
+  const [isCharging, setIsCharging] = useState(false);
+  const [showBatteryLowModal, setShowBatteryLowModal] = useState(false);
+  const [batteryLowMessage, setBatteryLowMessage] = useState('');
+  const [showBatteryInfoModal, setShowBatteryInfoModal] = useState(false);
+  const [signalStrength, setSignalStrength] = useState(null); // 0-100 or null
+  const [signalType, setSignalType] = useState(null); // 'wifi' | 'cellular' | null
+  const [latency, setLatency] = useState(null); // Latency in milliseconds
+  const [latencyHistory, setLatencyHistory] = useState([]); // Array of latency measurements for deviation calculation
+  const [latencyDeviation, setLatencyDeviation] = useState(null); // Calculated deviation in milliseconds
   // Determine if we should show an active schedule (hide if completed or archived)
   const hasActiveSchedule = !!(
     examSchedule ||
@@ -112,6 +124,8 @@ export default function DashboardScreen({ navigation }) {
   const dot1Anim = useRef(new Animated.Value(0.3)).current;
   const dot2Anim = useRef(new Animated.Value(0.3)).current;
   const dot3Anim = useRef(new Animated.Value(0.3)).current;
+  // Battery border pulse animation for 0-40% (opacity from transparent to full color)
+  const batteryBorderPulseAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Entry animations
@@ -231,6 +245,411 @@ export default function DashboardScreen({ navigation }) {
     loop.start();
     return () => { try { loop.stop(); } catch {} };
   }, [loading, dot1Anim, dot2Anim, dot3Anim]);
+
+  // Battery border pulse animation when 0-40% (transparent to full color and back)
+  useEffect(() => {
+    if (batteryLevel !== null && batteryLevel <= 40) {
+      // Reset to 0 (transparent) first
+      batteryBorderPulseAnim.setValue(0);
+      
+      const pulse = Animated.loop(
+        Animated.sequence([
+          // Fade in: transparent (0) to full color (1)
+          Animated.timing(batteryBorderPulseAnim, {
+            toValue: 1, // Full color
+            duration: 1200,
+            useNativeDriver: true, // Opacity supports native driver
+          }),
+          // Fade out: full color (1) back to transparent (0)
+          Animated.timing(batteryBorderPulseAnim, {
+            toValue: 0, // Transparent
+            duration: 1200,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      return () => {
+        try { pulse.stop(); } catch {}
+        batteryBorderPulseAnim.setValue(0);
+      };
+    } else {
+      batteryBorderPulseAnim.setValue(0);
+    }
+  }, [batteryLevel, batteryBorderPulseAnim]);
+
+  // Get battery color based on precise ranges
+  const getBatteryColor = (level) => {
+    if (level >= 60) return '#10b981'; // Green
+    if (level >= 45) return '#84cc16'; // Yellow-green (lime)
+    if (level >= 31) return '#f59e0b'; // Yellow
+    return '#ef4444'; // Red
+  };
+
+  // Get battery icon name based on level (segmented bars)
+  // Material Icons uses battery-X-bar format where X is number of bars (1-6)
+  const getBatteryIcon = (level, isCharging) => {
+    if (isCharging) return 'battery-charging-full';
+    // Use battery bar icons to represent battery level segments
+    if (level >= 85) return 'battery-full'; // 85-100%
+    if (level >= 70) return 'battery-6-bar'; // 70-84%
+    if (level >= 55) return 'battery-5-bar'; // 55-69%
+    if (level >= 40) return 'battery-4-bar'; // 40-54%
+    if (level >= 25) return 'battery-3-bar'; // 25-39%
+    if (level >= 10) return 'battery-2-bar'; // 10-24%
+    if (level > 0) return 'battery-1-bar'; // 1-9%
+    return 'battery-0-bar'; // 0%
+  };
+
+  // Get pulse color for border (0-40% range)
+  const getPulseColor = (level) => {
+    if (level <= 30) return '#ef4444'; // Red pulse
+    if (level <= 40) return '#f59e0b'; // Yellow pulse
+    return null; // No pulse
+  };
+
+  // Get signal strength status (weak, fair, strong)
+  const getSignalStatus = (strength) => {
+    if (strength === null || strength === undefined) return null;
+    if (strength >= 66) return 'strong';
+    if (strength >= 33) return 'fair';
+    return 'weak';
+  };
+
+  // Get signal color based on strength
+  const getSignalColor = (strength) => {
+    const status = getSignalStatus(strength);
+    if (status === 'strong') return '#10b981'; // Green
+    if (status === 'fair') return '#f59e0b'; // Yellow
+    if (status === 'weak') return '#ef4444'; // Red
+    return '#9ca3af'; // Gray (no signal)
+  };
+
+  // Get latency color based on latency value
+  // Best practices: <50ms Excellent, 50-100ms Good, 100-200ms Moderate, >200ms Poor
+  const getLatencyColor = (latencyMs) => {
+    if (latencyMs === null || latencyMs === undefined) return '#9ca3af'; // Gray (unknown)
+    if (latencyMs < 50) return '#10b981'; // Green (Excellent)
+    if (latencyMs < 100) return '#84cc16'; // Yellow-Green (Good)
+    if (latencyMs < 200) return '#f59e0b'; // Yellow (Moderate)
+    return '#ef4444'; // Red (Poor)
+  };
+
+  // Get signal icon name based on strength and type
+  const getSignalIcon = (strength, type) => {
+    if (!type || strength === null) return 'signal-wifi-off';
+    if (type === 'wifi') {
+      return 'wifi';
+    } else { // cellular
+      return 'signal-cellular-alt';
+    }
+  };
+
+  // Monitor battery level using react-native-device-info
+  useEffect(() => {
+      // TEST MODE: Set to true to override battery level for testing
+      const TEST_BATTERY_MODE = false; // Set to false to use real battery level
+      const TEST_BATTERY_LEVEL = 21; // Test battery percentage (only used when TEST_BATTERY_MODE is true)
+
+    const updateBatteryInfo = async () => {
+      try {
+        // TEST MODE: Override battery level for testing
+        if (TEST_BATTERY_MODE) {
+          console.log('[Dashboard] TEST MODE: Using test battery level:', TEST_BATTERY_LEVEL + '%');
+          setBatteryLevel(TEST_BATTERY_LEVEL);
+          setIsCharging(false);
+          return;
+        }
+
+        // Get battery level (returns 0-1, multiply by 100 for percentage)
+        if (typeof DeviceInfo.getBatteryLevel === 'function') {
+          const level = await DeviceInfo.getBatteryLevel();
+          if (level !== null && level !== undefined && !isNaN(level)) {
+            const percentage = Math.round(level * 100);
+            setBatteryLevel(percentage);
+            console.log('[Dashboard] Battery level updated:', percentage + '%');
+          }
+        }
+        
+        // Check if battery is charging
+        if (typeof DeviceInfo.isBatteryCharging === 'function') {
+          const charging = await DeviceInfo.isBatteryCharging();
+          setIsCharging(charging === true);
+        }
+      } catch (error) {
+        console.log('[Dashboard] Failed to get battery info:', error?.message);
+        // If battery API is not available, set to null to hide display
+        setBatteryLevel(null);
+      }
+    };
+
+    // Initial load
+    updateBatteryInfo();
+
+    // Update every 30 seconds to keep battery level current
+    const batteryInterval = setInterval(updateBatteryInfo, 30000);
+
+    return () => {
+      clearInterval(batteryInterval);
+    };
+  }, []);
+
+  // Monitor signal strength using NetInfo
+  useEffect(() => {
+    const updateSignalInfo = async () => {
+      try {
+        const state = await NetInfo.fetch();
+        
+        // Check if connected
+        if (!state.isConnected) {
+          setSignalStrength(null);
+          setSignalType(null);
+          return;
+        }
+
+        // Determine signal type
+        const type = state.type === 'wifi' ? 'wifi' : (state.type === 'cellular' ? 'cellular' : null);
+        setSignalType(type);
+
+        // Get signal strength
+        let strength = null;
+        
+        if (type === 'wifi' && state.details) {
+          // WiFi signal strength (Android: -100 to 0, iOS: -100 to 0, but we convert to 0-100)
+          // Android provides signalStrength in dBm (typically -100 to -50)
+          // iOS provides signalStrength in percentage (0-100)
+          if (Platform.OS === 'android' && state.details.signalStrength !== undefined) {
+            // Android: Convert dBm to 0-100 scale (-100 to -50 dBm -> 0-100%)
+            const dbm = state.details.signalStrength;
+            strength = Math.max(0, Math.min(100, Math.round((dbm + 100) * 2))); // -100 to -50 maps to 0-100
+          } else if (Platform.OS === 'ios' && state.details.signalStrength !== undefined) {
+            // iOS: Already in 0-100 range
+            strength = Math.round(state.details.signalStrength);
+          } else {
+            // Fallback: If WiFi is connected but no signal strength, assume good signal
+            strength = 75;
+          }
+        } else if (type === 'cellular' && state.details) {
+          // Cellular signal strength
+          if (state.details.cellularGeneration) {
+            // Android provides signalStrength (0-4 bars, or dBm)
+            // iOS provides bars (0-4)
+            if (Platform.OS === 'android' && state.details.signalStrength !== undefined) {
+              const rawStrength = state.details.signalStrength;
+              if (rawStrength >= 0 && rawStrength <= 4) {
+                // Convert bars (0-4) to percentage (0-100)
+                strength = rawStrength * 25; // 0=0%, 1=25%, 2=50%, 3=75%, 4=100%
+              } else if (rawStrength < 0) {
+                // dBm value, convert similar to WiFi
+                strength = Math.max(0, Math.min(100, Math.round((rawStrength + 140) * (100/110))));
+              } else {
+                strength = 50; // Default
+              }
+            } else if (Platform.OS === 'ios' && state.details.bars !== undefined) {
+              // iOS: Convert bars (0-4) to percentage
+              strength = state.details.bars * 25;
+            } else {
+              // Fallback: If cellular is connected but no signal strength, assume fair
+              strength = 50;
+            }
+          } else {
+            strength = 50; // Default for cellular
+          }
+        }
+
+        setSignalStrength(strength);
+        // Only log in development to reduce performance impact
+        if (__DEV__) {
+          console.log('[Dashboard] Signal strength updated:', strength + '%', type);
+        }
+      } catch (error) {
+        // Only log in development to reduce performance impact
+        if (__DEV__) {
+          console.log('[Dashboard] Failed to get signal info:', error?.message);
+        }
+        setSignalStrength(null);
+        setSignalType(null);
+      }
+    };
+
+    // Helper function to calculate sample standard deviation
+    const calculateStdDev = (values) => {
+      if (values.length < 2) return null;
+      const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+      const sumSquaredDeviations = values.reduce((sum, val) => {
+        const deviation = val - mean;
+        return sum + (deviation * deviation);
+      }, 0);
+      const sampleVariance = sumSquaredDeviations / (values.length - 1);
+      const sampleStdDev = Math.sqrt(sampleVariance);
+      return Math.round(sampleStdDev * 10) / 10;
+    };
+
+    // Calculate robust deviation from latency history
+    // Filters outliers using IQR (Interquartile Range) method for more accurate results
+    const calculateDeviation = (history) => {
+      if (history.length < 2) return null;
+      
+      // Sort history for outlier detection
+      const sorted = [...history].sort((a, b) => a - b);
+      
+      // If we have less than 4 values, use simple std dev without filtering
+      if (sorted.length < 4) {
+        return calculateStdDev(sorted);
+      }
+      
+      // Calculate quartiles for outlier detection (IQR method - industry standard)
+      const q1Index = Math.floor(sorted.length * 0.25);
+      const q3Index = Math.floor(sorted.length * 0.75);
+      const q1 = sorted[q1Index];
+      const q3 = sorted[q3Index];
+      const iqr = q3 - q1;
+      
+      // Only filter outliers if IQR is meaningful (not zero or too small)
+      if (iqr > 0 && iqr < q1) {
+        // Define outlier bounds (1.5 * IQR is standard for outlier detection)
+        const lowerBound = q1 - 1.5 * iqr;
+        const upperBound = q3 + 1.5 * iqr;
+        
+        // Filter out outliers for more accurate deviation calculation
+        const filteredHistory = sorted.filter(val => val >= lowerBound && val <= upperBound);
+        
+        // Need at least 2 values after filtering
+        if (filteredHistory.length >= 2) {
+          return calculateStdDev(filteredHistory);
+        }
+      }
+      
+      // Fallback: use trimmed mean approach (remove top and bottom 10% if many samples)
+      if (sorted.length >= 5) {
+        const trimCount = Math.floor(sorted.length * 0.1);
+        const trimmed = sorted.slice(trimCount, sorted.length - trimCount);
+        if (trimmed.length >= 2) {
+          return calculateStdDev(trimmed);
+        }
+      }
+      
+      // Final fallback: use all data with standard deviation
+      return calculateStdDev(sorted);
+    };
+
+    // Measure latency (ping) to API server
+    // Using round-trip time (RTT) measurement with lightweight health endpoint
+    const measureLatency = async () => {
+      try {
+        if (!isOnline) {
+          setLatency(null);
+          setLatencyDeviation(null);
+          setLatencyHistory([]);
+          return;
+        }
+
+        // Use lightweight health check endpoint for latency measurement
+        // This measures round-trip time (RTT) which is standard for latency measurement
+        // RTT = time from sending request to receiving response (industry standard)
+        const startTime = Date.now();
+        
+        try {
+          // Use the public health endpoint which is lightweight and doesn't require auth
+          // Reduced timeout to 1.5 seconds for faster measurement and better performance
+          // validateStatus accepts 2xx, 3xx, 4xx (but not 5xx server errors)
+          await client.get('/mobile/health', {
+            timeout: 1500, // 1.5 second timeout for faster real-time measurement
+            validateStatus: (status) => status < 500, // Accept 2xx, 3xx, 4xx (but not 5xx)
+          });
+        } catch (err) {
+          // If health endpoint is not available, don't measure latency
+          // For connection errors, set latency to null
+          if (err.response?.status === 404 || err.code === 'ECONNREFUSED' || err.code === 'NETWORK_ERROR') {
+            setLatency(null);
+            setLatencyDeviation(null);
+            setLatencyHistory([]);
+            return;
+          }
+          // For auth errors on health endpoint, silently fail and don't measure
+          if (err.response?.status === 401 || err.response?.status === 403) {
+            setLatency(null);
+            setLatencyDeviation(null);
+            setLatencyHistory([]);
+            return;
+          }
+          // For timeout, set latency to null
+          if (err.code === 'ECONNABORTED') {
+            setLatency(null);
+            setLatencyDeviation(null);
+            setLatencyHistory([]);
+            return;
+          }
+          // For other errors, don't measure
+          setLatency(null);
+          setLatencyDeviation(null);
+          setLatencyHistory([]);
+          return;
+        }
+        
+        const endTime = Date.now();
+        // Calculate latency: Round-Trip Time (RTT) in milliseconds
+        // RTT measures the time from sending a request to receiving a response
+        const rtt = Math.round(endTime - startTime);
+        
+        // Validate latency value (should be positive and reasonable)
+        if (rtt > 0 && rtt < 10000) { // Reasonable range: 0-10 seconds
+          setLatency(rtt);
+          
+          // Update latency history (keep last 10 measurements for deviation calculation)
+          setLatencyHistory(prev => {
+            const newHistory = [...prev, rtt].slice(-10); // Keep last 10 measurements
+            const deviation = calculateDeviation(newHistory);
+            setLatencyDeviation(deviation);
+            return newHistory;
+          });
+          
+          console.log('[Dashboard] Latency (RTT) measured:', rtt + 'ms');
+        } else {
+        setLatency(null);
+        setLatencyDeviation(null);
+        if (__DEV__) {
+          console.log('[Dashboard] Invalid latency value:', rtt + 'ms');
+        }
+        }
+      } catch (error) {
+        // If request fails, latency is unknown
+        setLatency(null);
+        setLatencyDeviation(null);
+        // Only log in development to reduce performance impact
+        if (__DEV__) {
+          console.log('[Dashboard] Failed to measure latency:', error?.message);
+        }
+      }
+    };
+
+    // Initial load
+    updateSignalInfo();
+    measureLatency();
+
+    // Update signal info every 15 seconds (network info doesn't change frequently)
+    const signalInterval = setInterval(() => {
+      updateSignalInfo();
+    }, 15000);
+
+    // Measure latency more frequently (every 3 seconds) for real-time updates
+    // Using a separate interval optimized for performance
+    const latencyInterval = setInterval(() => {
+      measureLatency();
+    }, 3000); // 3 seconds for real-time feel without overwhelming the device
+
+    // Also listen to network state changes
+    const unsubscribe = NetInfo.addEventListener(state => {
+      updateSignalInfo();
+      measureLatency();
+    });
+
+    return () => {
+      clearInterval(signalInterval);
+      clearInterval(latencyInterval);
+      unsubscribe();
+    };
+  }, [isOnline]);
 
   const fetchExamineeData = async (isRefresh = false) => {
     try {
@@ -499,6 +918,43 @@ export default function DashboardScreen({ navigation }) {
     return apiMessage || 'Something went wrong while validating the exam code.';
   };
 
+  // Check battery level before allowing exam
+  const checkBatteryLevel = async () => {
+    try {
+      // TEST MODE: Use test battery level for testing
+      const TEST_BATTERY_MODE = false; // Set to false to use real battery level
+      const TEST_BATTERY_LEVEL = 21; // Test battery percentage (only used when TEST_BATTERY_MODE is true)
+
+      // TEST MODE: Override battery level for testing
+      if (TEST_BATTERY_MODE) {
+        console.log('[Dashboard] TEST MODE: Using test battery level for validation:', TEST_BATTERY_LEVEL + '%');
+        if (TEST_BATTERY_LEVEL <= 30) {
+          setBatteryLowMessage(`Battery is too low. Charge your device to at least 31% and try again. Current battery: ${TEST_BATTERY_LEVEL}%`);
+          setShowBatteryLowModal(true);
+          return false;
+        }
+        return true;
+      }
+
+      if (typeof DeviceInfo.getBatteryLevel === 'function') {
+        const level = await DeviceInfo.getBatteryLevel();
+        if (level !== null && level !== undefined && !isNaN(level)) {
+          const percentage = Math.round(level * 100);
+          if (percentage <= 30) {
+            setBatteryLowMessage(`Battery is too low. Charge your device to at least 31% and try again. Current battery: ${percentage}%`);
+            setShowBatteryLowModal(true);
+            return false;
+          }
+        }
+      }
+      return true;
+    } catch (error) {
+      console.log('[Dashboard] Failed to check battery level:', error?.message);
+      // If we can't check battery, allow exam to proceed
+      return true;
+    }
+  };
+
   const handleExamCodeSubmit = async () => {
     if (!isOnline) {
       Alert.alert('Offline', 'You are offline. Connect to the internet to validate an exam code or scan a QR.');
@@ -506,6 +962,12 @@ export default function DashboardScreen({ navigation }) {
     }
     if (!examCode.trim()) {
       Alert.alert('Error', 'Please enter an exam code.');
+      return;
+    }
+
+    // Check battery level before proceeding
+    const batteryOk = await checkBatteryLevel();
+    if (!batteryOk) {
       return;
     }
 
@@ -633,6 +1095,12 @@ export default function DashboardScreen({ navigation }) {
     
     if (!scannedCode.trim()) {
       Alert.alert('Error', 'Invalid QR code.');
+      return;
+    }
+
+    // Check battery level before proceeding
+    const batteryOk = await checkBatteryLevel();
+    if (!batteryOk) {
       return;
     }
 
@@ -1157,11 +1625,144 @@ export default function DashboardScreen({ navigation }) {
                 />
               </View>
               <View style={styles.headerTextContainer}>
-                <Text style={styles.headerTitle}>i-Admission</Text>
-                <Text style={styles.headerSubtitle}>Dashboard</Text>
+                <Text style={styles.header}>Dashboard</Text>
               </View>
             </View>
             <View style={styles.headerActions}>
+              {/* Battery Percentage Display - Minimal Style */}
+              {batteryLevel !== null && (
+                <TouchableOpacity 
+                  onPress={() => setShowBatteryInfoModal(true)}
+                  activeOpacity={0.7}
+                  style={styles.batteryWrapper}
+                >
+                  <View 
+                    style={[
+                      styles.batteryMinimal,
+                      { 
+                        borderColor: batteryLevel <= 40 && getPulseColor(batteryLevel) 
+                          ? 'rgba(255, 255, 255, 0.1)' // Dim base border when pulsing
+                          : getBatteryColor(batteryLevel)
+                      }
+                    ]}
+                  >
+                    {/* Lightning Icon */}
+                    {isCharging && (
+                      <Icon 
+                        name="bolt" 
+                        size={8} 
+                        color={getBatteryColor(batteryLevel)} 
+                      />
+                    )}
+                    
+                    {/* Single Horizontal Battery Bar with Terminal and Percentage Inside */}
+                    <View style={styles.batteryMinimalBarContainer}>
+                      <View style={styles.batteryMinimalBar}>
+                        <View 
+                          style={[
+                            styles.batteryMinimalFill,
+                            {
+                              width: `${batteryLevel}%`,
+                              backgroundColor: getBatteryColor(batteryLevel),
+                            }
+                          ]}
+                        />
+                        {/* Percentage Text Inside Battery */}
+                        <View style={styles.batteryTextContainer}>
+                          <Text style={[
+                            styles.batteryMinimalText,
+                            { 
+                              color: batteryLevel > 30 ? '#ffffff' : '#ffffff',
+                              textShadowColor: 'rgba(0, 0, 0, 0.5)',
+                              textShadowOffset: { width: 0, height: 1 },
+                              textShadowRadius: 2,
+                            }
+                          ]}>
+                            {batteryLevel}%
+                          </Text>
+                        </View>
+                      </View>
+                      {/* Battery Terminal */}
+                      <View style={[
+                        styles.batteryTerminal,
+                        { backgroundColor: getBatteryColor(batteryLevel) }
+                      ]} />
+                    </View>
+                  </View>
+                  {/* Pulsing border overlay for 0-40% - transparent to full color */}
+                  {batteryLevel <= 40 && getPulseColor(batteryLevel) && (
+                    <Animated.View
+                      style={[
+                        styles.batteryPulseBorder,
+                        {
+                          borderColor: getPulseColor(batteryLevel),
+                          opacity: batteryBorderPulseAnim, // Animates from 0 (transparent) to 1 (full color) and back
+                        }
+                      ]}
+                    />
+                  )}
+                </TouchableOpacity>
+              )}
+              {/* Latency Display - Minimal Style */}
+              {(latency !== null || signalStrength !== null) && (
+                <View style={styles.signalWrapper}>
+                  <View 
+                    style={[
+                      styles.signalMinimal,
+                      { 
+                        borderColor: latency !== null 
+                          ? getLatencyColor(latency) 
+                          : getSignalColor(signalStrength) 
+                      }
+                    ]}
+                  >
+                    {/* Latency Deviation (ms) or Signal Percentage */}
+                    {latencyDeviation !== null ? (
+                      <>
+                        <Text style={[
+                          styles.signalText,
+                          { color: getLatencyColor(latency) }
+                        ]}>
+                          {latencyDeviation}ms
+                        </Text>
+                        <Icon 
+                          name={getSignalIcon(signalStrength, signalType)} 
+                          size={8} 
+                          color={getLatencyColor(latency)} 
+                        />
+                      </>
+                    ) : latency !== null ? (
+                      <>
+                        <Text style={[
+                          styles.signalText,
+                          { color: getLatencyColor(latency) }
+                        ]}>
+                          {latency}ms
+                        </Text>
+                        <Icon 
+                          name={getSignalIcon(signalStrength, signalType)} 
+                          size={8} 
+                          color={getLatencyColor(latency)} 
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Text style={[
+                          styles.signalText,
+                          { color: getSignalColor(signalStrength) }
+                        ]}>
+                          {signalStrength}%
+                        </Text>
+                        <Icon 
+                          name={getSignalIcon(signalStrength, signalType)} 
+                          size={8} 
+                          color={getSignalColor(signalStrength)} 
+                        />
+                      </>
+                    )}
+                  </View>
+                </View>
+              )}
               <TouchableOpacity 
                 onPress={() => setShowEditableProfile(true)} 
                 style={styles.profileButton}
@@ -1780,6 +2381,171 @@ export default function DashboardScreen({ navigation }) {
             </LinearGradient>
           </View>
         </View>
+          </Modal>
+
+      {/* Battery Low Modal */}
+      <Modal
+        visible={showBatteryLowModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBatteryLowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.batteryModalContainer}>
+            <LinearGradient
+              colors={['#1a1a2e', '#16213e', '#0f172a']}
+              style={styles.batteryModalGradient}
+            >
+              {/* Modal Header */}
+              <View style={styles.batteryModalHeader}>
+                <View style={styles.batteryModalIconContainer}>
+                  <Icon name="battery-alert" size={48} color="#ef4444" />
+                </View>
+                <Text style={styles.batteryModalTitle}>Battery Too Low</Text>
+              </View>
+
+              {/* Modal Content */}
+              <View style={styles.batteryModalContent}>
+                <Text style={styles.batteryModalMessage}>
+                  {batteryLowMessage || 'Battery is too low. Charge your device to at least 31% and try again.'}
+                </Text>
+                <View style={styles.batteryModalInfoBox}>
+                  <Icon name="info" size={20} color="#f59e0b" />
+                  <Text style={styles.batteryModalInfoText}>
+                    Minimum battery required: <Text style={styles.batteryModalInfoBold}>31%</Text>
+                  </Text>
+                </View>
+              </View>
+
+              {/* Modal Footer */}
+              <View style={styles.batteryModalFooter}>
+                <TouchableOpacity
+                  style={styles.batteryModalButton}
+                  onPress={() => setShowBatteryLowModal(false)}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    style={styles.batteryButtonGradient}
+                  >
+                    <Icon name="check-circle" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                    <Text style={styles.batteryModalButtonText}>Understood</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Battery Info Modal - Dropdown Style */}
+      <Modal
+        visible={showBatteryInfoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBatteryInfoModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowBatteryInfoModal(false)}
+        >
+          <View style={styles.batteryInfoModalContainer}>
+            <LinearGradient
+              colors={['#1a1a2e', '#16213e', '#0f172a']}
+              style={styles.batteryInfoModalGradient}
+            >
+              {/* Modal Header */}
+              <View style={styles.batteryInfoModalHeader}>
+                <View style={styles.batteryInfoModalHeaderLeft}>
+                  <View style={[
+                    styles.batteryInfoModalIconContainer,
+                    { backgroundColor: batteryLevel !== null ? (batteryLevel > 30 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)') : 'rgba(156, 163, 175, 0.1)' }]
+                  }>
+                    <Icon 
+                      name={isCharging ? 'battery-charging-full' : 'battery-full'} 
+                      size={24} 
+                      color={batteryLevel !== null ? getBatteryColor(batteryLevel) : '#9ca3af'} 
+                    />
+                  </View>
+                  <View style={styles.batteryInfoModalHeaderText}>
+                    <Text style={styles.batteryInfoModalTitle}>Battery Status</Text>
+                    <Text style={styles.batteryInfoModalSubtitle}>
+                      {batteryLevel !== null ? `${batteryLevel}% ${isCharging ? '• Charging' : ''}` : 'Unknown'}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.batteryInfoModalCloseButton}
+                  onPress={() => setShowBatteryInfoModal(false)}
+                  activeOpacity={0.7}
+                >
+                  <Icon name="close" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Modal Content */}
+              <View style={styles.batteryInfoModalContent}>
+                <View style={styles.batteryInfoSection}>
+                  <View style={styles.batteryInfoItem}>
+                    <Icon name="info" size={18} color="#10b981" style={{ marginRight: 12 }} />
+                    <View style={styles.batteryInfoItemText}>
+                      <Text style={styles.batteryInfoItemTitle}>Exam Requirement</Text>
+                      <Text style={styles.batteryInfoItemDescription}>
+                        Your device battery must be above <Text style={styles.batteryInfoHighlight}>30%</Text> to take an exam.
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.batteryInfoItem}>
+                    <Icon 
+                      name={batteryLevel !== null && batteryLevel > 30 ? 'check-circle' : 'cancel'} 
+                      size={18} 
+                      color={batteryLevel !== null && batteryLevel > 30 ? '#10b981' : '#ef4444'} 
+                      style={{ marginRight: 12 }} 
+                    />
+                    <View style={styles.batteryInfoItemText}>
+                      <Text style={styles.batteryInfoItemTitle}>Current Status</Text>
+                      <Text style={[
+                        styles.batteryInfoItemDescription,
+                        { color: batteryLevel !== null && batteryLevel > 30 ? '#10b981' : '#ef4444' }
+                      ]}>
+                        {batteryLevel !== null && batteryLevel > 30 
+                          ? `You can take the exam (${batteryLevel}% available)` 
+                          : `You cannot take the exam. Please charge to at least 31% (Current: ${batteryLevel}%)`}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {batteryLevel !== null && batteryLevel <= 30 && (
+                    <View style={styles.batteryWarningBox}>
+                      <Icon name="warning" size={16} color="#f59e0b" style={{ marginRight: 8 }} />
+                      <Text style={styles.batteryWarningText}>
+                        Battery is too low. Charge your device to at least 31% and try again.
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              {/* Modal Footer */}
+              <View style={styles.batteryInfoModalFooter}>
+                <TouchableOpacity
+                  style={styles.batteryInfoModalButton}
+                  onPress={() => setShowBatteryInfoModal(false)}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    style={styles.batteryInfoButtonGradient}
+                  >
+                    <Text style={styles.batteryInfoButtonText}>Got it</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+          </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* Reschedule Exam Modal */}
@@ -2442,6 +3208,113 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6, // Reduced gap for better fit on small screens
     flexShrink: 0, // Prevent buttons from shrinking
+  },
+  batteryWrapper: {
+    position: 'relative',
+  },
+  batteryMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(30, 30, 46, 0.95)',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    position: 'relative',
+    zIndex: 2,
+    gap: 3,
+  },
+  batteryMinimalBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 1,
+  },
+  batteryMinimalBar: {
+    width: 26,
+    height: 11,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 1.5,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  batteryMinimalFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    borderRadius: 1,
+  },
+  batteryTextContainer: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  batteryMinimalText: {
+    fontSize: 7,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  batteryTerminal: {
+    width: 2,
+    height: 5,
+    borderRadius: 0.5,
+    backgroundColor: '#10b981',
+  },
+  batteryPulseBorder: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#ef4444',
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  signalWrapper: {
+    position: 'relative',
+    marginLeft: 4,
+  },
+  signalMinimal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+    paddingVertical: 2,
+    backgroundColor: 'rgba(30, 30, 46, 0.95)',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    position: 'relative',
+    zIndex: 2,
+    gap: 3,
+  },
+  signalBarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 2,
+    height: 14,
+  },
+  signalBarWrapper: {
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  signalBar: {
+    width: 2.5,
+    borderRadius: 1,
+    minHeight: 3,
+  },
+  signalText: {
+    fontSize: 7,
+    fontWeight: '700',
   },
   profileButton: {
     width: 36, // Slightly smaller for better mobile fit
@@ -3347,6 +4220,244 @@ const styles = StyleSheet.create({
   },
   personalityButtonText: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Battery Low Modal Styles
+  batteryModalContainer: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  batteryModalGradient: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  batteryModalHeader: {
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 16,
+  },
+  batteryModalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  batteryModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+  },
+  batteryModalContent: {
+    padding: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  batteryModalMessage: {
+    fontSize: 16,
+    color: '#d1d5db',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  batteryModalInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  batteryModalInfoText: {
+    fontSize: 14,
+    color: '#fbbf24',
+    marginLeft: 12,
+    flex: 1,
+  },
+  batteryModalInfoBold: {
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  batteryModalFooter: {
+    padding: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryModalButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  batteryButtonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  batteryModalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Battery Info Modal Styles
+  batteryInfoModalContainer: {
+    width: '85%',
+    maxWidth: 380,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  batteryInfoModalGradient: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryInfoModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryInfoModalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  batteryInfoModalIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryInfoModalHeaderText: {
+    flex: 1,
+  },
+  batteryInfoModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 2,
+  },
+  batteryInfoModalSubtitle: {
+    fontSize: 13,
+    color: '#9ca3af',
+    fontWeight: '500',
+  },
+  batteryInfoModalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryInfoModalContent: {
+    padding: 16,
+    paddingTop: 12,
+  },
+  batteryInfoSection: {
+    gap: 12,
+  },
+  batteryInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  batteryInfoItemText: {
+    flex: 1,
+  },
+  batteryInfoItemTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  batteryInfoItemDescription: {
+    fontSize: 12,
+    color: '#d1d5db',
+    lineHeight: 18,
+  },
+  batteryInfoHighlight: {
+    fontWeight: '700',
+    color: '#10b981',
+  },
+  batteryWarningBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+    marginTop: 4,
+  },
+  batteryWarningText: {
+    fontSize: 12,
+    color: '#fbbf24',
+    flex: 1,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  batteryInfoModalFooter: {
+    padding: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryInfoModalButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  batteryInfoButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+  },
+  batteryInfoButtonText: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#ffffff',
   },

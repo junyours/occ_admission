@@ -131,6 +131,205 @@ class ExamController extends Controller
     }
 
     /**
+     * Save a single exam answer in real time (mobile, low-spec devices) while keeping bulk submit intact
+     */
+    public function submitSingleExamAnswer(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'examId' => 'required|integer',
+                'questionId' => 'required|integer',
+                'selected_answer' => 'nullable|string|max:1',
+                'time_spent_seconds' => 'nullable|integer|min:0',
+                'question_start_time' => 'nullable|date',
+                'question_end_time' => 'nullable|date',
+            ]);
+
+            $user = $request->user();
+            $examinee = \App\Models\Examinee::where('accountId', $user->id)->first();
+
+            if (!$examinee) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Examinee profile not found.',
+                    'data' => null,
+                ], 404);
+            }
+
+            $existingResult = \App\Models\ExamResult::where('examineeId', $examinee->id)
+                ->where('examId', $request->examId)
+                ->first();
+
+            if ($existingResult && ($existingResult->remarks === 'Pass' || $existingResult->remarks === 'Fail')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Exam already completed. Real-time saving is disabled.',
+                    'data' => null,
+                ], 400);
+            }
+
+            $question = \App\Models\QuestionBank::where('questionId', $request->questionId)->first();
+            if (!$question) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Question not found.',
+                    'data' => null,
+                ], 404);
+            }
+
+            // Guard against personality questions (bulk submission still handles them)
+            if (is_string($request->questionId) && str_starts_with((string)$request->questionId, 'personality_')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Real-time save is only for academic questions.',
+                    'data' => null,
+                ], 400);
+            }
+
+            $selectedAnswer = $request->selected_answer;
+            $isCorrect = $question && $selectedAnswer !== null && $question->correct_answer === $selectedAnswer;
+            $category = $question->category ?? 'Uncategorized';
+
+            // Convert ISO datetime strings to MySQL format
+            $questionStartTime = null;
+            $questionEndTime = null;
+
+            if (!empty($request->question_start_time)) {
+                try {
+                    $questionStartTime = \Carbon\Carbon::parse($request->question_start_time)->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    Log::warning('[ExamController] Invalid question_start_time format (single): ' . $request->question_start_time);
+                }
+            }
+
+            if (!empty($request->question_end_time)) {
+                try {
+                    $questionEndTime = \Carbon\Carbon::parse($request->question_end_time)->format('Y-m-d H:i:s');
+                } catch (\Exception $e) {
+                    Log::warning('[ExamController] Invalid question_end_time format (single): ' . $request->question_end_time);
+                }
+            }
+
+            DB::beginTransaction();
+            Log::info('[ExamController] Real-time answer save start', [
+                'examId' => $request->examId,
+                'questionId' => $request->questionId,
+                'examineeId' => $examinee->id,
+            ]);
+
+            // Upsert the single answer
+            \App\Models\ExamineeAnswer::updateOrCreate(
+                [
+                    'examineeId' => $examinee->id,
+                    'questionId' => $request->questionId,
+                    'examId' => $request->examId,
+                ],
+                [
+                    'selected_answer' => $selectedAnswer,
+                    'is_correct' => $isCorrect,
+                    'time_spent_seconds' => $request->time_spent_seconds ?? null,
+                    'question_start_time' => $questionStartTime,
+                    'question_end_time' => $questionEndTime,
+                ]
+            );
+
+            // Recompute progress snapshot
+            $answers = \App\Models\ExamineeAnswer::where('examineeId', $examinee->id)
+                ->where('examId', $request->examId)
+                ->get();
+
+            $questionIds = $answers->pluck('questionId')->unique();
+            $questionMap = \App\Models\QuestionBank::whereIn('questionId', $questionIds)->get()->keyBy('questionId');
+
+            $categoryStats = [];
+            $correctCount = 0;
+
+            foreach ($answers as $storedAnswer) {
+                $questionMeta = $questionMap[$storedAnswer->questionId] ?? null;
+                $cat = $questionMeta->category ?? 'Uncategorized';
+                if (!isset($categoryStats[$cat])) {
+                    $categoryStats[$cat] = ['correct' => 0, 'total' => 0];
+                }
+                $categoryStats[$cat]['total']++;
+                if ($storedAnswer->is_correct) {
+                    $categoryStats[$cat]['correct']++;
+                    $correctCount++;
+                }
+            }
+
+            $categoryBreakdown = [];
+            foreach ($categoryStats as $cat => $stats) {
+                $categoryBreakdown[] = [
+                    'category' => $cat,
+                    'correct' => $stats['correct'],
+                    'total' => $stats['total'],
+                ];
+            }
+
+            $totalQuestions = \App\Models\ExamineeAnswer::getTotalQuestionsForExam($request->examId);
+            if (!$totalQuestions || $totalQuestions < 0) {
+                $totalQuestions = max($answers->count(), 0);
+            }
+
+            $examResult = $existingResult ?: \App\Models\ExamResult::firstOrCreate(
+                [
+                    'examineeId' => $examinee->id,
+                    'examId' => $request->examId,
+                ],
+                [
+                    'total_items' => $totalQuestions,
+                    'correct' => 0,
+                    'remarks' => 'In Progress',
+                    'started_at' => now(),
+                    'category_breakdown' => [],
+                ]
+            );
+
+            // Keep the result in "In Progress" until bulk submission decides otherwise
+            if (!$examResult->remarks || $examResult->remarks === '') {
+                $examResult->remarks = 'In Progress';
+            }
+
+            $examResult->total_items = $totalQuestions;
+            $examResult->correct = $correctCount;
+            $examResult->category_breakdown = $categoryBreakdown;
+            if (!$examResult->started_at) {
+                $examResult->started_at = now();
+            }
+            $examResult->save();
+
+            DB::commit();
+            Log::info('[ExamController] Real-time answer saved', [
+                'examId' => $request->examId,
+                'questionId' => $request->questionId,
+                'correct_so_far' => $correctCount,
+                'total_questions' => $totalQuestions,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Answer saved in real time.',
+                'data' => [
+                    'is_correct' => $isCorrect,
+                    'total_items' => $examResult->total_items,
+                    'correct' => $examResult->correct,
+                    'category_breakdown' => $categoryBreakdown,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            Log::error('[ExamController] Error saving single answer: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving answer: ' . $e->getMessage(),
+                'data' => null,
+            ], 500);
+        }
+    }
+
+    /**
      * Manually attach personality questions to an exam (for testing)
      */
     public function attachPersonalityQuestions(Request $request): JsonResponse

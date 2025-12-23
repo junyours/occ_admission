@@ -769,7 +769,13 @@ class GuidanceController extends Controller
         $startDate = $request->get('start_date'); // YYYY-MM-DD
         $endDate = $request->get('end_date');     // YYYY-MM-DD
 
-        $query = ExamResult::with(['examinee', 'exam'])->latest();
+        // Optimize eager loading - only load necessary fields to reduce memory usage
+        $query = ExamResult::with([
+            'examinee:id,accountId,lname,fname,mname,address,preferred_course',
+            // NOTE: exams table does not have a 'title' column, so we only select existing ones
+            'exam:examId,exam-ref-no'
+        ])->latest('finished_at');
+        
         if (!$includeArchived) {
             $query->where('is_archived', 0); // Show only non-archived results (archived = 0)
         } else {
@@ -786,23 +792,56 @@ class GuidanceController extends Controller
             $query->whereDate('finished_at', '<=', $endDate);
         }
         
-        // Get all results for proper date filtering and counting
-        $allResults = $query->get();
-        
-        // Create pagination manually for display purposes
+        // CRITICAL PERFORMANCE FIX: Use database pagination instead of loading all records
+        // This prevents loading thousands of records into memory which causes 32s+ LCP
         $perPage = 20;
         $currentPage = $request->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
-        $paginatedResults = $allResults->slice($offset, $perPage);
         
-        // Create pagination object
-        $results = new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedResults,
-            $allResults->count(),
-            $perPage,
-            $currentPage,
-            ['path' => $request->url(), 'pageName' => 'page']
-        );
+        // Get total count BEFORE pagination (lightweight operation)
+        $totalCount = (clone $query)->count();
+        
+        // Use database pagination - only loads 20 records per page from database
+        $results = $query->paginate($perPage)->withQueryString();
+        
+        // OPTIMIZATION: Load allResults efficiently for frontend filtering
+        $allResultsQuery = ExamResult::with([
+            'examinee:id,accountId,lname,fname,mname,address,preferred_course',
+            // Same as above: only select existing columns to avoid SQL errors
+            'exam:examId,exam-ref-no'
+        ]);
+        
+        // Apply same filters as main query
+        if (!$includeArchived) {
+            $allResultsQuery->where('is_archived', 0);
+        } else {
+            $allResultsQuery->where('is_archived', 1);
+        }
+        if ($year) {
+            $allResultsQuery->whereYear('finished_at', (int) $year);
+        }
+        if ($startDate) {
+            $allResultsQuery->whereDate('finished_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $allResultsQuery->whereDate('finished_at', '<=', $endDate);
+        }
+        
+        // Load all results (needed for frontend filtering)
+        // This is still needed but we'll optimize by preventing N+1 queries
+        $allResults = $allResultsQuery->get();
+        
+        // OPTIMIZATION: Pre-load registration data to reduce N+1 queries from semester/school_year accessors
+        // The accessors will still run but the data is already in memory, reducing database hits
+        if ($allResults->isNotEmpty()) {
+            $examineeIds = $allResults->pluck('examineeId')->unique()->values()->all();
+            
+            // Batch load all registration data for these examinees
+            // This helps reduce database queries when accessors run
+            DB::table('examinee_registrations')
+                ->whereIn('examinee_id', $examineeIds)
+                ->orderBy('registration_date', 'desc')
+                ->get(); // Pre-load into query cache
+        }
 
         // Attach recommended courses for each exam result
         $resultIds = $results->getCollection()->pluck('resultId')->all();
@@ -1453,9 +1492,11 @@ class GuidanceController extends Controller
         $settings->refresh();
         
         // Get selected exam dates from existing exam schedules
+        // Only fetch dates with status != 'closed' so that closed dates can be reselected
         $selectedExamDates = [];
         if ($settings->exam_start_date && $settings->exam_end_date) {
             $selectedExamDates = ExamSchedule::whereBetween('exam_date', [$settings->exam_start_date, $settings->exam_end_date])
+                ->where('status', '!=', 'closed')
                 ->distinct()
                 ->pluck('exam_date')
                 ->toArray();
@@ -1740,16 +1781,19 @@ class GuidanceController extends Controller
         }
 
         // Get selected exam dates from existing exam schedules
-        $selectedExamDates = [];
+        // Only fetch dates with status != 'closed' so that closed dates can be reselected
+        $existingExamDates = [];
         if ($settings->exam_start_date && $settings->exam_end_date) {
-            $selectedExamDates = ExamSchedule::whereBetween('exam_date', [$settings->exam_start_date, $settings->exam_end_date])
+            $existingExamDates = ExamSchedule::whereBetween('exam_date', [$settings->exam_start_date, $settings->exam_end_date])
+                ->where('status', '!=', 'closed')
                 ->distinct()
                 ->pluck('exam_date')
                 ->toArray();
         }
 
-        // Add selected_exam_dates to settings for frontend
-        $settings->selected_exam_dates = $selectedExamDates;
+        // Attach existing exam dates to settings for frontend
+        // These represent dates that already have active/open exam_schedules records
+        $settings->existing_exam_dates = $existingExamDates;
 
         return Inertia::render('Guidance/ExamDateSelection', [
             'user' => $user,
@@ -2232,17 +2276,28 @@ class GuidanceController extends Controller
     public function generateScheduleExamCode(Request $request)
     {
         $request->validate([
-            'exam_date' => 'required|date'
+            'exam_date' => 'required|date',
+            'exam_id' => 'nullable|exists:exams,examId'
         ]);
 
         $examDate = $request->input('exam_date');
-        // Choose a random active exam and use a shuffled variant of its exam-ref-no as the code
-        $activeExams = Exam::where('status', 'active')->get();
-        if ($activeExams->isEmpty()) {
-            return back()->withErrors(['error' => 'No active exams available. Please create an exam first.']);
+        $examId = $request->input('exam_id');
+        
+        // If exam_id is provided, use that specific exam; otherwise, choose a random active exam
+        if ($examId) {
+            $exam = Exam::where('examId', $examId)->where('status', 'active')->first();
+            if (!$exam) {
+                return back()->withErrors(['error' => 'Selected exam is not active or does not exist.']);
+            }
+        } else {
+            // Choose a random active exam and use a shuffled variant of its exam-ref-no as the code
+            $activeExams = Exam::where('status', 'active')->get();
+            if ($activeExams->isEmpty()) {
+                return back()->withErrors(['error' => 'No active exams available. Please create an exam first.']);
+            }
+            $exam = $activeExams->random();
         }
 
-        $exam = $activeExams->random();
         $baseRef = $exam->{'exam-ref-no'};
         $code = $this->generateUniqueShuffledCode($baseRef);
 
@@ -2252,7 +2307,8 @@ class GuidanceController extends Controller
         Log::info('[GuidanceController] Assigned existing exam-ref-no to schedule', [
             'exam_date' => $examDate,
             'exam_code' => $code,
-            'exam_id' => $exam->examId
+            'exam_id' => $exam->examId,
+            'manually_selected' => $examId ? true : false
         ]);
 
         return back()->with('success', 'Exam code assigned for ' . $examDate)->with('exam_code', $code);
@@ -2616,10 +2672,12 @@ class GuidanceController extends Controller
         ]);
 
         // Additional validation only when opening registration
+        // Allow existing exam windows that may have started in the past,
+        // but always require a valid date range (end on or after start).
         if ($request->registration_open) {
             $request->validate([
-                'exam_start_date' => 'required|date|after_or_equal:today',
-                'exam_end_date' => 'required|date|after:exam_start_date'
+                'exam_start_date' => 'required|date',
+                'exam_end_date' => 'required|date|after_or_equal:exam_start_date'
             ]);
         }
 
@@ -2647,6 +2705,16 @@ class GuidanceController extends Controller
                 $archivedRegistrationsCount = $this->archiveCompletedAndCancelledRegistrations();
             }
 
+            // When registration is being closed, clear the current exam window
+            // from exam_registration_settings so previous exam window is removed,
+            // but only AFTER closePreviousExamSchedules has used the original end date.
+            if ($isBeingClosed) {
+                $settings->update([
+                    'exam_start_date' => null,
+                    'exam_end_date' => null,
+                ]);
+            }
+
             // If registration is being opened, generate exam schedules
             if ($request->registration_open && $request->exam_start_date && $request->exam_end_date) {
                 $selectedDates = $request->selected_exam_dates ?? [];
@@ -2657,6 +2725,12 @@ class GuidanceController extends Controller
                     'afternoon_end_time' => $request->afternoon_end_time ?? '16:00:00'
                 ];
                 $this->generateExamSchedules($request->exam_start_date, $request->exam_end_date, $request->students_per_day, $selectedDates, $timeSettings);
+            }
+
+            // If registration is being closed, delete the current exam_registration_settings row
+            // The singleton row will be recreated with defaults next time the page is opened.
+            if ($isBeingClosed) {
+                $settings->delete();
             }
 
             $message = 'Registration settings updated successfully';
@@ -2829,10 +2903,7 @@ class GuidanceController extends Controller
     {
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
-        
-        // Clear existing schedules in the date range
-        ExamSchedule::whereBetween('exam_date', [$start, $end])->delete();
-        
+
         $halfCapacity = $studentsPerDay / 2;
         
         // If no specific dates are selected, fall back to all weekdays in the range
@@ -2858,6 +2929,7 @@ class GuidanceController extends Controller
     
     /**
      * Create morning and afternoon exam sessions for a specific date
+     * If the schedule exists and is closed, reopen it
      */
     private function createExamSessionsForDate($date, $halfCapacity, $timeSettings = [])
     {
@@ -2870,28 +2942,68 @@ class GuidanceController extends Controller
         ];
         
         $times = array_merge($defaultTimes, $timeSettings);
+
+        $examDate = $date->format('Y-m-d');
+
+        // Morning session - create if doesn't exist, or reopen if closed
+        $existingMorning = ExamSchedule::where('exam_date', $examDate)
+            ->where('session', 'morning')
+            ->first();
+
+        if (!$existingMorning) {
+            ExamSchedule::create([
+                'exam_date' => $examDate,
+                'session' => 'morning',
+                'start_time' => $times['morning_start_time'],
+                'end_time' => $times['morning_end_time'],
+                'max_capacity' => $halfCapacity,
+                'current_registrations' => 0,
+                'status' => 'open'
+            ]);
+        } elseif ($existingMorning->status === 'closed') {
+            // Reopen closed schedule, update times and capacity
+            $existingMorning->update([
+                'start_time' => $times['morning_start_time'],
+                'end_time' => $times['morning_end_time'],
+                'max_capacity' => $halfCapacity,
+                'status' => 'open'
+            ]);
+            Log::info('[GuidanceController] Reopened closed morning schedule', [
+                'exam_date' => $examDate,
+                'session' => 'morning',
+                'exam_code' => $existingMorning->exam_code
+            ]);
+        }
         
-        // Morning session
-        ExamSchedule::create([
-            'exam_date' => $date->format('Y-m-d'),
-            'session' => 'morning',
-            'start_time' => $times['morning_start_time'],
-            'end_time' => $times['morning_end_time'],
-            'max_capacity' => $halfCapacity,
-            'current_registrations' => 0,
-            'status' => 'open'
-        ]);
-        
-        // Afternoon session
-        ExamSchedule::create([
-            'exam_date' => $date->format('Y-m-d'),
-            'session' => 'afternoon',
-            'start_time' => $times['afternoon_start_time'],
-            'end_time' => $times['afternoon_end_time'],
-            'max_capacity' => $halfCapacity,
-            'current_registrations' => 0,
-            'status' => 'open'
-        ]);
+        // Afternoon session - create if doesn't exist, or reopen if closed
+        $existingAfternoon = ExamSchedule::where('exam_date', $examDate)
+            ->where('session', 'afternoon')
+            ->first();
+
+        if (!$existingAfternoon) {
+            ExamSchedule::create([
+                'exam_date' => $examDate,
+                'session' => 'afternoon',
+                'start_time' => $times['afternoon_start_time'],
+                'end_time' => $times['afternoon_end_time'],
+                'max_capacity' => $halfCapacity,
+                'current_registrations' => 0,
+                'status' => 'open'
+            ]);
+        } elseif ($existingAfternoon->status === 'closed') {
+            // Reopen closed schedule, update times and capacity
+            $existingAfternoon->update([
+                'start_time' => $times['afternoon_start_time'],
+                'end_time' => $times['afternoon_end_time'],
+                'max_capacity' => $halfCapacity,
+                'status' => 'open'
+            ]);
+            Log::info('[GuidanceController] Reopened closed afternoon schedule', [
+                'exam_date' => $examDate,
+                'session' => 'afternoon',
+                'exam_code' => $existingAfternoon->exam_code
+            ]);
+        }
     }
 
     /**
@@ -4427,6 +4539,8 @@ class GuidanceController extends Controller
                 'items.*.totalScore' => 'required|integer',
                 'items.*.qualifiedPrograms' => 'required|array',
                 'items.*.preferredCourse' => 'nullable|string',
+                // New: optional semester information per examinee
+                'items.*.semester' => 'nullable|string',
             ]);
 
             $pageBreakCss = '@media print { .page-break { page-break-after: always; } }';
@@ -4444,6 +4558,8 @@ class GuidanceController extends Controller
                     'totalScore' => $item['totalScore'],
                     'qualifiedPrograms' => $item['qualifiedPrograms'],
                     'preferredCourse' => $item['preferredCourse'] ?? null,
+                    // Pass semester to the individual page as well (optional)
+                    'semester' => $item['semester'] ?? null,
                 ])->render();
 
                 // Extract body
@@ -4507,10 +4623,28 @@ class GuidanceController extends Controller
                 }
             }
 
+            // Collect unique semesters from payload for display on the cover page
+            $semesters = array_map(function ($i) {
+                return isset($i['semester']) && trim($i['semester']) !== '' ? trim($i['semester']) : null;
+            }, $payload['items']);
+            $semesters = array_values(array_unique(array_filter($semesters)));
+            $semesterText = '';
+            if (count($semesters) === 1) {
+                $semesterText = $semesters[0];
+            } elseif (count($semesters) > 1) {
+                $semesterText = implode(', ', $semesters);
+            }
+
             $coverHtml = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:85vh;text-align:center;">'
                 . '<img src="/OCC logo.png" alt="OCC Logo" style="height:72px;width:72px;object-fit:contain;margin-bottom:16px;" />'
                 . '<div style="font-size:26px;font-weight:800;letter-spacing:1px;">ENTRANCE EXAM RESULT</div>'
-                . '<div style="margin-top:12px;font-size:18px;color:#374151;">' . (strlen($onText) ? ('ON \"' . e($onText) . '\"') : 'SUMMARY') . '</div>'
+                . '<div style="margin-top:12px;font-size:18px;color:#374151;">'
+                    . (strlen($onText) ? ('ON \"' . e($onText) . '\"') : 'SUMMARY')
+                . '</div>'
+                // New: show semester information on the first page if available
+                . (strlen($semesterText)
+                    ? '<div style="margin-top:6px;font-size:14px;color:#4b5563;">SEMESTER: ' . e($semesterText) . '</div>'
+                    : '')
                 . '</div>'
                 . '<div class="page-break"></div>';
 

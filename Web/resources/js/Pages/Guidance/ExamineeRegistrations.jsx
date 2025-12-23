@@ -459,6 +459,7 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
     const [bulkMainDate, setBulkMainDate] = React.useState('');
     const [bulkMainSession, setBulkMainSession] = React.useState('morning');
     const [showBulkMainModal, setShowBulkMainModal] = React.useState(false);
+    const bulkMainSessions = React.useMemo(() => getSessionsForDate(bulkMainDate || allowedDates[0] || ''), [bulkMainDate, getSessionsForDate, allowedDates]);
 
     // Collapsible containers state with localStorage persistence
     const [containersExpanded, setContainersExpanded] = React.useState(() => {
@@ -591,21 +592,16 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
         const currentDate = reg.assigned_exam_date;
         
         // If current date is in the past or not available, use the first available future date
-        if (!currentDate || currentDate < today) {
-            const firstDate = allowedDates[0] || '';
-            setChangeScheduleDate(firstDate);
-            const sessionsForDate = firstDate ? getSessionsForDate(firstDate) : [];
-            setAvailableSessions(sessionsForDate);
-            const firstEnabled = sessionsForDate.find(s => !s.disabled)?.value || 'morning';
-            setChangeScheduleSession(firstEnabled);
-        } else {
-            setChangeScheduleDate(currentDate);
-            const sessionsForDate = getSessionsForDate(currentDate);
-            setAvailableSessions(sessionsForDate);
-            const currentSessionValid = sessionsForDate.find(s => s.value === reg.assigned_session && !s.disabled);
-            const fallback = sessionsForDate.find(s => !s.disabled)?.value || 'morning';
-            setChangeScheduleSession(currentSessionValid ? reg.assigned_session : fallback);
-        }
+        const initialDate = (!currentDate || currentDate < today) ? (allowedDates[0] || '') : currentDate;
+        setChangeScheduleDate(initialDate);
+
+        const sessionsForDate = getSessionsForDate(initialDate);
+        setAvailableSessions(sessionsForDate);
+
+        const preferredSession = reg.assigned_session;
+        const preferredExists = sessionsForDate.find(s => s.value === preferredSession && !s.disabled);
+        const firstEnabled = sessionsForDate.find(s => !s.disabled)?.value || 'morning';
+        setChangeScheduleSession(preferredExists ? preferredSession : firstEnabled);
         setChangeScheduleModalOpen(true);
     };
 
@@ -632,7 +628,6 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
                 console.log('Schedule change successful');
                 setChangeScheduleModalOpen(false);
                 setChangeScheduleTarget(null);
-                setDateMenuOpen(false);
             },
             onError: (errors) => {
                 console.error('Schedule change failed:', errors);
@@ -764,13 +759,6 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
     const submitBulkMainReschedule = (e) => {
         e.preventDefault();
         if (selectedMainRegistrations.length === 0 || !bulkMainDate || !bulkMainSession) return;
-        
-        console.log('[ExamineeRegistrations] Bulk main reschedule submit', {
-            count: selectedMainRegistrations.length,
-            bulkMainDate,
-            bulkMainSession,
-            registration_ids: selectedMainRegistrations,
-        });
         
         router.post('/guidance/bulk-reschedule-registrations', {
             registration_ids: selectedMainRegistrations,
@@ -1138,12 +1126,11 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
                                             <button
                                                 onClick={() => {
                                                     if (selectedMainRegistrations.length > 0) {
-                                                        const firstDate = allowedDates[0] || '';
-                                                        setBulkMainDate(firstDate);
-                                                        const sessionsForDate = firstDate ? getSessionsForDate(firstDate) : [];
-                                                        setAvailableSessions(sessionsForDate);
-                                                        const firstEnabled = sessionsForDate.find(s => !s.disabled)?.value || 'morning';
-                                                        setBulkMainSession(firstEnabled);
+                                                    const firstDate = allowedDates[0] || '';
+                                                    const sessions = getSessionsForDate(firstDate);
+                                                    const firstEnabled = sessions.find(s => !s.disabled)?.value || 'morning';
+                                                    setBulkMainDate(firstDate);
+                                                    setBulkMainSession(firstEnabled);
                                                         setShowBulkMainModal(true);
                                                     }
                                                 }}
@@ -2504,107 +2491,71 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
                         </div>
                     )}
 
-                    {/* Bulk Main Reschedule Modal */}
+                    {/* Bulk Reschedule Modal for main registrations */}
                     {showBulkMainModal && (
-                        <div className="fixed inset-0 bg-clear bg-opacity-20 backdrop-blur-sm z-50 p-4" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', overflowY: 'auto' }}>
-                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" style={{ margin: 'auto' }}>
+                        <div className="fixed inset-0 bg-clear bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
                                 <div className="flex items-center justify-between rounded-t-2xl bg-[#1D293D] px-6 py-4 text-white">
                                     <h3 className="text-white font-semibold">Bulk Reschedule</h3>
-                                    <button 
-                                        onClick={() => { setShowBulkMainModal(false); setDateMenuOpen(false); }} 
-                                        className="text-white/80 transition-colors duration-150 hover:text-white"
-                                    >
-                                        ✕
-                                    </button>
+                                    <button onClick={() => setShowBulkMainModal(false)} className="text-white/80 transition-colors duration-150 hover:text-white">✕</button>
                                 </div>
                                 <form onSubmit={submitBulkMainReschedule} className="p-6 space-y-4">
                                     <div className="text-sm text-gray-700">
                                         Reschedule {selectedMainRegistrations.length} examinee{selectedMainRegistrations.length !== 1 ? 's' : ''} to a new date and session.
                                     </div>
 
-                                    {/* Date selector (grouped) */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">New Exam Date</label>
-                                        <div className="relative">
-                                            <button 
-                                                type="button" 
-                                                onClick={()=>setDateMenuOpen(v=>!v)} 
-                                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-left text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
-                                            >
-                                                {dateOptions.find(o=>o.value===bulkMainDate)?.label || 'Select a date'}
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                                                </span>
-                                            </button>
-                                            {dateMenuOpen && (
-                                                <div className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
-                                                    {(() => {
-                                                        const groups = {};
-                                                        dateOptions.forEach(opt => { (groups[opt.group] ||= []).push(opt); });
-                                                        return Object.entries(groups).map(([g, opts]) => (
-                                                            <div key={g} className="py-1">
-                                                                <div className="bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">{g}</div>
-                                                                {opts.map((o, idx2) => (
-                                                                    <button
-                                                                        key={o.value}
-                                                                        type="button"
-                                                                        onClick={()=>{
-                                                                            setBulkMainDate(o.value);
-                                                                            const sessionsForDate = getSessionsForDate(o.value);
-                                                                            setAvailableSessions(sessionsForDate);
-                                                                            const firstEnabled = sessionsForDate.find(s=>!s.disabled)?.value || 'morning';
-                                                                            setBulkMainSession(firstEnabled);
-                                                                            setDateMenuOpen(false);
-                                                                        }}
-                                                                        className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${bulkMainDate === o.value ? 'bg-[#1447E6]/10 text-[#1447E6]' : 'hover:bg-[#1447E6]/10'}`}
-                                                                    >
-                                                                        {o.label}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        ));
-                                                    })()}
-                                                </div>
-                                            )}
+                                    {allowedDates.length === 0 ? (
+                                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                                            No available future schedules found. Add schedules first before rescheduling.
                                         </div>
-                                        <p className="mt-1 text-xs text-gray-500">Dates show AM/PM capacities and availability. Full/closed sessions are indicated.</p>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                                <select
+                                                    value={bulkMainDate}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const sessions = getSessionsForDate(val);
+                                                        const firstEnabled = sessions.find(s => !s.disabled)?.value || 'morning';
+                                                        setBulkMainDate(val);
+                                                        setBulkMainSession(firstEnabled);
+                                                    }}
+                                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                >
+                                                    {allowedDates.map((d) => (
+                                                        <option key={d} value={d}>
+                                                            {new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
 
-                                    {/* Session selector */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
-                                        <select 
-                                            value={bulkMainSession} 
-                                            onChange={(e)=>setBulkMainSession(e.target.value)} 
-                                            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
-                                        >
-                                            {availableSessions.map(s => (
-                                                <option key={s.value} value={s.value} disabled={s.disabled}>{s.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Summary */}
-                                    {bulkMainDate && bulkMainSession && (
-                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                                            All {selectedMainRegistrations.length} selected examinee{selectedMainRegistrations.length !== 1 ? 's' : ''} will be moved to <strong>{dateOptions.find(o=>o.value===bulkMainDate)?.label.split(' • ')[0]}</strong> – <strong>{bulkMainSession === 'morning' ? 'Morning' : 'Afternoon'}</strong> session.
-                                        </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
+                                                <select
+                                                    value={bulkMainSession}
+                                                    onChange={(e) => setBulkMainSession(e.target.value)}
+                                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                >
+                                                    {bulkMainSessions.map((s) => (
+                                                        <option key={s.value} value={s.value} disabled={s.disabled}>
+                                                            {s.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </>
                                     )}
 
                                     <div className="flex justify-end gap-2 pt-2">
-                                        <button 
-                                            type="button" 
-                                            onClick={()=>{ setShowBulkMainModal(false); setDateMenuOpen(false); }} 
-                                            className="px-4 py-2 text-sm border rounded"
+                                        <button type="button" onClick={() => setShowBulkMainModal(false)} className="px-4 py-2 text-sm border rounded">Cancel</button>
+                                        <button
+                                            type="submit"
+                                            disabled={allowedDates.length === 0}
+                                            className="rounded-lg bg-[#1447E6] px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#1240d0] disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Cancel
-                                        </button>
-                                        <button 
-                                            type="submit" 
-                                            disabled={!bulkMainDate || !bulkMainSession}
-                                            className="rounded-lg bg-[#1447E6] px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#1240d0] disabled:opacity-60 disabled:cursor-not-allowed"
-                                        >
-                                            Reschedule
+                                            Save
                                         </button>
                                     </div>
                                 </form>
@@ -2641,63 +2592,58 @@ const ExamineeRegistrations = ({ user, settings, registrations, schedules, unass
                                             )}
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">New Date</label>
-                                        <div className="relative">
-                                            <button 
-                                                type="button" 
-                                                onClick={()=>setDateMenuOpen(v=>!v)} 
-                                                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-left text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
-                                            >
-                                                {dateOptions.find(o=>o.value===changeScheduleDate)?.label || 'Select a date'}
-                                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
-                                                </span>
-                                            </button>
-                                            {dateMenuOpen && (
-                                                <div className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
-                                                    {(() => {
-                                                        const groups = {};
-                                                        dateOptions.forEach(opt => { (groups[opt.group] ||= []).push(opt); });
-                                                        return Object.entries(groups).map(([g, opts]) => (
-                                                            <div key={g} className="py-1">
-                                                                <div className="bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">{g}</div>
-                                                                {opts.map((o) => (
-                                                                    <button
-                                                                        key={o.value}
-                                                                        type="button"
-                                                                        onClick={()=>{
-                                                                            setChangeScheduleDate(o.value);
-                                                                            const sessionsForDate = getSessionsForDate(o.value);
-                                                                            setAvailableSessions(sessionsForDate);
-                                                                            const firstEnabled = sessionsForDate.find(s=>!s.disabled)?.value || 'morning';
-                                                                            setChangeScheduleSession(firstEnabled);
-                                                                            setDateMenuOpen(false);
-                                                                        }}
-                                                                        className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${changeScheduleDate === o.value ? 'bg-[#1447E6]/10 text-[#1447E6]' : 'hover:bg-[#1447E6]/10'}`}
-                                                                    >
-                                                                         {o.label}
-                                                                     </button>
-                                                                ))}
-                                                            </div>
-                                                        ));
-                                                    })()}
-                                                </div>
-                                            )}
+                                    {allowedDates.length === 0 ? (
+                                        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                                            No available future schedules found. Add schedules first before rescheduling.
                                         </div>
-                                        <p className="mt-1 text-xs text-gray-500">Dates show AM/PM capacities and availability. Full/closed sessions are indicated.</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
-                                        <select value={changeScheduleSession} onChange={(e) => setChangeScheduleSession(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30" disabled={allowedDates.length === 0}>
-                                            {availableSessions.map(s => (
-                                                <option key={s.value} value={s.value} disabled={s.disabled}>{s.label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    ) : (
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">New Date</label>
+                                                <select
+                                                    value={changeScheduleDate}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const sessions = getSessionsForDate(val);
+                                                        setAvailableSessions(sessions);
+                                                        const firstEnabled = sessions.find(s => !s.disabled)?.value || 'morning';
+                                                        setChangeScheduleDate(val);
+                                                        setChangeScheduleSession(firstEnabled);
+                                                    }}
+                                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                >
+                                                    {allowedDates.map((d) => (
+                                                        <option key={d} value={d}>
+                                                            {new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
+                                                <select
+                                                    value={changeScheduleSession}
+                                                    onChange={(e) => setChangeScheduleSession(e.target.value)}
+                                                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                >
+                                                    {availableSessions.map(s => (
+                                                        <option key={s.value} value={s.value} disabled={s.disabled}>
+                                                            {s.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="flex justify-end gap-2 pt-2">
-                                        <button type="button" onClick={() => { setChangeScheduleModalOpen(false); setDateMenuOpen(false); }} className="px-4 py-2 text-sm border rounded">Cancel</button>
-                                        <button type="submit" disabled={!changeScheduleDate || !changeScheduleSession} className="rounded-lg bg-[#1447E6] px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#1240d0] disabled:opacity-60 disabled:cursor-not-allowed">Save changes</button>
+                                        <button type="button" onClick={() => setChangeScheduleModalOpen(false)} className="px-4 py-2 text-sm border rounded">Cancel</button>
+                                        <button
+                                            type="submit"
+                                            disabled={allowedDates.length === 0}
+                                            className="rounded-lg bg-[#1447E6] px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#1240d0] disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            Save changes
+                                        </button>
                                     </div>
                                 </form>
                             </div>

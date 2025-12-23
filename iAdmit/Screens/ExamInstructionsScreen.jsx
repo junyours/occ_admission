@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Platform, ScrollView, ActivityIndicator, Alert, Modal } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getAcademicExamQuestions, getExamQuestions } from '../API/exam';
@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { NavigationBar } from 'react-native-navigation-bar-color';
 import OfflineIndicator from '../components/OfflineIndicator';
 import offlineManager from '../utils/OfflineManager';
+import DeviceInfo from 'react-native-device-info';
 
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = width < 350;
@@ -20,6 +21,8 @@ export default function ExamInstructionsScreen({ navigation, route }) {
   const [totalQuestions, setTotalQuestions] = useState(questionsCount || 0);
   // Offline availability removed - exams are now online only
   const [isOnline, setIsOnline] = useState(true);
+  const [showBatteryLowModal, setShowBatteryLowModal] = useState(false);
+  const [batteryLowMessage, setBatteryLowMessage] = useState('');
 
   // Helper function to get exam questions based on exam type
   const getExamQuestionsByType = async (examId, examType) => {
@@ -243,7 +246,39 @@ export default function ExamInstructionsScreen({ navigation, route }) {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          onPress={() => {
+          onPress={async () => {
+            // Check battery level before starting exam
+            // TEST MODE: Use test battery level for testing
+            const TEST_BATTERY_MODE = false; // Set to false to use real battery level
+            const TEST_BATTERY_LEVEL = 21; // Test battery percentage (only used when TEST_BATTERY_MODE is true)
+
+            try {
+              // TEST MODE: Override battery level for testing
+              if (TEST_BATTERY_MODE) {
+                console.log('[ExamInstructionsScreen] TEST MODE: Using test battery level:', TEST_BATTERY_LEVEL + '%');
+                if (TEST_BATTERY_LEVEL <= 30) {
+                  setBatteryLowMessage(`Battery is too low. Charge your device to at least 31% and try again. Current battery: ${TEST_BATTERY_LEVEL}%`);
+                  setShowBatteryLowModal(true);
+                  return;
+                }
+              } else {
+                if (typeof DeviceInfo.getBatteryLevel === 'function') {
+                  const level = await DeviceInfo.getBatteryLevel();
+                  if (level !== null && level !== undefined && !isNaN(level)) {
+                    const percentage = Math.round(level * 100);
+                    if (percentage <= 30) {
+                      setBatteryLowMessage(`Battery is too low. Charge your device to at least 31% and try again. Current battery: ${percentage}%`);
+                      setShowBatteryLowModal(true);
+                      return;
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.log('[ExamInstructionsScreen] Failed to check battery level:', error?.message);
+              // If we can't check battery, allow exam to proceed
+            }
+
             // Validate all required params before navigation
             if (!examId) {
               Alert.alert('Error', 'Exam ID is missing. Please scan the QR code again.');
@@ -295,6 +330,61 @@ export default function ExamInstructionsScreen({ navigation, route }) {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      {/* Battery Low Modal */}
+      <Modal
+        visible={showBatteryLowModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowBatteryLowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.batteryModalContainer}>
+            <LinearGradient
+              colors={['#1a1a2e', '#16213e', '#0f172a']}
+              style={styles.batteryModalGradient}
+            >
+              {/* Modal Header */}
+              <View style={styles.batteryModalHeader}>
+                <View style={styles.batteryModalIconContainer}>
+                  <Icon name="battery-alert" size={48} color="#ef4444" />
+                </View>
+                <Text style={styles.batteryModalTitle}>Battery Too Low</Text>
+              </View>
+
+              {/* Modal Content */}
+              <View style={styles.batteryModalContent}>
+                <Text style={styles.batteryModalMessage}>
+                  {batteryLowMessage || 'Battery is too low. Charge your device to at least 31% and try again.'}
+                </Text>
+                <View style={styles.batteryModalInfoBox}>
+                  <Icon name="info" size={20} color="#f59e0b" />
+                  <Text style={styles.batteryModalInfoText}>
+                    Minimum battery required: <Text style={styles.batteryModalInfoBold}>31%</Text>
+                  </Text>
+                </View>
+              </View>
+
+              {/* Modal Footer */}
+              <View style={styles.batteryModalFooter}>
+                <TouchableOpacity
+                  style={styles.batteryModalButton}
+                  onPress={() => setShowBatteryLowModal(false)}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#10b981', '#059669']}
+                    style={styles.batteryButtonGradient}
+                  >
+                    <Icon name="check-circle" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                    <Text style={styles.batteryModalButtonText}>Understood</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
 
       {/* Offline Exam Downloader removed - exams are now online only */}
     </View>
@@ -368,6 +458,108 @@ const styles = StyleSheet.create({
   startButton: { borderRadius: 16, overflow: 'hidden' },
   startButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 52 },
   startText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  // Battery Low Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  batteryModalContainer: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  batteryModalGradient: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)',
+  },
+  batteryModalHeader: {
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 16,
+  },
+  batteryModalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  batteryModalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+  },
+  batteryModalContent: {
+    padding: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  batteryModalMessage: {
+    fontSize: 16,
+    color: '#d1d5db',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  batteryModalInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.2)',
+  },
+  batteryModalInfoText: {
+    fontSize: 14,
+    color: '#fbbf24',
+    marginLeft: 12,
+    flex: 1,
+  },
+  batteryModalInfoBold: {
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  batteryModalFooter: {
+    padding: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  batteryModalButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  batteryButtonGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  batteryModalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
 });
 
 

@@ -27,7 +27,7 @@ use App\Models\QuestionBank;
 Route::post('/login', [AuthController::class, 'apiLogin']); // Keep existing for backward compatibility
 Route::get('/health', [MobileAuthController::class, 'health']); // Mobile app health check
 
-// Mobile app authentication routes
+// Mobile app authentication routes (public)
 Route::prefix('mobile')->group(function () {
     Route::post('/login', [MobileAuthController::class, 'login']);
     Route::post('/login/fingerprint', [MobileAuthController::class, 'fingerprintLogin']); // Fingerprint login endpoint
@@ -38,7 +38,6 @@ Route::prefix('mobile')->group(function () {
     Route::post('/verify-email', [\App\Http\Controllers\Api\MobileRegistrationController::class, 'verifyEmail']);
     Route::post('/resend-verification', [\App\Http\Controllers\Api\MobileRegistrationController::class, 'resendVerificationCode']);
     Route::get('/health', [MobileAuthController::class, 'health']);
-    Route::get('/validate-token', [MobileAuthController::class, 'validateToken']); // Token validation endpoint
 });
 
 // Test route to verify Passport is working
@@ -61,6 +60,7 @@ Route::middleware('auth:api')->group(function () {
     
     // Mobile app protected routes
     Route::prefix('mobile')->group(function () {
+        Route::get('/validate-token', [MobileAuthController::class, 'validateToken']); // Token validation - MUST be inside auth:api middleware
         Route::get('/profile', [MobileAuthController::class, 'profile']);
         Route::get('/examinee/profile', [MobileExamineeController::class, 'getProfile']);
         Route::put('/examinee/profile', [MobileExamineeController::class, 'updateProfile']);
@@ -132,6 +132,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/personality/submit', [PersonalityTestController::class, 'submitPersonalityTestAnswers']);
         
         Route::post('/submit', [ExamController::class, 'submitExamAnswers']);
+        Route::post('/answer', [ExamController::class, 'submitSingleExamAnswer']); // Real-time per-question save
         Route::get('/results', [ExamController::class, 'getExamResults']);
         
         // Departmental exam routes

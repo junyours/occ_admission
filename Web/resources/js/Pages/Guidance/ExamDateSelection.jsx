@@ -9,13 +9,37 @@ const ExamDateSelection = ({ user, settings }) => {
         return `${currentYear}-${currentYear + 1}`;
     };
 
+    // Normalize any backend date value to HTML date input format (YYYY-MM-DD)
+    const normalizeDateForInput = (value) => {
+        if (!value) return '';
+        // If it's already in YYYY-MM-DD format, return as-is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return value;
+        }
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) {
+            return '';
+        }
+        return d.toISOString().split('T')[0];
+    };
+
+    // Existing exam dates already stored in exam_schedules for the current window
+    // Normalize them to YYYY-MM-DD so they match the calendar date strings
+    const existingExamDates = Array.isArray(settings.existing_exam_dates)
+        ? settings.existing_exam_dates
+            .map((d) => normalizeDateForInput(d))
+            .filter((d) => d && typeof d === 'string')
+        : [];
+
     const [formData, setFormData] = useState({
         registration_open: settings.registration_open || false,
         academic_year: settings.academic_year || getCurrentAcademicYear(),
         semester: settings.semester || '1st',
-        exam_start_date: settings.exam_start_date || '',
-        exam_end_date: settings.exam_end_date || '',
-        selected_exam_dates: [],
+        // Ensure dates coming from the database show correctly in the date pickers
+        exam_start_date: normalizeDateForInput(settings.exam_start_date) || '',
+        exam_end_date: normalizeDateForInput(settings.exam_end_date) || '',
+        // Initialize with normalized existing exam dates so they appear selected by default
+        selected_exam_dates: existingExamDates,
         students_per_day: settings.students_per_day || 40,
         registration_message: settings.registration_message || '',
         delete_previous_schedules: false,
@@ -49,27 +73,49 @@ const ExamDateSelection = ({ user, settings }) => {
     };
 
     const isDateSelected = (date) => {
-        return formData.selected_exam_dates.includes(date);
+        const normalizedDate = normalizeDateForInput(date);
+        const result = formData.selected_exam_dates.includes(normalizedDate);
+        return result;
+    };
+
+    // Helper: check if a date already exists in exam_schedules (current/existing date)
+    const isExistingExamDate = (date) => {
+        const normalizedDate = normalizeDateForInput(date);
+        return existingExamDates.includes(normalizedDate);
     };
 
     const toggleDateSelection = (date) => {
+        // Normalize date to ensure consistent format
+        const normalizedDate = normalizeDateForInput(date);
+        console.log('[ExamDateSelection] toggleDateSelection - date:', date, 'normalized:', normalizedDate);
+        
         // Prevent selection of weekend dates
-        const dateObj = new Date(date);
+        const dateObj = new Date(normalizedDate);
         const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
         if (isWeekend) {
             return; // Do nothing for weekend dates
         }
+
+        // Do not allow removing existing exam dates from the selection
+        if (isExistingExamDate(normalizedDate)) {
+            console.log('[ExamDateSelection] Existing exam date clicked, not removing:', normalizedDate);
+            return;
+        }
         
         const currentDates = formData.selected_exam_dates;
-        if (currentDates.includes(date)) {
+        console.log('[ExamDateSelection] Current selected dates:', currentDates);
+        console.log('[ExamDateSelection] Is date in current dates?', currentDates.includes(normalizedDate));
+        
+        if (currentDates.includes(normalizedDate)) {
             setFormData({
                 ...formData,
-                selected_exam_dates: currentDates.filter(d => d !== date)
+                // Only remove if it's not an existing exam date (checked above)
+                selected_exam_dates: currentDates.filter(d => d !== normalizedDate)
             });
         } else {
             setFormData({
                 ...formData,
-                selected_exam_dates: [...currentDates, date]
+                selected_exam_dates: [...currentDates, normalizedDate]
             });
         }
     };
@@ -84,16 +130,19 @@ const ExamDateSelection = ({ user, settings }) => {
             const day = new Date(date).getDay();
             return day !== 0 && day !== 6; // Exclude Sunday (0) and Saturday (6)
         });
+        // Ensure existing exam dates are always included
+        const merged = Array.from(new Set([...existingExamDates, ...weekdays]));
         setFormData({
             ...formData,
-            selected_exam_dates: weekdays
+            selected_exam_dates: merged
         });
     };
 
     const clearAllDates = () => {
+        // Clear only newly added dates; keep existing exam dates
         setFormData({
             ...formData,
-            selected_exam_dates: []
+            selected_exam_dates: existingExamDates
         });
     };
 
@@ -106,9 +155,11 @@ const ExamDateSelection = ({ user, settings }) => {
             const day = new Date(date).getDay();
             return day !== 0 && day !== 6; // Exclude Sunday (0) and Saturday (6)
         });
+        // Ensure existing exam dates are always included
+        const merged = Array.from(new Set([...existingExamDates, ...weekdays]));
         setFormData({
             ...formData,
-            selected_exam_dates: weekdays
+            selected_exam_dates: merged
         });
     };
 
@@ -369,55 +420,57 @@ const ExamDateSelection = ({ user, settings }) => {
                         {/* Right Column - Main Content */}
                         <div className="xl:col-span-3 space-y-6">
 
-                            {/* Exam Window Settings */}
-                            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm animate-up" style={{ animationDelay: '360ms' }}>
-                                <div className="flex items-center gap-4 border-b border-slate-200 px-6 py-5 animate-up" style={{ animationDelay: '380ms' }}>
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
+                            {/* Exam Window Settings - only visible when registration is open (registration_open = 1) */}
+                            {formData.registration_open && (
+                                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm animate-up" style={{ animationDelay: '360ms' }}>
+                                    <div className="flex items-center gap-4 border-b border-slate-200 px-6 py-5 animate-up" style={{ animationDelay: '380ms' }}>
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-[#1D293D]">Exam Window Settings</h3>
+                                            <p className="text-sm text-slate-500">Set the exam period and daily capacity</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-[#1D293D]">Exam Window Settings</h3>
-                                        <p className="text-sm text-slate-500">Set the exam period and daily capacity</p>
+                                    <div className="px-6 py-6 animate-up" style={{ animationDelay: '400ms' }}>
+                                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-semibold text-[#1D293D]">Exam Start Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={formData.exam_start_date}
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    onChange={(e) => setFormData({ ...formData, exam_start_date: e.target.value })}
+                                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#1D293D] shadow-sm transition duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-semibold text-[#1D293D]">Exam End Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={formData.exam_end_date}
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                    onChange={(e) => setFormData({ ...formData, exam_end_date: e.target.value })}
+                                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#1D293D] shadow-sm transition duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="block text-sm font-semibold text-[#1D293D]">Students Per Day</label>
+                                                <input
+                                                    type="number"
+                                                    value={formData.students_per_day}
+                                                    onChange={(e) => setFormData({ ...formData, students_per_day: parseInt(e.target.value) })}
+                                                    className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#1D293D] shadow-sm transition duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                                    min="1"
+                                                    max="100"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="px-6 py-6 animate-up" style={{ animationDelay: '400ms' }}>
-                                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-semibold text-[#1D293D]">Exam Start Date</label>
-                                            <input
-                                                type="date"
-                                                value={formData.exam_start_date}
-                                                min={new Date().toISOString().split('T')[0]}
-                                                onChange={(e) => setFormData({ ...formData, exam_start_date: e.target.value })}
-                                                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#1D293D] shadow-sm transition duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-semibold text-[#1D293D]">Exam End Date</label>
-                                            <input
-                                                type="date"
-                                                value={formData.exam_end_date}
-                                                min={new Date().toISOString().split('T')[0]}
-                                                onChange={(e) => setFormData({ ...formData, exam_end_date: e.target.value })}
-                                                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#1D293D] shadow-sm transition duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="block text-sm font-semibold text-[#1D293D]">Students Per Day</label>
-                                            <input
-                                                type="number"
-                                                value={formData.students_per_day}
-                                                onChange={(e) => setFormData({ ...formData, students_per_day: parseInt(e.target.value) })}
-                                                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-[#1D293D] shadow-sm transition duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
-                                                min="1"
-                                                max="100"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            )}
 
                             {/* Exam Time Settings */}
                             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm animate-up" style={{ animationDelay: '380ms' }}>
@@ -539,6 +592,25 @@ const ExamDateSelection = ({ user, settings }) => {
                                 </div>
                             </div>
 
+                            {/* Legend for calendar colors */}
+                            <div className="px-6 pt-2 animate-up" style={{ animationDelay: '450ms' }}>
+                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                    <span className="font-semibold text-slate-600">Legend:</span>
+                                    <div className="inline-flex items-center gap-1 rounded-full bg-[#1447E6]/20 px-2 py-1 text-[11px] font-medium text-[#1447E6] border border-[#1447E6]/40">
+                                        <span className="h-3 w-3 rounded-full bg-[#1447E6]/40 border border-[#1447E6]/60" />
+                                        Existing exam date
+                                    </div>
+                                    <div className="inline-flex items-center gap-1 rounded-full bg-[#1447E6] px-2 py-1 text-[11px] font-medium text-white">
+                                        <span className="h-3 w-3 rounded-full bg-white/20 border border-white/40" />
+                                        Newly added date
+                                    </div>
+                                    <div className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500 border border-slate-200">
+                                        <span className="h-3 w-3 rounded-full bg-slate-300 border border-slate-400" />
+                                        Weekend / not available
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="px-6 py-6 animate-up" style={{ animationDelay: '460ms' }}>
                                 {/* Quick Selection Buttons */}
                                 <div className="mb-6 flex flex-wrap gap-3">
@@ -630,6 +702,7 @@ const ExamDateSelection = ({ user, settings }) => {
                                                             monthDates.forEach((date) => {
                                                                 const dateObj = new Date(date);
                                                                 const isSelected = isDateSelected(date);
+                                                                const isExisting = isExistingExamDate(date);
                                                                 const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
 
                                                                 if (isWeekend) {
@@ -650,7 +723,10 @@ const ExamDateSelection = ({ user, settings }) => {
                                                                             onClick={() => toggleDateSelection(date)}
                                                                             className={`flex h-12 items-center justify-center border-b border-r border-slate-200 text-sm font-semibold transition-colors ${
                                                                                 isSelected
-                                                                                    ? 'bg-[#1447E6] text-white'
+                                                                                    ? (isExisting
+                                                                                        ? 'bg-[#1447E6]/20 text-[#1447E6] border-[#1447E6]/40' // Existing schedule date - blue but greyed out
+                                                                                        : 'bg-[#1447E6] text-white' // Newly added date - strong blue
+                                                                                      )
                                                                                     : 'bg-white text-slate-600 hover:bg-[#1447E6]/10 hover:text-[#1447E6]'
                                                                             }`}
                                                                         >

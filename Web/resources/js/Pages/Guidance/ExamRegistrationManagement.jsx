@@ -163,6 +163,11 @@ const ExamRegistrationManagement = ({ user, settings, registrations, schedules, 
     const [selectedExamId, setSelectedExamId] = useState('');
     const [loadingExams, setLoadingExams] = useState(false);
     const [submittingBulk, setSubmittingBulk] = useState(false);
+    // Single date code generation modal state
+    const [showSingleDateCodeModal, setShowSingleDateCodeModal] = useState(false);
+    const [singleDateForCode, setSingleDateForCode] = useState('');
+    const [singleDateExamId, setSingleDateExamId] = useState('');
+    const [submittingSingleDate, setSubmittingSingleDate] = useState(false);
     // Confirmation modal for closing schedules
     const [showCloseConfirmationModal, setShowCloseConfirmationModal] = useState(false);
     const [pendingFormData, setPendingFormData] = useState(null);
@@ -1370,16 +1375,11 @@ const ExamRegistrationManagement = ({ user, settings, registrations, schedules, 
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                             <div className={`rounded-2xl border border-slate-200 border-t-[6px] bg-white p-5 shadow-sm ${settings.registration_open ? 'border-t-[#1447E6]' : 'border-t-orange-500'}`}>
                                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Registration Status</p>
                                                 <p className="mt-3 text-2xl font-semibold text-[#1D293D]">{settings.registration_open ? 'Open' : 'Closed'}</p>
                                                 <p className={`mt-1 text-xs font-medium ${settings.registration_open ? 'text-[#1447E6]' : 'text-orange-600'}`}>Auto-close {settings.registration_open ? 'enabled' : 'disabled'}</p>
-                                            </div>
-                                            <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-5 shadow-sm">
-                                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Active Registrations</p>
-                                                <p className="mt-3 text-2xl font-semibold text-[#1D293D]">{visibleRegistrationsTotal}</p>
-                                                <p className="mt-1 text-xs font-medium text-[#1447E6]">Sync every 30 seconds</p>
                                             </div>
                                             <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-5 shadow-sm">
                                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Daily Capacity</p>
@@ -1770,24 +1770,35 @@ const ExamRegistrationManagement = ({ user, settings, registrations, schedules, 
                                                                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A2 2 0 012 15.382V6.618a2 2 0 011.553-1.894L9 2m0 18l6-3m-6 3V2m6 15l5.447 2.724A2 2 0 0022 18.618V9.382a2 2 0 00-1.553-1.894L15 6m0 11V6m0 0L9 3" />
                                                                                          </svg>
                                                                                          {code ? code : 'No code'}
-                                                                                         <button
-                                                                                             type="button"
-                                                                                             onClick={(e) => {
-                                                                                                 e.stopPropagation();
-                                                                                                 router.post('/guidance/generate-schedule-code', { exam_date: examDate }, {
-                                                                                                     onSuccess: () => {
-                                                                                                         window.showAlert('Exam code generated for this date.', 'success');
-                                                                                                     },
-                                                                                                     onError: () => {
-                                                                                                         window.showAlert('Failed to generate exam code.', 'error');
-                                                                                                     }
-                                                                                                 });
-                                                                                             }}
-                                                                                             className="ml-2 text-emerald-700 hover:text-emerald-900"
-                                                                                             title={code ? 'Regenerate code' : 'Generate code'}
-                                                                                         >
-                                                                                             {code ? 'Regenerate' : 'Generate'}
-                                                                                         </button>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={async (e) => {
+                                                                                                e.stopPropagation();
+                                                                                                setSingleDateForCode(examDate);
+                                                                                                setSingleDateExamId('');
+                                                                                                setShowSingleDateCodeModal(true);
+                                                                                                // Load exams for the modal
+                                                                                                if (examSummaries.length === 0) {
+                                                                                                    setLoadingExams(true);
+                                                                                                    try {
+                                                                                                        const res = await fetch('/guidance/exams/summaries', { headers: { 'Accept': 'application/json' } });
+                                                                                                        if (!res.ok) throw new Error('Failed to load exams');
+                                                                                                        const json = await res.json();
+                                                                                                        setExamSummaries(Array.isArray(json.data) ? json.data : []);
+                                                                                                    } catch (e) {
+                                                                                                        console.warn('[ExamRegistration] load exams failed', e);
+                                                                                                        window.showAlert('Failed to load exams. Please try again.', 'error');
+                                                                                                        setShowSingleDateCodeModal(false);
+                                                                                                    } finally {
+                                                                                                        setLoadingExams(false);
+                                                                                                    }
+                                                                                                }
+                                                                                            }}
+                                                                                            className="ml-2 text-emerald-700 hover:text-emerald-900"
+                                                                                            title={code ? 'Regenerate code' : 'Generate code'}
+                                                                                        >
+                                                                                            {code ? 'Regenerate' : 'Generate'}
+                                                                                        </button>
                                                                                          {code && (
                                                                                              <>
                                                                                                  <button
@@ -2536,6 +2547,105 @@ const ExamRegistrationManagement = ({ user, settings, registrations, schedules, 
                                 className={`px-4 py-2 text-white rounded-md transition-colors duration-200 ${(!selectedExamId || submittingBulk) ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
                             >
                                 {submittingBulk ? 'Generating…' : 'Generate Codes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Single Date Code Generation Modal */}
+            {showSingleDateCodeModal && (
+                <div className="fixed inset-0 bg-clear bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none">
+                    <div className="mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-2xl rounded-lg bg-white pointer-events-auto animate-fadeIn">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold">EC</div>
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900">Generate Code For {formatDate(singleDateForCode)}</h3>
+                                    <p className="text-xs text-gray-500">Select an exam to assign its code to this date.</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowSingleDateCodeModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Exam</label>
+                                <select
+                                    disabled={loadingExams}
+                                    value={singleDateExamId}
+                                    onChange={(e) => setSingleDateExamId(e.target.value)}
+                                    className="w-full border-2 border-gray-300 rounded-lg shadow-sm focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all duration-200"
+                                >
+                                    <option value="">{loadingExams ? 'Loading exams…' : 'Select an exam'}</option>
+                                    {examSummaries.map((ex) => (
+                                        <option key={ex.examId} value={ex.examId}>
+                                            {`${ex.ref} ${ex.time_limit ? `• ${ex.time_limit} mins` : ''} • ${ex.questions_count} items${ex.include_personality_test ? ` • PT ${ex.personality_questions_count}` : ''}`}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {singleDateExamId && (() => {
+                                const ex = examSummaries.find(e => String(e.examId) === String(singleDateExamId));
+                                if (!ex) return null;
+                                return (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <div className="p-3 rounded border bg-gray-50">
+                                            <div className="text-xs text-gray-500">Exam Ref</div>
+                                            <div className="text-sm font-semibold text-gray-900 break-all">{ex.ref}</div>
+                                        </div>
+                                        <div className="p-3 rounded border bg-gray-50">
+                                            <div className="text-xs text-gray-500">Questions</div>
+                                            <div className="text-sm font-semibold text-gray-900">{ex.questions_count}</div>
+                                        </div>
+                                        <div className="p-3 rounded border bg-gray-50">
+                                            <div className="text-xs text-gray-500">Personality</div>
+                                            <div className="text-sm font-semibold text-gray-900">{ex.include_personality_test ? `${ex.personality_questions_count} items` : 'None'}</div>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            <div className="text-xs text-gray-600">
+                                This exam code will be assigned to <span className="font-semibold">{formatDate(singleDateForCode)}</span> (both morning and afternoon sessions).
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 mt-6">
+                            <button
+                                onClick={() => setShowSingleDateCodeModal(false)}
+                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                disabled={!singleDateExamId || submittingSingleDate}
+                                onClick={() => {
+                                    if (!singleDateExamId) return;
+                                    setSubmittingSingleDate(true);
+                                    router.post('/guidance/generate-schedule-code', {
+                                        exam_date: singleDateForCode,
+                                        exam_id: singleDateExamId
+                                    }, {
+                                        onSuccess: () => {
+                                            setSubmittingSingleDate(false);
+                                            setShowSingleDateCodeModal(false);
+                                            window.showAlert(`Exam code generated for ${formatDate(singleDateForCode)}.`, 'success');
+                                        },
+                                        onError: () => {
+                                            setSubmittingSingleDate(false);
+                                            window.showAlert('Failed to generate exam code.', 'error');
+                                        }
+                                    });
+                                }}
+                                className={`px-4 py-2 text-white rounded-md transition-colors duration-200 ${(!singleDateExamId || submittingSingleDate) ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                            >
+                                {submittingSingleDate ? 'Generating…' : 'Generate Code'}
                             </button>
                         </div>
                     </div>

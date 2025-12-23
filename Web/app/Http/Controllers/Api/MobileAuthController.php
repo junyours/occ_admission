@@ -1009,81 +1009,24 @@ class MobileAuthController extends Controller
     }
 
     /**
-     * Validate token against database
-     * Checks if token exists in oauth_access_tokens and is not revoked
+     * Validate token - uses Passport middleware for authentication
+     * This endpoint is protected by auth:api middleware, so if we reach here, the token is valid
      */
     public function validateToken(Request $request)
     {
         try {
-            $token = $request->bearerToken();
+            // The auth:api middleware already validated the token
+            // If we reach here, the token is valid and we have an authenticated user
+            $user = $request->user();
             
-            if (!$token) {
-                Log::warning('[MobileAuth] Token validation failed: No token provided in request');
-                return response()->json([
-                    'success' => false,
-                    'valid' => false,
-                    'message' => 'No token provided'
-                ], 401);
-            }
-
-            $tokenHash = hash('sha256', $token);
-            Log::info('[MobileAuth] Validating token - Hash: ' . substr($tokenHash, 0, 20) . '...');
-            Log::info('[MobileAuth] Token preview: ' . substr($token, 0, 20) . '...');
-
-            // Check token in oauth_access_tokens table using the hashed ID
-            $tokenRecord = \Laravel\Passport\Token::where('id', $tokenHash)
-                ->where('revoked', false)
-                ->first();
-
-            // Log all tokens for this hash for debugging
-            $allTokensWithHash = \Laravel\Passport\Token::where('id', $tokenHash)->get();
-            Log::info('[MobileAuth] Found ' . $allTokensWithHash->count() . ' token(s) with this hash');
-            foreach ($allTokensWithHash as $t) {
-                Log::info('[MobileAuth] Token record - ID: ' . $t->id . ', User ID: ' . $t->user_id . ', Revoked: ' . ($t->revoked ? 'true' : 'false') . ', Expires: ' . ($t->expires_at ? $t->expires_at : 'null'));
-            }
-
-            if (!$tokenRecord) {
-                // Token not found or revoked
-                Log::warning('[MobileAuth] Token validation failed: token not found or revoked');
-                Log::warning('[MobileAuth] Searched for hash: ' . $tokenHash);
-                
-                // Try alternative: maybe the token is stored differently
-                $allActiveTokens = \Laravel\Passport\Token::where('revoked', false)
-                    ->where('expires_at', '>', now())
-                    ->take(5)
-                    ->get(['id', 'user_id', 'revoked', 'expires_at']);
-                Log::info('[MobileAuth] Sample active tokens in DB: ' . $allActiveTokens->count());
-                
-                return response()->json([
-                    'success' => false,
-                    'valid' => false,
-                    'message' => 'Token is invalid or revoked',
-                    'debug' => [
-                        'token_hash' => substr($tokenHash, 0, 20) . '...',
-                        'active_tokens_count' => $allActiveTokens->count()
-                    ]
-                ], 401);
-            }
-
-            // Check if token is expired
-            if ($tokenRecord->expires_at && $tokenRecord->expires_at->isPast()) {
-                Log::warning('[MobileAuth] Token validation failed: token expired at ' . $tokenRecord->expires_at);
-                return response()->json([
-                    'success' => false,
-                    'valid' => false,
-                    'message' => 'Token has expired'
-                ], 401);
-            }
-
-            // Get user and verify
-            $user = User::find($tokenRecord->user_id);
             if (!$user) {
-                Log::warning('[MobileAuth] Token validation failed: user not found for token');
+                // This shouldn't happen if middleware is working, but handle it just in case
+                Log::warning('[MobileAuth] Token validation: No authenticated user found');
                 return response()->json([
                     'success' => false,
                     'valid' => false,
-                    'message' => 'User not found'
-                ], 404);
+                    'message' => 'No authenticated user'
+                ], 401);
             }
 
             // Verify user is a student
@@ -1092,7 +1035,7 @@ class MobileAuthController extends Controller
                 return response()->json([
                     'success' => false,
                     'valid' => false,
-                    'message' => 'Access denied'
+                    'message' => 'Access denied - not a student account'
                 ], 403);
             }
 

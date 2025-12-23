@@ -480,9 +480,14 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                 const abstractScore = getScore(['Abstract', 'Abstract Reasoning']);
                 const totalScore = englishScore + filipinoScore + mathScore + scienceScore + abstractScore;
                 const qualifiedPrograms = totalScore <= 60 ? ['BSBA', 'BSIT'] : ['EDUC', 'BSBA', 'BSIT'];
+
+                // Include semester information for summarized report
+                const semester = it.semester || '';
+
                 return {
                     studentName: it.examinee?.full_name || 'Unknown Student',
                     studentAddress: it.examinee?.address || 'Address not provided',
+                    semester,
                     examDate: it.finished_at ? (() => {
                         // Use finished_at directly without timezone conversion
                         let datePart;

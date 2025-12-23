@@ -156,23 +156,42 @@ export async function healthCheck() {
 }
 
 /**
- * Validate token against database
- * Checks if token exists in oauth_access_tokens table and is not revoked
+ * Validate token using Passport middleware
+ * The endpoint is protected by auth:api middleware - if request succeeds, token is valid
  */
 export async function validateToken() {
-  console.log('[Auth] Validating token against database...');
+  console.log('[Auth] Validating token...');
   try {
     const url = buildUrl('/mobile/validate-token');
     console.log('[Auth] GET', url);
+    console.log('[Auth] Current baseURL:', client.defaults.baseURL);
     const res = await client.get(url);
     console.log('[Auth] Token validation response:', res.data);
     return res.data;
   } catch (error) {
-    console.log('[Auth] Token validation error:', error?.response?.data || error?.message);
-    // Return validation result even on error
-    if (error?.response?.data) {
-      return error.response.data;
+    console.log('[Auth] Token validation error:', error?.response?.status, error?.response?.data || error?.message);
+    
+    // Check if it's a 401 Unauthorized from Passport middleware
+    if (error?.response?.status === 401) {
+      console.log('[Auth] Token is invalid or expired (401 from server)');
+      return {
+        success: false,
+        valid: false,
+        message: error?.response?.data?.message || 'Token is invalid or expired'
+      };
     }
+    
+    // Check if it's a 403 Forbidden (not a student)
+    if (error?.response?.status === 403) {
+      console.log('[Auth] Access denied (403 from server)');
+      return {
+        success: false,
+        valid: false,
+        message: error?.response?.data?.message || 'Access denied'
+      };
+    }
+    
+    // For other errors (network, server errors), throw so caller can handle
     throw error;
   }
 }

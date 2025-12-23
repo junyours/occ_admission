@@ -31,6 +31,7 @@ import { getApiEnvironment, setApiEnvironment } from './API/client';
 const Stack = createNativeStackNavigator();
 export const navigationRef = createNavigationContainerRef();
 const hasResumedRef = { current: false };
+const navigationInProgressRef = { current: false };
 
 function AppContent() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -108,29 +109,90 @@ function AppContent() {
     })();
   }, []);
 
-  useEffect(() => { tryResume(); }, [isAuthenticated]);
-
-  // Handle navigation when authentication status changes
+  // Handle navigation when authentication status changes (consolidated to prevent double loading)
   useEffect(() => {
+    // Prevent double navigation
+    if (navigationInProgressRef.current) {
+      console.log('[App] Navigation already in progress, skipping...');
+      return;
+    }
+
     if (!isLoading && navigationRef.isReady()) {
       const currentRoute = navigationRef.getCurrentRoute();
       const currentRouteName = currentRoute?.name;
 
       if (isAuthenticated) {
-        // User is authenticated - redirect to Dashboard if not already there
-        if (currentRouteName !== 'Dashboard' && 
-            currentRouteName !== 'ExamScreen' && 
-            currentRouteName !== 'PersonalityTest' && 
-            currentRouteName !== 'PersonalityReview' &&
-            currentRouteName !== 'ExamInstructions') {
-          console.log('[App] User authenticated, redirecting to Dashboard from:', currentRouteName);
-          navigationRef.reset({
-            index: 0,
-            routes: [{ name: 'Dashboard' }],
-          });
-        }
+        // User is authenticated
+        // First try to resume previous route (exam/personality test)
+        const handleAuthenticatedNavigation = async () => {
+          navigationInProgressRef.current = true;
+          try {
+            // Check if we should resume exam/personality test
+            if (!hasResumedRef.current) {
+              try {
+                const raw = await AsyncStorage.getItem('last_route');
+                if (raw) {
+                  const { name, params } = JSON.parse(raw);
+                  const allowed = ['ExamScreen', 'PersonalityTest', 'PersonalityReview'];
+                  
+                  // Check if exam was already submitted
+                  if (name === 'ExamScreen' && params?.examId) {
+                    const submissionFlag = await AsyncStorage.getItem(`exam_submitted_${params.examId}`);
+                    if (submissionFlag === 'true') {
+                      await AsyncStorage.removeItem('last_route');
+                      await AsyncStorage.removeItem(`exam_submitted_${params.examId}`);
+                    } else if (allowed.includes(name)) {
+                      try { await restoreExamTimer(); } catch {}
+                      const remaining = useExamStore.getState().timeRemaining;
+                      if (typeof remaining === 'number' && remaining > 0) {
+                        navigationRef.reset({ index: 0, routes: [{ name, params }] });
+                        hasResumedRef.current = true;
+                        return;
+                      }
+                      await AsyncStorage.removeItem('last_route');
+                    }
+                  } else if (allowed.includes(name)) {
+                    try { await restoreExamTimer(); } catch {}
+                    const remaining = useExamStore.getState().timeRemaining;
+                    if (typeof remaining === 'number' && remaining > 0) {
+                      navigationRef.reset({ index: 0, routes: [{ name, params }] });
+                      hasResumedRef.current = true;
+                      return;
+                    }
+                    await AsyncStorage.removeItem('last_route');
+                  } else {
+                    await AsyncStorage.removeItem('last_route');
+                  }
+                }
+              } catch (e) {
+                console.log('[App] Resume check failed:', e?.message);
+              }
+            }
+
+            // Not resuming - check if already on a valid screen
+            if (currentRouteName !== 'Dashboard' && 
+                currentRouteName !== 'ExamScreen' && 
+                currentRouteName !== 'PersonalityTest' && 
+                currentRouteName !== 'PersonalityReview' &&
+                currentRouteName !== 'ExamInstructions') {
+              console.log('[App] User authenticated, navigating to Dashboard from:', currentRouteName);
+              navigationRef.reset({
+                index: 0,
+                routes: [{ name: 'Dashboard' }],
+              });
+            }
+          } finally {
+            // Reset flag after a short delay to allow navigation to complete
+            setTimeout(() => {
+              navigationInProgressRef.current = false;
+            }, 500);
+          }
+        };
+
+        handleAuthenticatedNavigation();
       } else {
-        // User is not authenticated - redirect to Login if not already there
+        // User is not authenticated - reset resume flag and redirect to Login if not already there
+        hasResumedRef.current = false;
         if (currentRouteName !== 'Login') {
           console.log('[App] User not authenticated, redirecting to Login from:', currentRouteName);
           navigationRef.reset({
@@ -173,7 +235,6 @@ function AppContent() {
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <NavigationContainer
           ref={navigationRef}
-          onReady={() => { tryResume(); }}
           onStateChange={async () => {
             try {
               const route = navigationRef.getCurrentRoute();

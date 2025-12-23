@@ -125,6 +125,19 @@ export const submitExamAnswers = async (submission, onRetry = null) => {
   }
 };
 
+// Save a single answer in real time (best effort)
+export const submitSingleAnswer = async (payload) => {
+  try {
+    console.log('[Exam API] Real-time single answer payload:', payload);
+    const response = await client.post('/mobile/exam/answer', payload);
+    console.log('[Exam API] Real-time single answer response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.log('[Exam API] Real-time single answer error:', error?.response?.data || error?.message);
+    throw error;
+  }
+};
+
 // Get personality test questions for an exam
 export const getPersonalityTestQuestions = async (examId) => {
   try {

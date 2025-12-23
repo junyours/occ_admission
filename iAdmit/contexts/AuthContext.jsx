@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import client from '../API/client';
+import client, { waitForApiReady, isApiReady } from '../API/client';
 import userDataCache from '../utils/UserDataCache';
 import * as AuthApi from '../API/auth';
 import ToastNotification from '../components/ToastNotification';
@@ -24,6 +24,22 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('[AuthContext] ========================================');
       console.log('[AuthContext] Starting authentication check...');
+      
+      // Wait for API client to be fully initialized before making any requests
+      console.log('[AuthContext] Waiting for API client to be ready...');
+      await waitForApiReady();
+      console.log('[AuthContext] ✅ API client is ready, baseURL:', client.defaults.baseURL);
+      
+      // Verify we have a valid baseURL before proceeding
+      if (!client.defaults.baseURL) {
+        console.log('[AuthContext] ⚠️ API baseURL is empty, cannot validate token');
+        console.log('[AuthContext] Keeping token and waiting for network...');
+        // Don't clear token - just set not authenticated and let user retry
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+      
       const token = await AsyncStorage.getItem('auth_token');
       
       if (token) {
@@ -70,7 +86,7 @@ export const AuthProvider = ({ children }) => {
               // Profile will be fetched when Dashboard loads
             }
           } else {
-            // Token is invalid or revoked in database
+            // Token is invalid or revoked in database - this is a real auth failure
             console.log('[AuthContext] ❌ Token is INVALID or REVOKED in database');
             console.log('[AuthContext] Validation result:', validationResult);
             await AsyncStorage.removeItem('auth_token');
@@ -85,47 +101,92 @@ export const AuthProvider = ({ children }) => {
           console.log('[AuthContext] ⚠️ Token validation request failed:', validationError);
           console.log('[AuthContext] Error details:', validationError?.response?.data || validationError?.message);
           
-          // If validation endpoint fails, fallback to profile endpoint check
-          try {
-            console.log('[AuthContext] Falling back to profile endpoint check...');
-            const response = await client.get('/mobile/examinee/profile');
-            console.log('[AuthContext] ✅ Profile check successful - token is valid');
-            setIsAuthenticated(true);
-
-            // Cache user profile
+          // Check if this is a network/connectivity error vs an actual auth error
+          const isNetworkError = !validationError?.response && (
+            validationError?.message?.includes('Network Error') ||
+            validationError?.message?.includes('timeout') ||
+            validationError?.code === 'ECONNABORTED' ||
+            validationError?.code === 'ERR_NETWORK'
+          );
+          
+          if (isNetworkError) {
+            console.log('[AuthContext] 📡 Network error detected - keeping token and trying offline mode');
+            // Network error - keep the token and try to use cached data
+            // User might be offline or server is temporarily unavailable
             try {
-              if (response?.data && response.data.id) {
-                await userDataCache.storeExamineeData(response.data);
+              const cachedData = await userDataCache.getExamineeData();
+              if (cachedData) {
+                console.log('[AuthContext] ✅ Found cached user data, authenticating with offline data');
+                setIsAuthenticated(true);
+              } else {
+                console.log('[AuthContext] ⚠️ No cached data available, staying logged out until network available');
+                setIsAuthenticated(false);
+                setToast({
+                  visible: true,
+                  message: 'Unable to connect to server. Please check your internet connection.',
+                  type: 'warning'
+                });
               }
-              try {
-                const sched = await AuthApi.getExamSchedule();
-                if (sched?.success && sched?.has_schedule) {
-                  await userDataCache.storeExamSchedule(sched.schedule);
-                }
-              } catch (e) { /* ignore schedule cache errors */ }
-            } catch (e) {
-              console.log('[AuthContext] Failed to cache user profile after auth check', e?.message);
+            } catch (cacheError) {
+              console.log('[AuthContext] Cache read failed:', cacheError?.message);
+              setIsAuthenticated(false);
             }
-          } catch (profileError) {
-            // Token validation failed and profile check also failed
-            console.log('[AuthContext] ❌ Both token validation and profile check failed');
-            console.log('[AuthContext] Profile error:', profileError?.response?.data || profileError?.message);
-            
-            // Check if it's a token expiration error (401 Unauthorized)
-            if (profileError?.response?.status === 401) {
-              console.log('[AuthContext] Token expired (401), clearing token');
-              await AsyncStorage.removeItem('auth_token');
-              setIsAuthenticated(false);
-              setToast({
-                visible: true,
-                message: 'Session expired. Please login again.',
-                type: 'warning'
-              });
-            } else {
-              // Network error or other issue - keep token but mark as not authenticated
-              // User can retry when network is available
-              console.log('[AuthContext] Network error during validation, keeping token for retry');
-              setIsAuthenticated(false);
+          } else {
+            // Not a network error - try fallback to profile endpoint
+            try {
+              console.log('[AuthContext] Falling back to profile endpoint check...');
+              const response = await client.get('/mobile/examinee/profile');
+              console.log('[AuthContext] ✅ Profile check successful - token is valid');
+              setIsAuthenticated(true);
+
+              // Cache user profile
+              try {
+                if (response?.data && response.data.id) {
+                  await userDataCache.storeExamineeData(response.data);
+                }
+                try {
+                  const sched = await AuthApi.getExamSchedule();
+                  if (sched?.success && sched?.has_schedule) {
+                    await userDataCache.storeExamSchedule(sched.schedule);
+                  }
+                } catch (e) { /* ignore schedule cache errors */ }
+              } catch (e) {
+                console.log('[AuthContext] Failed to cache user profile after auth check', e?.message);
+              }
+            } catch (profileError) {
+              // Token validation failed and profile check also failed
+              console.log('[AuthContext] ❌ Both token validation and profile check failed');
+              console.log('[AuthContext] Profile error:', profileError?.response?.data || profileError?.message);
+              
+              // Check if it's a token expiration error (401 Unauthorized)
+              if (profileError?.response?.status === 401) {
+                console.log('[AuthContext] Token expired (401), clearing token');
+                await AsyncStorage.removeItem('auth_token');
+                setIsAuthenticated(false);
+                setToast({
+                  visible: true,
+                  message: 'Session expired. Please login again.',
+                  type: 'warning'
+                });
+              } else if (profileError?.response?.status === 403) {
+                console.log('[AuthContext] Access denied (403), clearing token');
+                await AsyncStorage.removeItem('auth_token');
+                setIsAuthenticated(false);
+                setToast({
+                  visible: true,
+                  message: 'Access denied. Please login again.',
+                  type: 'warning'
+                });
+              } else {
+                // Other error - could be network issue, keep token
+                console.log('[AuthContext] Non-auth error during validation, keeping token for retry');
+                setIsAuthenticated(false);
+                setToast({
+                  visible: true,
+                  message: 'Unable to verify session. Please try again.',
+                  type: 'warning'
+                });
+              }
             }
           }
         }

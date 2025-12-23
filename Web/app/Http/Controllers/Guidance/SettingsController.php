@@ -612,5 +612,116 @@ class SettingsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Mark selected exam results as finished
+     * Updates finished_at, calculates score, and sets remarks to Passed/Failed
+     */
+    public function markSelectedExamsAsFinished(Request $request)
+    {
+        try {
+            $examIds = $request->get('exam_ids', []);
+            
+            if (empty($examIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No exams selected'
+                ], 400);
+            }
+            
+            // Get selected exams that are marked as "In Progress"
+            $examsToFinish = ExamResult::where('remarks', 'In Progress')
+                ->whereIn('resultId', $examIds)
+                ->get();
+            
+            $finishedCount = 0;
+            $passedCount = 0;
+            $failedCount = 0;
+            $errors = [];
+            
+            $examDetails = [];
+            
+            foreach ($examsToFinish as $exam) {
+                try {
+                    // Calculate percentage
+                    $percentage = null;
+                    if ($exam->total_items > 0) {
+                        $percentage = ($exam->correct / $exam->total_items) * 100;
+                    }
+                    
+                    // Determine pass/fail based on 10% passing rate
+                    $newRemarks = ($percentage >= 10) ? 'Passed' : 'Failed';
+                    
+                    // Update the exam result
+                    $updateData = [
+                        'remarks' => $newRemarks,
+                    ];
+                    
+                    // Set finished_at if not already set
+                    if (!$exam->finished_at) {
+                        $updateData['finished_at'] = now();
+                    }
+                    
+                    $exam->update($updateData);
+                    
+                    $finishedCount++;
+                    if ($newRemarks === 'Passed') {
+                        $passedCount++;
+                    } else {
+                        $failedCount++;
+                    }
+                    
+                    $examDetails[] = [
+                        'result_id' => $exam->resultId,
+                        'examinee_id' => $exam->examineeId,
+                        'exam_id' => $exam->examId,
+                        'total_items' => $exam->total_items,
+                        'correct' => $exam->correct,
+                        'percentage' => $percentage,
+                        'old_remarks' => 'In Progress',
+                        'new_remarks' => $newRemarks,
+                        'finished_at' => $exam->finished_at ? $exam->finished_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s')
+                    ];
+                    
+                } catch (\Exception $e) {
+                    $errors[] = "Failed to mark exam result ID {$exam->resultId} as finished: {$e->getMessage()}";
+                    Log::error('[Mark as Finished] Failed to update exam result', [
+                        'result_id' => $exam->resultId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            Log::info('[Mark as Finished] Updated exams with finished status', [
+                'finished_count' => $finishedCount,
+                'passed_count' => $passedCount,
+                'failed_count' => $failedCount,
+                'marked_by' => Auth::user()->email,
+                'marked_at' => now(),
+                'exam_details' => $examDetails
+            ]);
+            
+            $message = "Successfully marked {$finishedCount} exam(s) as finished: {$passedCount} Passed, {$failedCount} Failed";
+            if (!empty($errors)) {
+                $message .= '. ' . count($errors) . ' error(s) occurred.';
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'finished_count' => $finishedCount,
+                'passed_count' => $passedCount,
+                'failed_count' => $failedCount,
+                'errors' => $errors
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error marking exams as finished', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error marking exams as finished: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

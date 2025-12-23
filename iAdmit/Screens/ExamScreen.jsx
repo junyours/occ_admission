@@ -20,7 +20,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useExamStore } from '../stores/examStore';
-import { getAcademicExamQuestions, getExamQuestions, submitExamAnswers, upsertExamProgress, fetchExamProgress, clearExamProgress } from '../API/exam';
+import { getAcademicExamQuestions, getExamQuestions, submitExamAnswers, submitSingleAnswer, upsertExamProgress, fetchExamProgress, clearExamProgress } from '../API/exam';
 import ExamSecurityModal from '../components/ExamSecurityModal';
 import KeepAwakeWrapper from '../utils/KeepAwakeWrapper';
 import { formatBase64Image } from '../utils/imageUtils';
@@ -1603,16 +1603,18 @@ export default function ExamScreen({ navigation, route }) {
     // Prevent multiple rapid selections
     if (immediateSelection[questionId] === answer) return;
     
+    const timingSnapshot = questionTimings[questionId] || {};
     // Track timing when answer is selected
     const currentTime = new Date().toISOString();
+    const computedTimeSpent = timingSnapshot?.question_start_time 
+      ? Math.floor((new Date(currentTime) - new Date(timingSnapshot.question_start_time)) / 1000)
+      : 0;
     setQuestionTimings(prev => ({
       ...prev,
       [questionId]: {
         ...prev[questionId],
         question_end_time: currentTime,
-        time_spent_seconds: prev[questionId]?.question_start_time 
-          ? Math.floor((new Date(currentTime) - new Date(prev[questionId].question_start_time)) / 1000)
-          : 0
+        time_spent_seconds: computedTimeSpent
       }
     }));
     
@@ -1633,6 +1635,29 @@ export default function ExamScreen({ navigation, route }) {
         useNativeDriver: true,
       })
     ]).start();
+    
+    // Best-effort real-time server save for low-spec devices (keeps bulk submit intact)
+    if (examType !== 'departmental') {
+      const realtimePayload = {
+        examId,
+        questionId,
+        selected_answer: answer,
+        time_spent_seconds: computedTimeSpent,
+        question_start_time: timingSnapshot?.question_start_time || null,
+        question_end_time: currentTime
+      };
+      if (!offlineManager.isConnected()) {
+        console.log('[ExamScreen] Skipping real-time save (offline)', realtimePayload);
+      } else {
+        submitSingleAnswer(realtimePayload)
+          .then((res) => {
+            console.log('[ExamScreen] Real-time save success', res);
+          })
+          .catch((err) => {
+            console.log('[ExamScreen] Real-time save failed', err?.response?.data || err?.message);
+          });
+      }
+    }
     
     // Best-effort server sync of progress (answers + remaining time)
     try {
@@ -1677,7 +1702,7 @@ export default function ExamScreen({ navigation, route }) {
         setShowReviewModal(true);
       }
     }, 1000); // Exactly 1 second as requested
-  }, [answers, currentQuestionIndex, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, questions.length, setAnswer, handleNextQuestion, immediateSelection]);
+  }, [answers, currentQuestionIndex, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, questions.length, setAnswer, handleNextQuestion, immediateSelection, questionTimings]);
 
   // Animation functions - matching PersonalityTestScreen style with bounce
   const animateQuestionTransition = useCallback((direction = 'next') => {
