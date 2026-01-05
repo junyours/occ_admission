@@ -8,8 +8,11 @@ export async function login(email, password) {
     const deviceId = await getDeviceId();
     console.log('[Auth] Using device ID:', deviceId);
     
-    const url = buildUrl('/mobile/login');
-    console.log('[Auth] POST', url);
+    // Use relative path since client already has baseURL configured
+    const url = '/mobile/login';
+    const fullUrl = buildUrl(url);
+    console.log('[Auth] POST', fullUrl);
+    console.log('[Auth] Client baseURL:', client.defaults.baseURL);
     const res = await client.post(url, { email, password, device_id: deviceId });
     console.log('[Auth] Login response received:', res.data);
     
@@ -32,6 +35,18 @@ export async function login(email, password) {
       console.log('[Auth] Single-device restriction:', { message: msg, code: responseCode });
       const e = new Error(msg);
       e.code = responseCode || 'ALREADY_LOGGED_IN';
+      throw e;
+    }
+    // Handle 405/403 errors (server configuration issues)
+    if (error?.response?.status === 403 || error?.response?.status === 405) {
+      const errorMsg = error?.response?.data || error?.response?.statusText || 'Server configuration error';
+      console.log('[Auth] Server error (403/405):', errorMsg);
+      console.log('[Auth] This usually indicates an nginx/server configuration issue');
+      console.log('[Auth] Request URL was:', error?.config?.url);
+      console.log('[Auth] Full URL was:', error?.config?.baseURL + error?.config?.url);
+      const e = new Error('Server configuration error. Please contact support.');
+      e.code = 'SERVER_ERROR';
+      e.status = error?.response?.status;
       throw e;
     }
     console.log('[Auth] Login error:', error);

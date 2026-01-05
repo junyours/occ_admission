@@ -32,22 +32,18 @@ function RegistrationWebView({ visible, onClose }) {
         
         let finalUrl;
         
-        if (env === 'local') {
-          // For local development, always use production URL
-          // This avoids CORS and network issues
-          finalUrl = 'https://occadmission.site/register';
-          console.log('[RegistrationWebView] Using production URL for local testing');
-        } else {
-          // For production
-          finalUrl = 'https://occadmission.site/register';
-        }
+        // Get base URL from config and build registration URL
+        const { baseURL } = await getCurrentApiConfig();
+        const base = baseURL.replace(/\/api\/?$/, ''); // Remove /api suffix if present
+        finalUrl = `${base}/register`;
+        console.log('[RegistrationWebView] Using registration URL:', finalUrl);
         
         setRegistrationUrl(finalUrl);
         console.log('[RegistrationWebView] Registration URL:', finalUrl);
       } catch (error) {
         console.log('[RegistrationWebView] Error loading URL:', error);
         // Fallback to production
-        setRegistrationUrl('https://occadmission.site/register');
+        setRegistrationUrl('https://admission.occph.com/register');
       }
     };
     

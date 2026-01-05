@@ -23,6 +23,7 @@ import client from '../API/client';
 import { launchImageLibrary } from 'react-native-image-picker';
 import * as FingerprintAPI from '../API/fingerprint';
 import { getDeviceId } from '../utils/DeviceId';
+import { getCurrentApiConfig } from '../API/environment';
 // Optional: enable image capture for download
 let captureRef;
 let RNFS;
@@ -103,8 +104,28 @@ export default function EditableProfileModal({
   const [hasFingerprint, setHasFingerprint] = useState(false);
   const [fingerprintLoading, setFingerprintLoading] = useState(false);
   const [biometricsAvailable, setBiometricsAvailable] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState('https://admission.occph.com/login');
   
   const slideAnim = useRef(new Animated.Value(height)).current;
+
+  // Load QR code URL from API config
+  useEffect(() => {
+    const loadQrCodeUrl = async () => {
+      try {
+        const { baseURL } = await getCurrentApiConfig();
+        const base = baseURL.replace(/\/api\/?$/, ''); // Remove /api suffix if present
+        const loginUrl = `${base}/login`;
+        const encodedUrl = encodeURIComponent(loginUrl);
+        setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodedUrl}`);
+      } catch (error) {
+        console.log('[ProfileModal] Error loading QR code URL:', error);
+        // Fallback to production
+        const fallbackUrl = encodeURIComponent('https://admission.occph.com/login');
+        setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${fallbackUrl}`);
+      }
+    };
+    loadQrCodeUrl();
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -1296,7 +1317,7 @@ function IdCardModal({ visible, onClose, data, photoUri }) {
                       </View>
                       <View style={styles.qrBox}>
                         <Image
-                          source={{ uri: 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https%3A%2F%2Foccadmission.site%2Flogin' }}
+                          source={{ uri: qrCodeUrl }}
                           style={styles.qrImage}
                           resizeMode="contain"
                         />
