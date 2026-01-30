@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use App\Models\QuestionBank;
 use App\Models\Exam;
@@ -372,7 +373,7 @@ class GuidanceController extends Controller
         if (!empty($request->option5) && trim($request->option5) !== '') $availableOptions[] = 'E';
         
         // Debug logging
-        \Illuminate\Support\Facades\Log::info('Question Update Validation', [
+        Log::info('Question Update Validation', [
             'option1' => $request->option1,
             'option2' => $request->option2,
             'option3' => $request->option3,
@@ -926,7 +927,7 @@ class GuidanceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
 
-            $examResult = \App\Models\ExamResult::with(['examinee', 'exam'])->where('resultId', $resultId)->first();
+            $examResult = ExamResult::with(['examinee', 'exam'])->where('resultId', $resultId)->first();
             if (!$examResult) {
                 return response()->json(['success' => false, 'message' => 'Exam result not found'], 404);
             }
@@ -1015,7 +1016,7 @@ class GuidanceController extends Controller
             abort(403);
         }
 
-        $examResult = \App\Models\ExamResult::with(['examinee', 'exam'])->where('resultId', $resultId)->firstOrFail();
+        $examResult = ExamResult::with(['examinee', 'exam'])->where('resultId', $resultId)->firstOrFail();
 
         // Build answers dataset
         $answers = DB::table('examinee_answer as ea')
@@ -1217,6 +1218,69 @@ class GuidanceController extends Controller
             ->update(['is_archived' => 0]);
 
         return back()->with('success', "Unarchived {$count} results for {$date}");
+    }
+
+    /**
+     * Export examinee info (lname, fname, mname, gender, age, school_name, parent_name, parent_phone, phone, address)
+     * as Excel for examinees that have at least one non-archived exam result.
+     */
+    public function exportExamineeInfo()
+    {
+        $examineeIds = ExamResult::where('is_archived', 0)
+            ->distinct()
+            ->pluck('examineeId');
+
+        $examinees = Examinee::whereIn('id', $examineeIds)
+            ->select('lname', 'fname', 'mname', 'gender', 'age', 'school_name', 'parent_name', 'parent_phone', 'phone', 'address')
+            ->orderBy('lname')
+            ->orderBy('fname')
+            ->get();
+
+        try {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $worksheet = $spreadsheet->getActiveSheet();
+            $worksheet->setTitle('Examinee Info');
+
+            $headers = ['Last Name', 'First Name', 'Middle Name', 'Gender', 'Age', 'School Name', 'Parent Name', 'Parent Phone', 'Phone', 'Address'];
+            foreach ($headers as $colIndex => $header) {
+                $worksheet->setCellValue(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1) . '1', $header);
+            }
+            $worksheet->getStyle('A1:J1')->getFont()->setBold(true);
+            $worksheet->getStyle('A1:J1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+            $worksheet->getStyle('A1:J1')->getFill()->getStartColor()->setRGB('E0E7FF');
+
+            $row = 2;
+            foreach ($examinees as $e) {
+                $worksheet->setCellValue('A' . $row, $e->lname ?? '');
+                $worksheet->setCellValue('B' . $row, $e->fname ?? '');
+                $worksheet->setCellValue('C' . $row, $e->mname ?? '');
+                $worksheet->setCellValue('D' . $row, $e->gender ?? '');
+                $worksheet->setCellValue('E' . $row, $e->age ?? '');
+                $worksheet->setCellValue('F' . $row, $e->school_name ?? '');
+                $worksheet->setCellValue('G' . $row, $e->parent_name ?? '');
+                $worksheet->setCellValue('H' . $row, $e->parent_phone ?? '');
+                $worksheet->setCellValue('I' . $row, $e->phone ?? '');
+                $worksheet->setCellValue('J' . $row, $e->address ?? '');
+                $row++;
+            }
+
+            foreach (range('A', 'J') as $col) {
+                $worksheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'examinee_info_' . date('Y-m-d_His') . '.xlsx';
+            $filepath = storage_path('app/' . $filename);
+            $writer->save($filepath);
+
+            $response = response()->download($filepath, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ]);
+            return $response->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            Log::error('[GuidanceController] exportExamineeInfo failed: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to export examinee info: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -3183,7 +3247,7 @@ class GuidanceController extends Controller
             'registration_id' => 'required|exists:examinee_registrations,id',
         ]);
 
-        $registration = \App\Models\ExamineeRegistration::with('examinee')
+        $registration = ExamineeRegistration::with('examinee')
             ->findOrFail($validated['registration_id']);
 
         if (!$registration->assigned_exam_date) {
@@ -3200,9 +3264,9 @@ class GuidanceController extends Controller
         $cacheKey = sprintf('exam_force_allow:%s:%s', $examineeId, $today->toDateString());
         // Allow until end of the day
         $ttl = \Carbon\Carbon::now()->endOfDay();
-        \Illuminate\Support\Facades\Cache::put($cacheKey, true, $ttl);
+        Cache::put($cacheKey, true, $ttl);
 
-        \Illuminate\Support\Facades\Log::info('[GuidanceController] Force allow set', [
+        Log::info('[GuidanceController] Force allow set', [
             'registration_id' => $registration->id,
             'examinee_id' => $examineeId,
             'date' => $today,
@@ -3229,7 +3293,7 @@ class GuidanceController extends Controller
 
         foreach ($validated['registration_ids'] as $registrationId) {
             try {
-                $registration = \App\Models\ExamineeRegistration::with('examinee')
+                $registration = ExamineeRegistration::with('examinee')
                     ->findOrFail($registrationId);
 
                 if (!$registration->assigned_exam_date) {
@@ -3248,9 +3312,9 @@ class GuidanceController extends Controller
                 $examineeId = $registration->examinee_id;
                 $cacheKey = sprintf('exam_force_allow:%s:%s', $examineeId, $today->toDateString());
                 $ttl = \Carbon\Carbon::now()->endOfDay();
-                \Illuminate\Support\Facades\Cache::put($cacheKey, true, $ttl);
+                Cache::put($cacheKey, true, $ttl);
 
-                \Illuminate\Support\Facades\Log::info('[GuidanceController] Bulk force allow set', [
+                Log::info('[GuidanceController] Bulk force allow set', [
                     'registration_id' => $registration->id,
                     'examinee_id' => $examineeId,
                     'date' => $today,
@@ -3314,7 +3378,7 @@ class GuidanceController extends Controller
 
         foreach ($validated['registration_ids'] as $registrationId) {
             try {
-                $registration = \App\Models\ExamineeRegistration::findOrFail($registrationId);
+                $registration = ExamineeRegistration::findOrFail($registrationId);
                 
                 // Update the registration
                 $registration->update([
@@ -3994,7 +4058,7 @@ class GuidanceController extends Controller
             // Filter scope: if the logged-in user is an evaluator, limit to their department exams (departmental)
             $evaluatorDepartment = null;
             try {
-                $userId = \Illuminate\Support\Facades\Auth::id();
+                $userId = Auth::id();
                 if ($userId) {
                     $evaluator = \App\Models\Evaluator::where('accountId', $userId)->first();
                     if ($evaluator && !empty($evaluator->Department)) {
@@ -4078,7 +4142,7 @@ class GuidanceController extends Controller
             // Determine evaluator department (if user is an evaluator)
             $evaluatorDepartment = null;
             try {
-                $userId = \Illuminate\Support\Facades\Auth::id();
+                $userId = Auth::id();
                 if ($userId) {
                     $evaluator = \App\Models\Evaluator::where('accountId', $userId)->first();
                     if ($evaluator && !empty($evaluator->Department)) {

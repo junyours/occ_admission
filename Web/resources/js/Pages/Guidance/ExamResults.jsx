@@ -437,6 +437,8 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
             handleDownloadSummarizedReport();
         } else if (reportType === 'detailed') {
             handleDownloadAllPdf();
+        } else if (reportType === 'examinee_info') {
+            window.location.href = '/guidance/exam-results/export-examinee-info';
         }
     };
 
@@ -1906,6 +1908,24 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                         <div className="text-left">
                                             <div className="font-semibold">Detailed Report</div>
                                             <div className="text-xs text-white/80">Comprehensive results with category breakdown</div>
+                                        </div>
+                                    </div>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+
+                                <button
+                                    onClick={() => handleDownloadReport('examinee_info')}
+                                    className="w-full border border-[#217346] bg-[#217346] text-white px-6 py-4 rounded-xl hover:bg-[#1a5c38] hover:border-[#1a5c38] text-sm font-medium transition-all duration-200 shadow-sm flex items-center justify-between"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <div className="text-left">
+                                            <div className="font-semibold">Download Examinee Info</div>
+                                            <div className="text-xs text-white/80">Excel with lname, fname, mname, gender, age, school, parent, phone, address (non-archived only)</div>
                                         </div>
                                     </div>
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

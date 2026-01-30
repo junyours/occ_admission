@@ -278,6 +278,7 @@ Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getE
         Route::post('/exam-results/unarchive-year', [GuidanceController::class, 'unarchiveResultsByYear'])->name('exam-results.unarchive-year');
         Route::post('/exam-results/unarchive-date', [GuidanceController::class, 'unarchiveResultsByDate'])->name('exam-results.unarchive-date');
         Route::get('/exam-results/archived', [GuidanceController::class, 'archivedExamResults'])->name('exam-results.archived');
+        Route::get('/exam-results/export-examinee-info', [GuidanceController::class, 'exportExamineeInfo'])->name('exam-results.export-examinee-info');
         Route::post('/exam-results/{id}/unarchive', [GuidanceController::class, 'unarchiveResult'])->name('exam-results.unarchive');
         Route::get('/question-analysis', [GuidanceController::class, 'getQuestionDifficultyAnalysis'])->name('question-analysis');
         Route::get('/question-analysis-page', function() {
