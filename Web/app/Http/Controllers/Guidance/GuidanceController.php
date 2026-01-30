@@ -1284,7 +1284,8 @@ class GuidanceController extends Controller
     }
 
     /**
-     * Show archived exam results page
+     * Show archived exam results page.
+     * Optimized: limit allResults, exclude Profile, bulk-load semester/school_year to avoid memory exhaustion.
      */
     public function archivedExamResults(Request $request)
     {
@@ -1292,20 +1293,23 @@ class GuidanceController extends Controller
         $guidanceCounselor = $user->guidanceCounselor;
 
         $year = $request->get('year');
-        $query = ExamResult::with(['examinee','exam'])
-            ->where('is_archived', 1)
-            ->latest();
+
+        // Eager load without Profile (large base64) to reduce memory
+        $examineeSelect = 'id,accountId,lname,fname,mname,gender,age,school_name,parent_name,parent_phone,phone,address';
+        $query = ExamResult::with([
+            'examinee:' . $examineeSelect,
+            'exam:examId,exam-ref-no'
+        ])->where('is_archived', 1)->latest();
+
         if ($year) {
-            // Use finished_at for year filter and ensure not null
             $query->whereNotNull('finished_at')->whereYear('finished_at', (int) $year);
         }
 
-        // Clone BEFORE pagination to avoid carrying over limit/offset
-        $allResultsQuery = clone $query;
-        $results = $query->paginate(20);
+        $allResultsQuery = (clone $query)->limit(1500);
         $allResults = $allResultsQuery->get();
+        $results = $query->paginate(20);
 
-        // Attach recommended courses and personality like main results
+        // Bulk load recommendations and personalities for paginated results
         $resultIds = $results->getCollection()->pluck('resultId')->all();
         if (!empty($resultIds)) {
             $recs = DB::table('examinee_recommendations as er')
@@ -1324,12 +1328,12 @@ class GuidanceController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->get()
                     ->groupBy('examineeId')
-                    ->map(function($rows){ return $rows->first(); });
+                    ->map(function ($rows) { return $rows->first(); });
             }
 
-            $results->getCollection()->transform(function($result) use ($recs, $personalities) {
+            $results->getCollection()->transform(function ($result) use ($recs, $personalities) {
                 $attached = $recs->get($result->resultId) ?? collect();
-                $result->recommended_courses = $attached->map(function($r){
+                $result->recommended_courses = $attached->map(function ($r) {
                     return [
                         'course_id' => $r->course_id,
                         'course_name' => $r->course_name,
@@ -1352,6 +1356,115 @@ class GuidanceController extends Controller
             });
         }
 
+        // Build allResults as plain arrays to avoid N+1 from semester/school_year accessors and reduce memory
+        $allResultIds = $allResults->pluck('resultId')->all();
+        $allExamineeIds = $allResults->pluck('examineeId')->unique()->values()->all();
+
+        $recsAll = collect();
+        $personalitiesAll = collect();
+        if (!empty($allResultIds)) {
+            $recsAll = DB::table('examinee_recommendations as er')
+                ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
+                ->select('er.exam_result_id', 'c.id as course_id', 'c.course_name', 'c.course_code')
+                ->whereIn('er.exam_result_id', $allResultIds)
+                ->get()
+                ->groupBy('exam_result_id');
+        }
+        if (!empty($allExamineeIds)) {
+            $personalitiesAll = DB::table('personality_test_results')
+                ->select('examineeId', 'EI', 'SN', 'TF', 'JP', 'created_at')
+                ->whereIn('examineeId', $allExamineeIds)
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->groupBy('examineeId')
+                ->map(function ($rows) { return $rows->first(); });
+        }
+
+        // One query for semester/school_year instead of 2 per result
+        $registrationMap = [];
+        if (!empty($allExamineeIds)) {
+            $regs = DB::table('examinee_registrations')
+                ->whereIn('examinee_id', $allExamineeIds)
+                ->select('examinee_id', 'assigned_exam_date', 'semester', 'school_year')
+                ->orderBy('registration_date', 'desc')
+                ->get();
+            foreach ($regs as $r) {
+                $date = $r->assigned_exam_date instanceof \DateTimeInterface
+                    ? $r->assigned_exam_date->format('Y-m-d')
+                    : substr((string) $r->assigned_exam_date, 0, 10);
+                $key = $r->examinee_id . '|' . $date;
+                if (!isset($registrationMap[$key])) {
+                    $registrationMap[$key] = [
+                        'semester' => $r->semester ?? null,
+                        'school_year' => $r->school_year ?? null,
+                    ];
+                }
+            }
+        }
+
+        $allResultsArray = $allResults->map(function ($result) use ($recsAll, $personalitiesAll, $registrationMap) {
+            $finishedAt = $result->finished_at ?? $result->created_at;
+            $resultDate = $finishedAt ? (\Carbon\Carbon::parse($finishedAt)->format('Y-m-d')) : null;
+            $regKey = $resultDate ? ($result->examineeId . '|' . $resultDate) : null;
+            $reg = $regKey ? ($registrationMap[$regKey] ?? null) : null;
+
+            $percentage = $result->total_items > 0
+                ? round((float) $result->correct / (float) $result->total_items * 100, 2)
+                : 0;
+
+            $attached = $recsAll->get($result->resultId) ?? collect();
+            $recommended_courses = $attached->map(function ($r) {
+                return [
+                    'course_id' => $r->course_id,
+                    'course_name' => $r->course_name,
+                    'course_code' => $r->course_code,
+                ];
+            })->values()->all();
+
+            $personality_type = null;
+            $personality_result = null;
+            if ($personalitiesAll->has($result->examineeId)) {
+                $p = $personalitiesAll->get($result->examineeId);
+                $personality_type = strtoupper(($p->EI ?? '').($p->SN ?? '').($p->TF ?? '').($p->JP ?? ''));
+                $personality_result = [
+                    'EI' => $p->EI ?? null,
+                    'SN' => $p->SN ?? null,
+                    'TF' => $p->TF ?? null,
+                    'JP' => $p->JP ?? null,
+                ];
+            }
+
+            return [
+                'resultId' => $result->resultId,
+                'examineeId' => $result->examineeId,
+                'examId' => $result->examId,
+                'total_items' => $result->total_items,
+                'correct' => $result->correct,
+                'remarks' => $result->remarks,
+                'started_at' => $result->started_at?->toIso8601String(),
+                'finished_at' => $result->finished_at?->toIso8601String(),
+                'time_taken_seconds' => $result->time_taken_seconds,
+                'category_breakdown' => $result->category_breakdown,
+                'is_archived' => $result->is_archived,
+                'created_at' => $result->created_at?->toIso8601String(),
+                'examinee' => $result->relationLoaded('examinee') && $result->examinee
+                    ? array_merge($result->examinee->only(['id', 'lname', 'fname', 'mname', 'gender', 'age', 'school_name', 'parent_name', 'parent_phone', 'phone', 'address']), [
+                        'full_name' => trim(($result->examinee->fname ?? '') . ' ' . ($result->examinee->mname ?? '') . ' ' . ($result->examinee->lname ?? '')),
+                    ])
+                    : null,
+                'exam' => $result->relationLoaded('exam') && $result->exam
+                    ? $result->exam->only(['examId', 'exam-ref-no'])
+                    : null,
+                'recommended_courses' => $recommended_courses,
+                'personality_type' => $personality_type,
+                'personality_result' => $personality_result,
+                'semester' => $reg ? ($reg['semester'] ?? null) : null,
+                'school_year' => $reg ? ($reg['school_year'] ?? null) : null,
+                'percentage' => $percentage,
+                'score' => $percentage,
+            ];
+        })->values()->all();
+
         $years = DB::table('exam_results')
             ->where('is_archived', 1)
             ->whereNotNull('finished_at')
@@ -1363,7 +1476,7 @@ class GuidanceController extends Controller
             'user' => $user,
             'guidanceCounselor' => $guidanceCounselor,
             'results' => $results,
-            'allResults' => $allResults,
+            'allResults' => $allResultsArray,
             'filters' => [ 'year' => $year ],
             'years' => $years,
         ]);
