@@ -1063,17 +1063,59 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
 
                                     {/* Right-side Actions */}
                                     <div className="flex items-center gap-2">
-                                        <button onClick={handleDownloadModalOpen} className="border border-[#1447E6] bg-[#1447E6] text-white px-4 py-2 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 shadow-sm">
-                                            <span className="flex items-center gap-2">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                Download Reports
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </span>
-                                        </button>
+                                        <div className="relative">
+                                            <button onClick={handleDownloadModalOpen} className="border border-[#1447E6] bg-[#1447E6] text-white px-4 py-2 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 shadow-sm">
+                                                <span className="flex items-center gap-2">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                    </svg>
+                                                    Download Reports
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </span>
+                                            </button>
+                                            {showDownloadModal && (
+                                                <>
+                                                    <div className="fixed inset-0 z-40" onClick={handleDownloadModalClose} aria-hidden="true" />
+                                                    <div className="absolute right-0 bottom-full mb-2 z-50 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 animate-fadeIn">
+                                                        <div className="text-xs text-slate-500 mb-3">Reports use current filters</div>
+                                                        <div className="space-y-2">
+                                                            <button
+                                                                onClick={() => handleDownloadReport('summarized')}
+                                                                className="w-full border border-[#1447E6] bg-[#1447E6] text-white px-4 py-3 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                                    Summarized Report
+                                                                </span>
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDownloadReport('detailed')}
+                                                                className="w-full bg-[#1D293D] text-white px-4 py-3 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                                                    Detailed Report
+                                                                </span>
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDownloadReport('examinee_info')}
+                                                                className="w-full border border-[#217346] bg-[#217346] text-white px-4 py-3 rounded-xl hover:bg-[#1a5c38] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                                                    Download Examinee Info
+                                                                </span>
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                         <a href="/guidance/exam-results/archived" className="border border-slate-300 bg-white text-slate-600 px-4 py-2 rounded-xl hover:border-[#1447E6] hover:text-[#1447E6] text-sm font-semibold transition-colors duration-200 shadow-sm">
                                             <span className="flex items-center gap-2">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1856,95 +1898,6 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                 </div>
                             </div>
                         )}
-                    </div>
-                )}
-
-                {/* Download Reports Modal */}
-                {showDownloadModal && (
-                    <div className="fixed inset-0 z-50">
-                        <div className="absolute inset-0 bg-clear bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50" onClick={handleDownloadModalClose}></div>
-                        <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-4 z-50">
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-[#1447E6] rounded-xl flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-[#1D293D]">Download Reports</h3>
-                                        <p className="text-sm text-slate-500">Choose the type of report you want to download</p>
-                                    </div>
-                                </div>
-                                <button onClick={handleDownloadModalClose} className="text-slate-400 hover:text-slate-500 hover:bg-slate-100 p-2 rounded-lg transition-all duration-200">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                <button
-                                    onClick={() => handleDownloadReport('summarized')}
-                                    className="w-full border border-[#1447E6] bg-[#1447E6] text-white px-6 py-4 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 shadow-sm flex items-center justify-between"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        <div className="text-left">
-                                            <div className="font-semibold">Summarized Report</div>
-                                            <div className="text-xs text-white/80">Single student summary with program qualification</div>
-                                        </div>
-                                    </div>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-
-                                <button
-                                    onClick={() => handleDownloadReport('detailed')}
-                                    className="w-full bg-[#1D293D] text-white px-6 py-4 rounded-xl hover:bg-[#1240d0] text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-between"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                        <div className="text-left">
-                                            <div className="font-semibold">Detailed Report</div>
-                                            <div className="text-xs text-white/80">Comprehensive results with category breakdown</div>
-                                        </div>
-                                    </div>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-
-                                <button
-                                    onClick={() => handleDownloadReport('examinee_info')}
-                                    className="w-full border border-[#217346] bg-[#217346] text-white px-6 py-4 rounded-xl hover:bg-[#1a5c38] hover:border-[#1a5c38] text-sm font-medium transition-all duration-200 shadow-sm flex items-center justify-between"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        <div className="text-left">
-                                            <div className="font-semibold">Download Examinee Info</div>
-                                            <div className="text-xs text-white/80">Excel with lname, fname, mname, gender, age, school, parent, phone, address (non-archived only)</div>
-                                        </div>
-                                    </div>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div className="mt-6 pt-4 border-t border-slate-200">
-                                <div className="text-xs text-slate-500 text-center">
-                                    Reports will be generated based on your current filters
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
 
