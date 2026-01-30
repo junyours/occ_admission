@@ -830,21 +830,59 @@ class GuidanceController extends Controller
         // Load all results (needed for frontend filtering)
         // This is still needed but we'll optimize by preventing N+1 queries
         $allResults = $allResultsQuery->get();
-        
-        // OPTIMIZATION: Pre-load registration data to reduce N+1 queries from semester/school_year accessors
-        // The accessors will still run but the data is already in memory, reducing database hits
-        if ($allResults->isNotEmpty()) {
-            $examineeIds = $allResults->pluck('examineeId')->unique()->values()->all();
-            
-            // Batch load all registration data for these examinees
-            // This helps reduce database queries when accessors run
-            DB::table('examinee_registrations')
-                ->whereIn('examinee_id', $examineeIds)
-                ->orderBy('registration_date', 'desc')
-                ->get(); // Pre-load into query cache
+
+        // Attach recommended_courses and personality to ALL results (so Detailed Report has Math + Recommended Courses)
+        $allResultIds = $allResults->pluck('resultId')->all();
+        $allExamineeIds = $allResults->pluck('examineeId')->unique()->values()->all();
+        if (!empty($allResultIds)) {
+            $recsAll = DB::table('examinee_recommendations as er')
+                ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
+                ->select('er.exam_result_id', 'c.id as course_id', 'c.course_name', 'c.course_code')
+                ->whereIn('er.exam_result_id', $allResultIds)
+                ->get()
+                ->groupBy('exam_result_id');
+            $allResults->each(function ($result) use ($recsAll) {
+                $attached = $recsAll->get($result->resultId) ?? collect();
+                $result->recommended_courses = $attached->map(function ($r) {
+                    return [
+                        'course_id' => $r->course_id,
+                        'course_name' => $r->course_name,
+                        'course_code' => $r->course_code,
+                    ];
+                })->values();
+            });
+        }
+        if (!empty($allExamineeIds)) {
+            $personalitiesAll = DB::table('personality_test_results')
+                ->select('examineeId', 'EI', 'SN', 'TF', 'JP', 'created_at')
+                ->whereIn('examineeId', $allExamineeIds)
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->groupBy('examineeId')
+                ->map(function ($rows) { return $rows->first(); });
+            $allResults->each(function ($result) use ($personalitiesAll) {
+                if ($personalitiesAll->has($result->examineeId)) {
+                    $p = $personalitiesAll->get($result->examineeId);
+                    $result->personality_type = strtoupper(($p->EI ?? '').($p->SN ?? '').($p->TF ?? '').($p->JP ?? ''));
+                    $result->personality_result = [
+                        'EI' => $p->EI ?? null,
+                        'SN' => $p->SN ?? null,
+                        'TF' => $p->TF ?? null,
+                        'JP' => $p->JP ?? null,
+                    ];
+                }
+            });
         }
 
-        // Attach recommended courses for each exam result
+        // Pre-load registration data to reduce N+1 from semester/school_year accessors
+        if ($allResults->isNotEmpty()) {
+            DB::table('examinee_registrations')
+                ->whereIn('examinee_id', $allExamineeIds)
+                ->orderBy('registration_date', 'desc')
+                ->get();
+        }
+
+        // Attach recommended courses for paginated results (for table display)
         $resultIds = $results->getCollection()->pluck('resultId')->all();
         if (!empty($resultIds)) {
             $recs = DB::table('examinee_recommendations as er')

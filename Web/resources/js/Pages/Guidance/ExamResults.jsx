@@ -315,7 +315,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
         const avg = total > 0 ? Math.round(items.reduce((s, r) => s + (r.score ?? 0), 0) / total) : 0;
 
         const rows = items.map((r, idx) => {
-            const recs = (r.recommended_courses || []).map(c => `${c.course_code || ''}`).join(', ');
+            const recs = (r.recommended_courses || []).map(c => `${c.course_code || ''} ${c.course_name || ''}`.trim()).filter(Boolean).join(', ');
 
             // Parse category breakdown
             let categoryBreakdown = r.category_breakdown || [];
@@ -323,10 +323,15 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                 try { categoryBreakdown = JSON.parse(categoryBreakdown); } catch (_) { categoryBreakdown = []; }
             }
 
-            // Extract scores for each category
-            const getCategory = (name) => {
-                const cat = Array.isArray(categoryBreakdown) ? categoryBreakdown.find(c => c.category === name) : null;
-                return cat ? `${cat.correct}/${cat.total}` : '—';
+            // Extract scores for each category (flexible match: "Math" matches "Mathematics", "MATH", etc.)
+            const getCategory = (names) => {
+                const namesList = Array.isArray(names) ? names : [names];
+                if (!Array.isArray(categoryBreakdown)) return '—';
+                for (const n of namesList) {
+                    const cat = categoryBreakdown.find(c => c.category && String(c.category).toLowerCase().includes(String(n).toLowerCase()));
+                    if (cat) return `${cat.correct}/${cat.total}`;
+                }
+                return '—';
             };
 
             return `<tr>
@@ -334,11 +339,11 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                 <td style="padding:6px;border:1px solid #e5e7eb;">${(r.examinee?.full_name || '—').replace(/</g, '&lt;')}</td>
                 <td style=\"padding:6px;border:1px solid #e5e7eb;\">${r.semester || '—'}</td>
                 <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${r.school_year || '—'}</td>
-                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory('English')}</td>
-                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory('Math')}</td>
-                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory('Filipino')}</td>
-                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory('Science')}</td>
-                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory('Abstract Reasoning')}</td>
+                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory(['English'])}</td>
+                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory(['Math', 'Mathematics'])}</td>
+                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory(['Filipino'])}</td>
+                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory(['Science'])}</td>
+                <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${getCategory(['Abstract Reasoning', 'Abstract'])}</td>
                 <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${r.correct_answers ?? r.correct ?? '-'}/${r.total_questions ?? r.total_items ?? '-'}</td>
                 <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${(r.time_taken ? (Math.floor(r.time_taken / 60) + ":" + String(r.time_taken % 60).padStart(2, '0')) : 'N/A')}</td>
                 <td style="padding:6px;border:1px solid #e5e7eb;text-align:center;">${r.finished_at ? (() => {
