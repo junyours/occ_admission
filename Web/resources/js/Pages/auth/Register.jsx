@@ -1053,6 +1053,10 @@ export default function Register() {
                                         <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                                             Email Address
                                             <span className="text-red-500 ml-1">*</span>
+                                            <span className="block text-sm font-normal mt-1">
+                                                <span className="text-red-500 font-bold">Required Format: </span>
+                                                <span className="text-blue-600 font-bold">occ.lastname.firstname@gmail.com</span>
+                                            </span>
                                         </label>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

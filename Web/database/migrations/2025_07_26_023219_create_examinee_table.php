@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('fname'); // First Name
             $table->string('mname')->nullable(); // Middle Name (can be null)
             $table->string('gender' , 20);
-            $table->integer('age' , 20);
+            $table->integer('age');
             $table->string('school_name');
             $table->string('parent_name');
             $table->bigInteger('parent_phone');

@@ -76,6 +76,7 @@ export default function DownloadApk() {
 
                                 {/* Download Buttons */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* Google Drive APK button - commented out
                                     <button
                                         onClick={() => handleDownloadClick('drive')}
                                         className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-green-700 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-green-200 transition-all duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
@@ -85,6 +86,7 @@ export default function DownloadApk() {
                                         </svg>
                                         Google Drive APK
                                     </button>
+                                    */}
                                     <button
                                         onClick={() => handleDownloadClick('mediafire')}
                                         className="w-full bg-gradient-to-r from-sky-600 to-blue-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-sky-700 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-sky-200 transition-all duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
@@ -104,7 +106,7 @@ export default function DownloadApk() {
 
                             {/* Right Side - Two QR Codes */}
                             <div className="flex flex-col items-center space-y-6">
-                                {/* Google Drive QR */}
+                                {/* Google Drive QR - commented out
                                 <div 
                                     className="bg-white p-6 rounded-xl shadow-lg border-2 border-gray-100 cursor-pointer hover:shadow-xl hover:border-blue-300 transition-all duration-300 transform hover:scale-105 w-full max-w-xs"
                                     onClick={() => openQrModal('main')}
@@ -117,6 +119,7 @@ export default function DownloadApk() {
                                     <p className="text-center text-sm text-gray-700 mt-3 font-medium">Google Drive</p>
                                     <p className="text-center text-xs text-gray-500">Click to enlarge</p>
                                 </div>
+                                */}
 
                                 {/* MediaFire QR */}
                                 <div 
