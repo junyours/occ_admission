@@ -75,7 +75,7 @@ export default function DownloadApk() {
                                 </div>
 
                                 {/* Download Buttons */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 gap-3">
                                     {/* Google Drive APK button - commented out
                                     <button
                                         onClick={() => handleDownloadClick('drive')}
