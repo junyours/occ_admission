@@ -371,56 +371,90 @@ const PreferredCourses = ({
     return (
         <Layout user={user}>
             <Head title="Preferred Courses Overview" />
-            <div className="min-h-screen bg-slate-50">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-                    <div className="mb-8 rounded-3xl border border-[#1D293D] bg-[#1D293D] text-white shadow-sm overflow-hidden">
-                        <div className="px-6 py-6">
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/80">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Header */}
+                    <div className="mb-8 animate-fadeIn">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+                            <div className="flex items-center gap-4 pl-1 border-l-4 border-[#1447E6]">
+                                <div className="w-12 h-12 rounded-xl bg-[#1447E6]/10 flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                    </svg>
+                                </div>
                                 <div>
-                                    <h1 className="text-2xl font-bold text-white">Preferred Courses Overview</h1>
-                                    <p className="text-sm text-white/80 mt-1">
-                                        Snapshot of the programs examinees choose during registration.
-                                    </p>
+                                    <h1 className="text-2xl font-bold text-[#1D293D] tracking-tight sm:text-3xl">Preferred Courses</h1>
+                                    <p className="text-slate-500 text-sm mt-0.5">Programs examinees choose during registration</p>
                                 </div>
-                                <div className="flex flex-col items-start sm:items-end gap-2">
-                                    <span className="text-xs text-white/80">
-                                        Last updated: <span className="font-medium text-white">{formatTimestamp(stats?.lastUpdated)}</span>
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={handleDownload}
-                                        className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-white/15"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        Download PDF
-                                    </button>
-                                </div>
+                            </div>
+                            <div className="flex flex-col items-start sm:items-end gap-2">
+                                <span className="text-xs text-slate-500">
+                                    Last updated: <span className="font-medium text-slate-700">{formatTimestamp(stats?.lastUpdated)}</span>
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleDownload}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[#1447E6] text-white hover:bg-[#1240d0] transition-colors shadow-sm"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Download PDF
+                                </button>
                             </div>
                         </div>
 
-                        <div className="px-6 pb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-4 shadow-sm">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Total selections</p>
-                                <p className="text-2xl font-bold text-[#1D293D] mt-2">{stats?.totalSelections || 0}</p>
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fadeIn" style={{ animationDelay: '60ms' }}>
+                            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow p-6">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Total Selections</p>
+                                <p className="text-3xl font-bold text-[#1D293D]">{stats?.totalSelections || 0}</p>
                             </div>
-                            <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-4 shadow-sm">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Distinct courses</p>
-                                <p className="text-2xl font-bold text-[#1D293D] mt-2">{stats?.distinctCourses || 0}</p>
+                            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow p-6">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="w-10 h-10 rounded-xl bg-[#1447E6]/10 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Distinct Courses</p>
+                                <p className="text-3xl font-bold text-[#1D293D]">{stats?.distinctCourses || 0}</p>
                             </div>
-                            <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-4 shadow-sm">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Most selected</p>
-                                <p className="text-sm font-semibold text-[#1D293D] mt-2">
-                                    {stats?.topCourse ? `${stats.topCourse.course_name} (${stats.topCourse.count})` : 'No data yet'}
+                            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow p-6">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Most Selected</p>
+                                <p className="text-base font-semibold text-[#1D293D] leading-tight">
+                                    {stats?.topCourse ? (
+                                        <>
+                                            <span className="block truncate">{stats.topCourse.course_name}</span>
+                                            <span className="text-sm text-slate-500 font-normal">({stats.topCourse.count} selections)</span>
+                                        </>
+                                    ) : (
+                                        <span className="text-slate-400">No data yet</span>
+                                    )}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    {/* Search and Filter */}
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 mb-6 animate-fadeIn" style={{ animationDelay: '100ms' }}>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="relative flex-1 sm:max-w-xs">
+                            <div className="relative flex-1 sm:max-w-sm">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -430,52 +464,61 @@ const PreferredCourses = ({
                                     type="text"
                                     value={searchTerm}
                                     onChange={(event) => setSearchTerm(event.target.value)}
-                                    placeholder="Search course name"
-                                    className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-300 text-sm text-[#1D293D] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] transition-all duration-200"
+                                    placeholder="Search course name..."
+                                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm text-[#1D293D] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1447E6]/20 focus:border-[#1447E6] transition-all bg-white"
                                 />
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                                <span className="font-medium">Show top:</span>
-                                {[5, 10, 15, 20].map((option) => (
-                                    <button
-                                        key={option}
-                                        onClick={() => setVisibleCount(option)}
-                                        className={`px-3 py-1 rounded-xl border text-sm font-semibold transition-colors duration-150 ${
-                                            visibleCount === option
-                                                ? 'border-[#1447E6] bg-[#1447E6] text-white'
-                                                : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
-                                        }`}
-                                    >
-                                        {option}
-                                    </button>
-                                ))}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500 font-medium">Show top:</span>
+                                <div className="flex gap-1.5">
+                                    {[5, 10, 15, 20].map((option) => (
+                                        <button
+                                            key={option}
+                                            onClick={() => setVisibleCount(option)}
+                                            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                                                visibleCount === option
+                                                    ? 'bg-[#1447E6] text-white shadow-sm'
+                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            }`}
+                                        >
+                                            {option}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 bg-[#1447E6]/10 rounded-xl flex items-center justify-center">
-                                <svg className="w-5 h-5 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-[#1D293D]">Course Popularity</h2>
-                                <p className="text-sm text-slate-500">Visual representation of course selection trends</p>
+                    {/* Chart Section */}
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mb-6 animate-fadeIn" style={{ animationDelay: '120ms' }}>
+                        <div className="px-6 py-5 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#1447E6]/10 flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-semibold text-[#1D293D]">Course Popularity</h2>
+                                    <p className="text-sm text-slate-500">Visual representation of selection trends</p>
+                                </div>
                             </div>
                         </div>
-                        <div style={{ height: 320 }}>
-                            <Bar data={courseDataset} options={courseChartOptions} />
+                        <div className="p-6">
+                            <div style={{ height: 340 }}>
+                                <Bar data={courseDataset} options={courseChartOptions} />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                    {/* Lists Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn" style={{ animationDelay: '140ms' }}>
+                        {/* Top Courses */}
+                        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-100">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-[#1447E6]/10 rounded-lg flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                                         </svg>
                                     </div>
@@ -485,32 +528,40 @@ const PreferredCourses = ({
                                     </div>
                                 </div>
                             </div>
-                            <ul className="divide-y divide-slate-200">
+                            <ul className="divide-y divide-slate-100">
                                 {filteredCourses.slice(0, visibleCount).map((course, index) => (
                                     <li
                                         key={`${course.course_name}-${index}`}
-                                        className="px-6 py-3 flex items-center justify-between text-sm hover:bg-[#1447E6]/5 transition-colors duration-150"
+                                        className="px-6 py-3.5 flex items-center justify-between text-sm hover:bg-slate-50/80 transition-colors group"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="w-6 text-slate-500 font-semibold">{index + 1}.</span>
+                                            <span className="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-semibold flex items-center justify-center text-xs group-hover:bg-[#1447E6]/10 group-hover:text-[#1447E6] transition-colors">
+                                                {index + 1}
+                                            </span>
                                             <span className="text-[#1D293D] font-medium">{course.course_name}</span>
                                         </div>
-                                        <span className="text-slate-600 font-semibold">{course.count}</span>
+                                        <span className="px-2.5 py-1 rounded-lg bg-[#1447E6]/10 text-[#1447E6] font-semibold text-xs">{course.count}</span>
                                     </li>
                                 ))}
                                 {!filteredCourses.length && (
-                                    <li className="px-6 py-8 text-center text-sm text-slate-500">
-                                        No courses match your search.
+                                    <li className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <p className="text-sm text-slate-500">No courses match your search</p>
+                                        </div>
                                     </li>
                                 )}
                             </ul>
                         </div>
 
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                        {/* Latest Submissions */}
+                        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-100">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-[#1447E6]/10 rounded-lg flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
@@ -520,19 +571,24 @@ const PreferredCourses = ({
                                     </div>
                                 </div>
                             </div>
-                            <ul className="divide-y divide-slate-200">
+                            <ul className="divide-y divide-slate-100">
                                 {recentSelections.map((entry, index) => (
                                     <li
                                         key={`${entry.course_name}-${entry.created_at}-${index}`}
-                                        className="px-6 py-3 flex items-center justify-between text-sm hover:bg-[#1447E6]/5 transition-colors duration-150"
+                                        className="px-6 py-3.5 flex items-center justify-between text-sm hover:bg-slate-50/80 transition-colors"
                                     >
                                         <span className="text-[#1D293D] font-medium">{entry.course_name}</span>
-                                        <span className="text-slate-500 text-xs">{formatTimestamp(entry.created_at)}</span>
+                                        <span className="text-xs text-slate-500 font-medium">{formatTimestamp(entry.created_at)}</span>
                                     </li>
                                 ))}
                                 {!recentSelections.length && (
-                                    <li className="px-6 py-8 text-center text-sm text-slate-500">
-                                        No selections yet.
+                                    <li className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <svg className="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p className="text-sm text-slate-500">No selections yet</p>
+                                        </div>
                                     </li>
                                 )}
                             </ul>
@@ -540,6 +596,15 @@ const PreferredCourses = ({
                     </div>
                 </div>
             </div>
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.4s ease-out forwards;
+                }
+            `}</style>
         </Layout>
     );
 };
