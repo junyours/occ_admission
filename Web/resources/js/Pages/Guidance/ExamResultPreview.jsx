@@ -24,6 +24,11 @@ export default function ExamResultPreview({ user, result }) {
         const saved = localStorage.getItem('examResult_recommendedCourses_collapsed');
         return saved ? JSON.parse(saved) : false;
     });
+    const [profileImageFailed, setProfileImageFailed] = useState(false);
+
+    const examineeName = result?.examinee?.name || 'Unknown Examinee';
+    const examineeId = result?.examinee?.id;
+    const profileImageUrl = examineeId ? `/guidance/examinee/${examineeId}/profile-image` : null;
 
     const formatTime = (secs) => {
         if (!secs && secs !== 0) return 'N/A';
@@ -69,9 +74,28 @@ export default function ExamResultPreview({ user, result }) {
                     <div className="mb-8 rounded-3xl border border-[#1D293D] bg-[#1D293D] text-white shadow-sm overflow-hidden">
                         <div className="px-6 py-6">
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <h1 className="text-2xl font-bold text-white">Exam Result Preview</h1>
-                                    <p className="text-white/80 text-sm mt-1">{result.examinee?.full_name} • {result.exam_ref_no}</p>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex-shrink-0">
+                                        {profileImageUrl && !profileImageFailed ? (
+                                            <img
+                                                src={profileImageUrl}
+                                                alt={examineeName}
+                                                className="w-32 h-32 rounded-full object-cover border-2 border-white/70 shadow-md"
+                                                onError={() => setProfileImageFailed(true)}
+                                            />
+                                        ) : (
+                                            <div className="w-32 h-32 rounded-full bg-white/10 border-2 border-white/40 flex items-center justify-center shadow-md">
+                                                <span className="text-3xl font-semibold text-white">
+                                                    {examineeName ? examineeName.charAt(0).toUpperCase() : '?'}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-white">Exam Result Preview</h1>
+                                        <p className="text-white/90 text-sm mt-1 font-medium">{examineeName}</p>
+                                        <p className="text-white/60 text-xs mt-0.5">Exam Ref: {result.exam_ref_no}</p>
+                                    </div>
                                 </div>
                                 <a href="/guidance/exam-results" className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-white/15">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

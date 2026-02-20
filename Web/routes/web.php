@@ -280,6 +280,7 @@ Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getE
         Route::get('/exam-results/archived', [GuidanceController::class, 'archivedExamResults'])->name('exam-results.archived');
         Route::get('/exam-results/export-examinee-info', [GuidanceController::class, 'exportExamineeInfo'])->name('exam-results.export-examinee-info');
         Route::post('/exam-results/{id}/unarchive', [GuidanceController::class, 'unarchiveResult'])->name('exam-results.unarchive');
+        Route::get('/examinee/{id}/profile-image', [GuidanceController::class, 'getExamineeProfileImage'])->name('examinee.profile-image');
         Route::get('/question-analysis', [GuidanceController::class, 'getQuestionDifficultyAnalysis'])->name('question-analysis');
         Route::get('/question-analysis-page', function() {
             return Inertia::render('Guidance/QuestionAnalysis', [

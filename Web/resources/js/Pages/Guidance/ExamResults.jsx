@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { router } from '@inertiajs/react';
 import Layout from '../../Components/Layout';
@@ -131,6 +132,42 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
         return saved !== null ? JSON.parse(saved) : false;
     });
     const [showDownloadModal, setShowDownloadModal] = useState(false);
+    const [failedProfileImageIds, setFailedProfileImageIds] = useState(new Set());
+    const [profileCardModal, setProfileCardModal] = useState({
+        open: false,
+        name: '',
+        imageUrl: null,
+        examRef: '',
+        course: '',
+        personalityType: '',
+        schoolYear: '',
+        semester: ''
+    });
+
+    const getProfileImageUrl = (examineeId) => examineeId ? `/guidance/examinee/${examineeId}/profile-image` : null;
+
+    const openProfileCard = (result) => {
+        const exId = result.examinee?.id;
+        const profileUrl = getProfileImageUrl(exId);
+        const courseLabel = Array.isArray(result.recommended_courses) && result.recommended_courses.length > 0
+            ? (result.recommended_courses[0].course_code || result.recommended_courses[0].course_name || '')
+            : '';
+        const pType = result.personality_type
+            || (result.personality && (result.personality.type || result.personality))
+            || result.personalityType
+            || derivePersonality(result);
+        console.log('ExamResults: open profile card for examinee', exId, result.examinee?.full_name);
+        setProfileCardModal({
+            open: true,
+            name: result.examinee?.full_name || 'Unknown Student',
+            imageUrl: exId && !failedProfileImageIds.has(exId) ? profileUrl : null,
+            examRef: result.exam?.['exam-ref-no'] || '—',
+            course: courseLabel,
+            personalityType: pType || '—',
+            schoolYear: result.school_year || '—',
+            semester: result.semester || result.year || result.academic_year || '—'
+        });
+    };
 
     // Handle compactView state change and save to localStorage
     const handleCompactViewChange = (isCompact) => {
@@ -935,7 +972,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                     </div>
 
                     {/* Modern Filters and Actions */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 animate-up" style={{ animationDelay: '320ms' }}>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-6 animate-up" style={{ animationDelay: '320ms' }}>
                         <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50 animate-up" style={{ animationDelay: '340ms' }}>
                             <div className="flex flex-wrap items-center gap-3">
                                 <div className="w-8 h-8 bg-[#1447E6]/10 rounded-lg flex items-center justify-center shrink-0">
@@ -1298,11 +1335,37 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                         <tr key={result.id || result.resultId || `result-${index}`} className="bg-white hover:bg-[#1447E6]/10 transition-colors duration-200 animate-up" style={{ animationDelay: `${160 + index * 60}ms` }}>
                                             <td className="px-3 py-3 text-sm text-[#1D293D]">
                                                 <div className="flex items-center">
-                                                    <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
-                                                        <span className="text-slate-700 text-xs font-medium">
-                                                            {result.examinee?.full_name ? result.examinee.full_name.charAt(0).toUpperCase() : 'U'}
-                                                        </span>
-                                                    </div>
+                                                    {/* Examinee avatar: click to open profile card modal */}
+                                                    {(() => {
+                                                        const exId = result.examinee?.id;
+                                                        const profileUrl = getProfileImageUrl(exId);
+                                                        const hasImage = exId && profileUrl && !failedProfileImageIds.has(exId);
+                                                        return (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openProfileCard(result)}
+                                                                className="relative mr-2 flex-shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-[#1447E6]/50"
+                                                            >
+                                                                {hasImage ? (
+                                                                    <img
+                                                                        src={profileUrl}
+                                                                        alt={result.examinee?.full_name || 'Examinee'}
+                                                                        className="w-6 h-6 rounded-full object-cover border border-slate-200 cursor-pointer ring-2 ring-transparent hover:ring-[#1447E6]/30 transition-all"
+                                                                        onError={() => {
+                                                                            console.log('ExamResults: profile image failed to load for examinee', exId);
+                                                                            setFailedProfileImageIds(prev => new Set([...prev, exId]));
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-slate-300 transition-colors">
+                                                                        <span className="text-slate-700 text-xs font-medium">
+                                                                            {result.examinee?.full_name ? result.examinee.full_name.charAt(0).toUpperCase() : 'U'}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </button>
+                                                        );
+                                                    })()}
                                                     <div className="min-w-0 flex-1">
                                                         <div className="font-medium truncate">{result.examinee ? result.examinee.full_name : 'Unknown Student'}</div>
                                                         {/* Semester and Year Indicators */}
@@ -1878,6 +1941,81 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                             </div>
                         )}
                     </div>
+                )}
+
+                {/* Profile card modal - clean two-column layout (portaled to body) */}
+                {profileCardModal.open && createPortal(
+                    <div
+                        className="fixed inset-0 w-screen min-h-screen bg-slate-900/30 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+                        style={{ top: 0, left: 0, right: 0, bottom: 0 }}
+                        onClick={() => setProfileCardModal(prev => ({ ...prev, open: false }))}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Examinee profile card"
+                    >
+                        <div
+                            className="relative bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md animate-fadeIn flex flex-col sm:flex-row border border-slate-200"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setProfileCardModal(prev => ({ ...prev, open: false }))}
+                                className="absolute top-3 right-3 z-10 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1447E6] focus:ring-offset-2"
+                                aria-label="Close"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
+                            {/* Left: profile and name */}
+                            <div className="bg-gradient-to-b from-[#1447E6] to-[#1e3a8a] flex flex-col items-center justify-center py-8 px-6 sm:w-[42%]">
+                                {profileCardModal.imageUrl ? (
+                                    <img
+                                        src={profileCardModal.imageUrl}
+                                        alt={profileCardModal.name}
+                                        className="w-24 h-24 rounded-full object-cover ring-2 ring-white/50 flex-shrink-0"
+                                    />
+                                ) : (
+                                    <div className="w-24 h-24 rounded-full bg-white/20 ring-2 ring-white/30 flex items-center justify-center flex-shrink-0">
+                                        <span className="text-2xl font-semibold text-white">
+                                            {profileCardModal.name ? profileCardModal.name.charAt(0).toUpperCase() : '?'}
+                                        </span>
+                                    </div>
+                                )}
+                                <p className="mt-4 text-white font-semibold text-center text-sm leading-tight line-clamp-2 px-1">
+                                    {profileCardModal.name}
+                                </p>
+                            </div>
+
+                            {/* Right: details */}
+                            <div className="flex-1 py-6 px-6 flex flex-col justify-center">
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-baseline gap-3 py-2 border-b border-slate-100">
+                                        <span className="text-slate-500 text-sm">Exam Ref</span>
+                                        <span className="text-slate-900 text-sm font-medium text-right">{profileCardModal.examRef}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline gap-3 py-2 border-b border-slate-100">
+                                        <span className="text-slate-500 text-sm">Course</span>
+                                        <span className="text-slate-900 text-sm font-medium text-right">{profileCardModal.course || '—'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline gap-3 py-2 border-b border-slate-100">
+                                        <span className="text-slate-500 text-sm">Personality</span>
+                                        <span className="text-slate-900 text-sm font-medium text-right">{profileCardModal.personalityType}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline gap-3 py-2 border-b border-slate-100">
+                                        <span className="text-slate-500 text-sm">School Year</span>
+                                        <span className="text-slate-900 text-sm font-medium text-right">{profileCardModal.schoolYear}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline gap-3 py-2">
+                                        <span className="text-slate-500 text-sm">Semester</span>
+                                        <span className="text-slate-900 text-sm font-medium text-right">{profileCardModal.semester}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>,
+                    document.body
                 )}
 
                 <style>{`

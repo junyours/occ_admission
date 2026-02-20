@@ -773,7 +773,7 @@ class GuidanceController extends Controller
         // Optimize eager loading - only load necessary fields to reduce memory usage
         $query = ExamResult::with([
             'examinee:id,accountId,lname,fname,mname,address,preferred_course',
-            // NOTE: exams table does not have a 'title' column, so we only select existing ones
+            // NOTE: Profile excluded - loading it for all results causes memory exhaustion (512MB+)
             'exam:examId,exam-ref-no'
         ])->latest('finished_at');
         
@@ -807,7 +807,7 @@ class GuidanceController extends Controller
         // OPTIMIZATION: Load allResults efficiently for frontend filtering
         $allResultsQuery = ExamResult::with([
             'examinee:id,accountId,lname,fname,mname,address,preferred_course',
-            // Same as above: only select existing columns to avoid SQL errors
+            // Profile excluded - causes memory exhaustion when loading hundreds of results
             'exam:examId,exam-ref-no'
         ]);
         
@@ -951,6 +951,32 @@ class GuidanceController extends Controller
             ],
             'years' => $years,
         ]);
+    }
+
+    /**
+     * Serve examinee profile image on-demand (avoids loading all images at once)
+     */
+    public function getExamineeProfileImage($id)
+    {
+        $examinee = Examinee::select(['id', 'Profile'])->find($id);
+        if (!$examinee || !$examinee->Profile) {
+            return response('', 404);
+        }
+        try {
+            $decoded = base64_decode($examinee->Profile, true);
+            if ($decoded === false) {
+                return response('', 404);
+            }
+            $imageInfo = @getimagesizefromstring($decoded);
+            $mimeType = ($imageInfo && isset($imageInfo['mime'])) ? $imageInfo['mime'] : 'image/jpeg';
+            return response($decoded, 200, [
+                'Content-Type' => $mimeType,
+                'Cache-Control' => 'public, max-age=86400',
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Examinee profile image decode failed', ['examinee_id' => $id, 'error' => $e->getMessage()]);
+            return response('', 404);
+        }
     }
 
     /**

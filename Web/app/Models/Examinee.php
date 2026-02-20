@@ -26,7 +26,8 @@ class Examinee extends Model
         'preferred_course'
     ];
 
-    protected $appends = ['full_name'];
+    protected $appends = ['full_name', 'profile_image'];
+    protected $hidden = ['Profile'];
 
     public function user()
     {
@@ -63,15 +64,21 @@ class Examinee extends Model
      */
     public function getProfileImageAttribute()
     {
-        if ($this->Profile) {
-            // Determine the image type from the base64 data
-            $imageData = $this->Profile;
-            $imageInfo = getimagesizefromstring(base64_decode($imageData));
-            $mimeType = $imageInfo['mime'] ?? 'image/jpeg';
-            
-            return 'data:' . $mimeType . ';base64,' . $imageData;
+        if (!$this->Profile) {
+            return null;
         }
-        return null;
+        try {
+            $imageData = $this->Profile;
+            $decoded = base64_decode($imageData, true);
+            if ($decoded === false) {
+                return null;
+            }
+            $imageInfo = @getimagesizefromstring($decoded);
+            $mimeType = ($imageInfo && isset($imageInfo['mime'])) ? $imageInfo['mime'] : 'image/jpeg';
+            return 'data:' . $mimeType . ';base64,' . $imageData;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**
