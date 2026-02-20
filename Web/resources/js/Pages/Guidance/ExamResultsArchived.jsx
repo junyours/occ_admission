@@ -181,7 +181,16 @@ const ExamResultsArchived = ({ user, results, allResults = [], years = [], filte
                                         <div className="font-semibold text-slate-800">{y}</div>
                                         <div className="text-xs text-slate-500">{totalYearItems} item(s)</div>
                                     </div>
-                                    
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm(`Unarchive all ${totalYearItems} result(s) for ${y}? They will appear in the main exam results.`)) {
+                                                handleUnarchiveYear(y);
+                                            }
+                                        }}
+                                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                                    >
+                                        Unarchive All (year)
+                                    </button>
                                 </div>
                                 {!collapsed[yearKey] && (
                                     <div className="overflow-x-auto">

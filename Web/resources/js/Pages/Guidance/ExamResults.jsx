@@ -935,120 +935,99 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                     </div>
 
                     {/* Modern Filters and Actions */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 animate-up" style={{ animationDelay: '320ms' }}>
-                        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 animate-up" style={{ animationDelay: '340ms' }}>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-[#1447E6]/10 rounded-xl flex items-center justify-center">
-                                        <svg className="w-5 h-5 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-[#1D293D]">Filters & Actions</h3>
-                                        <p className="text-sm text-slate-600">Customize your view and manage results</p>
-
-                                        <label className="flex items-center gap-2 text-sm text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-200 mt-2">
-                                            <input type="checkbox" className="h-4 w-4 text-[#1447E6] focus:ring-[#1447E6] border-slate-300 rounded" checked={compactView} onChange={(e) => handleCompactViewChange(e.target.checked)} />
-                                            <span className="font-medium">Compact View</span>
-                                        </label>
-                                    </div>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 animate-up" style={{ animationDelay: '320ms' }}>
+                        <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50 animate-up" style={{ animationDelay: '340ms' }}>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="w-8 h-8 bg-[#1447E6]/10 rounded-lg flex items-center justify-center shrink-0">
+                                    <svg className="w-4 h-4 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                                    </svg>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                                    <h3 className="text-base font-semibold text-[#1D293D]">Filters & Actions</h3>
+                                    <p className="text-xs text-slate-600 hidden sm:inline">Customize your view and manage results</p>
+                                    <label className="flex items-center gap-1.5 text-xs text-slate-700 bg-white px-2 py-1 rounded-lg border border-slate-200">
+                                        <input type="checkbox" className="h-3.5 w-3.5 text-[#1447E6] focus:ring-[#1447E6] border-slate-300 rounded" checked={compactView} onChange={(e) => handleCompactViewChange(e.target.checked)} />
+                                        <span>Compact View</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
-                        <div className="p-6 animate-up" style={{ animationDelay: '360ms' }}>
-                            <div className="flex flex-col gap-4">
-                                {/* Row 1: Primary Filters */}
-                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
-                                        {/* Group: Search Filters */}
-                                        <div className="flex flex-wrap items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full sm:w-auto">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-600">Exam</span>
-                                                <select value={selectedExam} onChange={(e) => setSelectedExam(e.target.value)} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[150px] px-3 py-2 text-sm text-[#1D293D]">
+                        <div className="p-4 animate-up" style={{ animationDelay: '360ms' }}>
+                            <div className="flex flex-col gap-3">
+                                {/* Single compact row: all filters and actions */}
+                                <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+                                    <div className="flex flex-wrap items-center gap-2 w-full">
+                                        {/* Filters in one row */}
+                                        <div className="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs text-slate-600 shrink-0">Exam</span>
+                                                <select value={selectedExam} onChange={(e) => setSelectedExam(e.target.value)} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[130px] px-2 py-1.5 text-sm text-[#1D293D]">
                                                     <option value="">All Exams</option>
                                                     {Array.from(new Set(results.data.map(r => r.exam ? r.exam['exam-ref-no'] : null).filter(Boolean))).map(ex => (
                                                         <option key={ex} value={ex}>{ex}</option>
                                                     ))}
                                                 </select>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-600">Status</span>
-                                                <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[150px] px-3 py-2 text-sm text-[#1D293D]">
-                                                    <option value="">All Statuses</option>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs text-slate-600 shrink-0">Status</span>
+                                                <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[110px] px-2 py-1.5 text-sm text-[#1D293D]">
+                                                    <option value="">All</option>
                                                     {['completed', 'in_progress', 'pending'].map(s => <option key={s} value={s}>{s}</option>)}
                                                 </select>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-600">Date</span>
-                                                <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[180px] px-3 py-2 text-sm text-[#1D293D]">
-                                                    <option value="">All Dates</option>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs text-slate-600 shrink-0">Date</span>
+                                                <select value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[140px] px-2 py-1.5 text-sm text-[#1D293D]">
+                                                    <option value="">All</option>
                                                     {uniqueDates.map(date => (
                                                         <option key={date} value={date}>
-                                                            {new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} ({dateCount[date] || 0})
+                                                            {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} ({dateCount[date] || 0})
                                                         </option>
                                                     ))}
                                                 </select>
                                             </div>
-                                        </div>
-
-                                        {/* Group: Pagination */}
-                                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                                            <span className="text-xs text-slate-600">Items</span>
-                                            <select value={itemsPerPage} onChange={(e) => setItemsPerPage(parseInt(e.target.value))} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[120px] px-3 py-2 text-sm text-[#1D293D]">
-                                                <option value={10}>10 items</option>
-                                                <option value={20}>20 items</option>
-                                                <option value={30}>30 items</option>
-                                                <option value={40}>40 items</option>
-                                                <option value={50}>50 items</option>
-                                                <option value={500}>500 items</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Row 2: Year / Archived / Range / Actions */}
-                                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
-                                        {/* Group: Year & Archived */}
-                                        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-600">Year</span>
-                                                <select value={selectedYear} onChange={(e) => { setSelectedYear(e.target.value); applyServerFilters(e.target.value, includeArchived); }} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[120px] px-3 py-2 text-sm text-[#1D293D]">
-                                                    <option value="">All Years</option>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs text-slate-600 shrink-0">Year</span>
+                                                <select value={selectedYear} onChange={(e) => { setSelectedYear(e.target.value); applyServerFilters(e.target.value, includeArchived); }} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[90px] px-2 py-1.5 text-sm text-[#1D293D]">
+                                                    <option value="">All</option>
                                                     {years.map(y => <option key={y} value={y}>{y}</option>)}
                                                 </select>
                                             </div>
-                                            <label className="flex items-center gap-2 text-sm text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-200">
-                                                <input type="checkbox" className="h-4 w-4 text-[#1447E6] focus:ring-[#1447E6] border-slate-300 rounded" checked={includeArchived} onChange={(e) => { setIncludeArchived(e.target.checked); applyServerFilters(selectedYear, e.target.checked); }} />
-                                                <span className="font-medium">Include Archived</span>
-                                            </label>
-                                        </div>
-
-                                        {/* Group: From / To */}
-                                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-600">From</span>
-                                                <select value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[180px] px-3 py-2 text-sm text-[#1D293D]">
-                                                    <option value="">Select From</option>
-                                                    {uniqueDates.map(date => (
-                                                        <option key={`from-${date}`} value={date}>{new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} ({dateCount[date] || 0})</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-600">To</span>
-                                                <select value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border border-slate-300 rounded-xl shadow-sm focus:ring-2 focus:ring-[#1447E6] focus:border-[#1447E6] min-w-[180px] px-3 py-2 text-sm text-[#1D293D]">
-                                                    <option value="">Select To</option>
-                                                    {uniqueDates.map(date => (
-                                                        <option key={`to-${date}`} value={date}>{new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} ({dateCount[date] || 0})</option>
-                                                    ))}
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-xs text-slate-600 shrink-0">Items</span>
+                                                <select value={itemsPerPage} onChange={(e) => setItemsPerPage(parseInt(e.target.value))} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[85px] px-2 py-1.5 text-sm text-[#1D293D]">
+                                                    <option value={10}>10</option>
+                                                    <option value={20}>20</option>
+                                                    <option value={30}>30</option>
+                                                    <option value={40}>40</option>
+                                                    <option value={50}>50</option>
+                                                    <option value={500}>500</option>
                                                 </select>
                                             </div>
                                         </div>
-
-                                        {/* Group: Apply / Clear */}
-                                        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                                        <label className="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 shrink-0">
+                                            <input type="checkbox" className="h-3.5 w-3.5 text-[#1447E6] focus:ring-[#1447E6] border-slate-300 rounded" checked={includeArchived} onChange={(e) => { setIncludeArchived(e.target.checked); applyServerFilters(selectedYear, e.target.checked); }} />
+                                            <span>Archived</span>
+                                        </label>
+                                        {/* Date range inline */}
+                                        <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+                                            <span className="text-xs text-slate-600 shrink-0">From</span>
+                                            <select value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[120px] px-2 py-1.5 text-sm text-[#1D293D]">
+                                                <option value="">Select</option>
+                                                {uniqueDates.map(date => (
+                                                    <option key={`from-${date}`} value={date}>{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</option>
+                                                ))}
+                                            </select>
+                                            <span className="text-xs text-slate-500">→</span>
+                                            <select value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-[#1447E6] min-w-[120px] px-2 py-1.5 text-sm text-[#1D293D]">
+                                                <option value="">Select</option>
+                                                {uniqueDates.map(date => (
+                                                    <option key={`to-${date}`} value={date}>{new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
                                             <button onClick={() => { 
                                                 setSelectedDate(''); 
                                                 let s = startDate || ''; 
@@ -1056,21 +1035,21 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                 if (s && e && s > e) { const tmp = s; s = e; e = tmp; }
                                                 console.log('[ExamResults] Applying date range', { year: selectedYear, includeArchived, start: s || undefined, end: e || undefined });
                                                 applyServerFilters(selectedYear, includeArchived, s, e); 
-                                            }} className="border border-[#1447E6] bg-[#1447E6] text-white px-3 py-2 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 shadow-sm">Apply</button>
-                                            <button onClick={() => { setStartDate(''); setEndDate(''); setSelectedDate(''); applyServerFilters(selectedYear, includeArchived, '', ''); }} className="border border-slate-300 bg-white text-slate-600 px-3 py-2 rounded-xl hover:border-[#1447E6] hover:text-[#1447E6] text-sm font-semibold transition-colors duration-200 shadow-sm">Clear</button>
+                                            }} className="border border-[#1447E6] bg-[#1447E6] text-white px-2.5 py-1.5 rounded-lg hover:bg-[#1240d0] text-xs font-semibold transition-colors shadow-sm">Apply</button>
+                                            <button onClick={() => { setStartDate(''); setEndDate(''); setSelectedDate(''); applyServerFilters(selectedYear, includeArchived, '', ''); }} className="border border-slate-300 bg-white text-slate-600 px-2.5 py-1.5 rounded-lg hover:border-[#1447E6] hover:text-[#1447E6] text-xs font-semibold transition-colors shadow-sm">Clear</button>
                                         </div>
                                     </div>
 
                                     {/* Right-side Actions */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                                         <div className="relative">
-                                            <button onClick={handleDownloadModalOpen} className="border border-[#1447E6] bg-[#1447E6] text-white px-4 py-2 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 shadow-sm">
-                                                <span className="flex items-center gap-2">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <button onClick={handleDownloadModalOpen} className="border border-[#1447E6] bg-[#1447E6] text-white px-3 py-1.5 rounded-lg hover:bg-[#1240d0] text-xs font-semibold transition-colors shadow-sm">
+                                                <span className="flex items-center gap-1.5">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
-                                                    Download Reports
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    Download
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                                                     </svg>
                                                 </span>
@@ -1116,17 +1095,17 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                 </>
                                             )}
                                         </div>
-                                        <a href="/guidance/exam-results/archived" className="border border-slate-300 bg-white text-slate-600 px-4 py-2 rounded-xl hover:border-[#1447E6] hover:text-[#1447E6] text-sm font-semibold transition-colors duration-200 shadow-sm">
-                                            <span className="flex items-center gap-2">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <a href="/guidance/exam-results/archived" className="border border-slate-300 bg-white text-slate-600 px-3 py-1.5 rounded-lg hover:border-[#1447E6] hover:text-[#1447E6] text-xs font-semibold transition-colors shadow-sm">
+                                            <span className="flex items-center gap-1.5">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                                 </svg>
                                                 View Archived
                                             </span>
                                         </a>
-                                        <button onClick={handleArchiveAll} className="border border-slate-300 bg-white text-slate-600 px-4 py-2 rounded-xl hover:border-[#1447E6] hover:text-[#1447E6] text-sm font-semibold transition-colors duration-200 shadow-sm">
-                                            <span className="flex items-center gap-2">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <button onClick={handleArchiveAll} className="border border-slate-300 bg-white text-slate-600 px-3 py-1.5 rounded-lg hover:border-[#1447E6] hover:text-[#1447E6] text-xs font-semibold transition-colors shadow-sm">
+                                            <span className="flex items-center gap-1.5">
+                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                                 </svg>
                                                 Archive All

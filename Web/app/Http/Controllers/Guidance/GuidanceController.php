@@ -1236,7 +1236,14 @@ class GuidanceController extends Controller
         ]);
 
         $year = (int) $request->year;
-        $count = ExamResult::whereYear('created_at', $year)->update(['is_archived' => 1]);
+        $count = ExamResult::where('is_archived', 1)
+            ->where(function ($q) use ($year) {
+                $q->whereYear('finished_at', $year)
+                    ->orWhere(function ($q2) use ($year) {
+                        $q2->whereNull('finished_at')->whereYear('created_at', $year);
+                    });
+            })
+            ->update(['is_archived' => 0]);
 
         return back()->with('success', "Unarchived {$count} results for {$year}");
     }
