@@ -26,28 +26,42 @@ class StudentResultsController extends Controller
         $department = $evaluator->Department;
         Log::info('Filtering by department', ['department' => $department]);
 
+        // Normalize department name for course filtering
+        // Map CIT Department to BSIT courses
+        $normalizedDepartment = strtoupper(trim($department));
+        $isBSIT = str_contains($normalizedDepartment, 'BSIT') || str_contains($normalizedDepartment, 'CIT');
+        $isBSBA = str_contains($normalizedDepartment, 'BSBA');
+        $isEDUC = str_contains($normalizedDepartment, 'EDUC');
+
         // Follow guidance controller pattern: Start with ExamResult, then attach recommendations
         $query = ExamResult::with(['examinee', 'exam'])->where('is_archived', 0)->latest();
 
-        // Filter by student name
+        // Filter by student name (search across fname, mname, lname)
         if ($request->filled('student_name')) {
-            $query->whereHas('examinee', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->student_name . '%');
+            $searchTerm = '%' . $request->student_name . '%';
+            $query->whereHas('examinee', function ($q) use ($searchTerm) {
+                $q->where(function ($subQ) use ($searchTerm) {
+                    $subQ->where('fname', 'like', $searchTerm)
+                         ->orWhere('mname', 'like', $searchTerm)
+                         ->orWhere('lname', 'like', $searchTerm)
+                         ->orWhereRaw("CONCAT(fname, ' ', COALESCE(mname, ''), ' ', lname) LIKE ?", [$searchTerm])
+                         ->orWhereRaw("CONCAT(fname, ' ', lname) LIKE ?", [$searchTerm]);
+                });
             });
         }
 
         // Only get results that have recommendations for this evaluator's department
-        $query->whereExists(function ($subQuery) use ($department) {
+        $query->whereExists(function ($subQuery) use ($isBSIT, $isBSBA, $isEDUC, $department) {
             $subQuery->select(DB::raw(1))
                 ->from('examinee_recommendations as er')
                 ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
                 ->whereColumn('er.exam_result_id', 'exam_results.resultId')
-                ->where(function ($q) use ($department) {
-                    if (str_contains($department, 'BSIT')) {
+                ->where(function ($q) use ($isBSIT, $isBSBA, $isEDUC, $department) {
+                    if ($isBSIT) {
                         $q->where('c.course_code', 'like', 'BSIT%');
-                    } elseif (str_contains($department, 'BSBA')) {
+                    } elseif ($isBSBA) {
                         $q->where('c.course_code', 'like', 'BSBA%');
-                    } elseif (str_contains($department, 'EDUC')) {
+                    } elseif ($isEDUC) {
                         $q->whereIn('c.course_code', ['BSed', 'BEed']);
                     } else {
                         $q->where('c.course_code', 'like', '%' . $department . '%');
@@ -57,17 +71,17 @@ class StudentResultsController extends Controller
 
         // Filter by course (within the department)
         if ($request->filled('course')) {
-            $query->whereExists(function ($subQuery) use ($department, $request) {
+            $query->whereExists(function ($subQuery) use ($isBSIT, $isBSBA, $isEDUC, $department, $request) {
                 $subQuery->select(DB::raw(1))
                     ->from('examinee_recommendations as er')
                     ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
                     ->whereColumn('er.exam_result_id', 'exam_results.resultId')
-                    ->where(function ($q) use ($department) {
-                        if (str_contains($department, 'BSIT')) {
+                    ->where(function ($q) use ($isBSIT, $isBSBA, $isEDUC, $department) {
+                        if ($isBSIT) {
                             $q->where('c.course_code', 'like', 'BSIT%');
-                        } elseif (str_contains($department, 'BSBA')) {
+                        } elseif ($isBSBA) {
                             $q->where('c.course_code', 'like', 'BSBA%');
-                        } elseif (str_contains($department, 'EDUC')) {
+                        } elseif ($isEDUC) {
                             $q->whereIn('c.course_code', ['BSed', 'BEed']);
                         } else {
                             $q->where('c.course_code', 'like', '%' . $department . '%');
@@ -88,12 +102,12 @@ class StudentResultsController extends Controller
                 ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
                 ->select('er.exam_result_id', 'c.id as course_id', 'c.course_name', 'c.course_code')
                 ->whereIn('er.exam_result_id', $resultIds)
-                ->where(function ($q) use ($department) {
-                    if (str_contains($department, 'BSIT')) {
+                ->where(function ($q) use ($isBSIT, $isBSBA, $isEDUC, $department) {
+                    if ($isBSIT) {
                         $q->where('c.course_code', 'like', 'BSIT%');
-                    } elseif (str_contains($department, 'BSBA')) {
+                    } elseif ($isBSBA) {
                         $q->where('c.course_code', 'like', 'BSBA%');
-                    } elseif (str_contains($department, 'EDUC')) {
+                    } elseif ($isEDUC) {
                         $q->whereIn('c.course_code', ['BSed', 'BEed']);
                     } else {
                         $q->where('c.course_code', 'like', '%' . $department . '%');
@@ -148,12 +162,12 @@ class StudentResultsController extends Controller
                 ->join('personality_test_results as ptr', 'er.personality_result_id', '=', 'ptr.id')
                 ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
                 ->whereIn('er.exam_result_id', $resultIds)
-                ->where(function ($q) use ($department) {
-                    if (str_contains($department, 'BSIT')) {
+                ->where(function ($q) use ($isBSIT, $isBSBA, $isEDUC, $department) {
+                    if ($isBSIT) {
                         $q->where('c.course_code', 'like', 'BSIT%');
-                    } elseif (str_contains($department, 'BSBA')) {
+                    } elseif ($isBSBA) {
                         $q->where('c.course_code', 'like', 'BSBA%');
-                    } elseif (str_contains($department, 'EDUC')) {
+                    } elseif ($isEDUC) {
                         $q->whereIn('c.course_code', ['BSed', 'BEed']);
                     } else {
                         $q->where('c.course_code', 'like', '%' . $department . '%');
@@ -320,20 +334,43 @@ class StudentResultsController extends Controller
         $user = Auth::user();
         $evaluator = $user->evaluator;
         
+        $department = $evaluator->Department;
+        // Normalize department name for course filtering
+        // Map CIT Department to BSIT courses
+        $normalizedDepartment = strtoupper(trim($department));
+        $isBSIT = str_contains($normalizedDepartment, 'BSIT') || str_contains($normalizedDepartment, 'CIT');
+        $isBSBA = str_contains($normalizedDepartment, 'BSBA');
+        $isEDUC = str_contains($normalizedDepartment, 'EDUC');
+        
         $query = ExamineeRecommendation::with([
             'examinee', 
             'examResult.exam', 
             'personalityResult.personalityType',
             'recommendedCourse'
         ])
-        ->whereHas('examResult.exam', function ($q) use ($evaluator) {
-            $q->where('department', $evaluator->Department);
+        ->whereHas('recommendedCourse', function ($q) use ($isBSIT, $isBSBA, $isEDUC, $department) {
+            if ($isBSIT) {
+                $q->where('course_code', 'like', 'BSIT%');
+            } elseif ($isBSBA) {
+                $q->where('course_code', 'like', 'BSBA%');
+            } elseif ($isEDUC) {
+                $q->whereIn('course_code', ['BSed', 'BEed']);
+            } else {
+                $q->where('course_code', 'like', '%' . $department . '%');
+            }
         });
 
         // Apply filters
         if ($request->filled('student_name')) {
-            $query->whereHas('examinee', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->student_name . '%');
+            $searchTerm = '%' . $request->student_name . '%';
+            $query->whereHas('examinee', function ($q) use ($searchTerm) {
+                $q->where(function ($subQ) use ($searchTerm) {
+                    $subQ->where('fname', 'like', $searchTerm)
+                         ->orWhere('mname', 'like', $searchTerm)
+                         ->orWhere('lname', 'like', $searchTerm)
+                         ->orWhereRaw("CONCAT(fname, ' ', COALESCE(mname, ''), ' ', lname) LIKE ?", [$searchTerm])
+                         ->orWhereRaw("CONCAT(fname, ' ', lname) LIKE ?", [$searchTerm]);
+                });
             });
         }
 

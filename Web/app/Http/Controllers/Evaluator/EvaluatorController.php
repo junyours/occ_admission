@@ -23,18 +23,24 @@ class EvaluatorController extends Controller
 
         $department = strtoupper((string) $evaluator->Department);
 
+        // Normalize department name for course filtering
+        // Map CIT Department to BSIT courses
+        $isBSIT = str_contains($department, 'BSIT') || str_contains($department, 'CIT');
+        $isBSBA = str_contains($department, 'BSBA');
+        $isEDUC = str_contains($department, 'EDUC');
+
         // Map department to course_code filter for academic recommendations
         // Count students who passed entrance exam and were recommended to courses in this department
         $totalStudents = DB::table('examinee_recommendations as er')
             ->join('courses as c', 'er.recommended_course_id', '=', 'c.id')
             ->join('exam_results as xr', 'er.exam_result_id', '=', 'xr.resultId')
             ->join('examinee as e', 'er.examinee_id', '=', 'e.id')
-            ->where(function ($q) use ($department) {
-                if (str_contains($department, 'BSIT')) {
+            ->where(function ($q) use ($isBSIT, $isBSBA, $isEDUC, $department) {
+                if ($isBSIT) {
                     $q->where('c.course_code', 'like', 'BSIT%');
-                } elseif (str_contains($department, 'BSBA')) {
+                } elseif ($isBSBA) {
                     $q->where('c.course_code', 'like', 'BSBA%');
-                } elseif (str_contains($department, 'EDUC')) {
+                } elseif ($isEDUC) {
                     $q->whereIn('c.course_code', ['BSed', 'BEed']);
                 } else {
                     // For other departments, check if course_code contains department name
