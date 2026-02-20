@@ -231,6 +231,8 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
             const studentName = result.examinee?.full_name || d?.examinee?.full_name || 'Student';
             const examRef = result.exam?.['exam-ref-no'] || d?.exam_ref_no || 'Exam';
             const semester = d.semester || result.semester || '';
+            const examineeId = result.examinee?.id || d?.examinee?.id;
+            const profileImgSrc = examineeId ? `/guidance/examinee/${examineeId}/profile-image` : null;
 
             const answersRows = (d.answers || [])
                 .map(a => `<tr>
@@ -264,8 +266,12 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
             const styles = `
                 @media print { @page { margin: 16mm; } }
                 body { font-family: Inter, Arial, sans-serif; color:#111827; }
-                .header { display:flex; align-items:center; gap:12px; }
+                .header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+                .header-left { display:flex; align-items:center; gap:12px; }
                 .logo { height:56px; width:56px; }
+                /* 2x2-style square profile photo for print */
+                .profile { height:96px; width:96px; border-radius:4px; object-fit:cover; border:1px solid #e5e7eb; }
+                .header-profile { display:flex; align-items:flex-end; justify-content:flex-end; }
                 .muted { color:#6b7280; }
                 .badge { display:inline-block; padding:2px 8px; background:#eef2ff; color:#3730a3; border-radius:999px; font-size:12px; }
                 .card { border:1px solid #e5e7eb; border-radius:8px; padding:12px; }
@@ -279,11 +285,16 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                 <style>${styles}</style></head>
                 <body>
                     <div class="header">
-                        <img src="/OCC logo.png" alt="OCC" class="logo"/>
-                        <div>
-                            <div style="font-size:18px; font-weight:700;">Opol Community College</div>
-                            <div class="muted" style="font-size:13px;">Guidance Office • Examination Result</div>
+                        <div class="header-left">
+                            <img src="/OCC logo.png" alt="OCC" class="logo"/>
+                            <div>
+                                <div style="font-size:18px; font-weight:700;">Opol Community College</div>
+                                <div class="muted" style="font-size:13px;">Guidance Office • Examination Result</div>
+                            </div>
                         </div>
+                        ${profileImgSrc ? `<div class="header-profile">
+                            <img src="${profileImgSrc}" alt="${studentName}" class="profile"/>
+                        </div>` : ''}
                     </div>
                     <hr style="margin:12px 0; border:none; border-top:1px solid #e5e7eb;"/>
 

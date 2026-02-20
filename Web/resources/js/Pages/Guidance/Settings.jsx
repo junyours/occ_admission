@@ -317,216 +317,121 @@ const Settings = ({ user }) => {
 
     return (
         <Layout user={user}>
-            <div className="min-h-screen bg-slate-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-up" style={{ animationDelay: '60ms' }}>
-                    {/* Header Section */}
-                    <div className="mb-8 rounded-3xl border border-[#1D293D] bg-[#1D293D] text-white shadow-sm overflow-hidden animate-fadeIn animate-up" style={{ animationDelay: '120ms' }}>
-                        <div className="px-8 py-8">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 bg-white/10 border border-white/15 rounded-2xl flex items-center justify-center">
-                                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h1 className="text-3xl font-bold md:text-4xl">Settings</h1>
-                                    <p className="text-sm text-white/80 mt-1">System configuration and management tools</p>
-                                </div>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/80">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Header */}
+                    <div className="mb-10 animate-fadeIn">
+                        <div className="flex items-center gap-4 pl-1 border-l-4 border-[#1447E6]">
+                            <div className="w-12 h-12 rounded-xl bg-[#1447E6]/10 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-[#1D293D] tracking-tight sm:text-3xl">Settings</h1>
+                                <p className="text-slate-500 text-sm mt-0.5">System configuration and exam management</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Main Content Card */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 animate-up" style={{ animationDelay: '180ms' }}>
-                        {/* Exam Progress Management Section */}
-                        <div className="p-8 border-b border-slate-200 animate-up" style={{ animationDelay: '240ms' }}>
-                            <div className="mb-6">
-                                <h3 className="text-xl font-semibold text-[#1D293D] mb-2">Exam Progress Management</h3>
-                                <p className="text-slate-600">Clear exam progress data (automatically clears daily at 6:00 AM)</p>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-3">
-                                <button
-                                    onClick={handleClearExamProgress}
-                                    disabled={isLoading}
-                                    className="bg-slate-600 text-white px-6 py-3 rounded-xl hover:bg-slate-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold"
-                                >
-                                    {isLoading ? (
-                                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    )}
-                                    Clear Exam Progress Now
-                                </button>
-
-                                <button
-                                    onClick={handleCheckExamStatus}
-                                    disabled={isLoading}
-                                    className="bg-[#1447E6] text-white px-6 py-3 rounded-xl hover:bg-[#1240d0] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold"
-                                >
-                                    {isLoading ? (
-                                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    )}
-                                    Check Exam Status
-                                </button>
-
-                                <button
-                                    onClick={handleCheckAllInProgress}
-                                    disabled={isLoading}
-                                    className="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold"
-                                >
-                                    {isLoading ? (
-                                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                        </svg>
-                                    )}
-                                    Check All In Progress
-                                </button>
-
-                                <button
-                                    onClick={handleClearInProgressExams}
-                                    disabled={isLoading}
-                                    className="bg-slate-600 text-white px-6 py-3 rounded-xl hover:bg-slate-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold"
-                                >
-                                    {isLoading ? (
-                                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                    )}
-                                    Delete Abandoned Exams
+                    {/* Exam Progress Management - 2x2 action cards */}
+                    <section className="mb-10 animate-fadeIn" style={{ animationDelay: '80ms' }}>
+                        <div className="mb-4">
+                            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Exam Progress</h2>
+                            <p className="text-slate-600 text-sm mt-0.5">Auto-clears daily at 6:00 AM</p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 p-6">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mb-4 group-hover:bg-slate-200/80 transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </div>
+                                <h3 className="font-semibold text-[#1D293D] mb-1">Clear Exam Progress</h3>
+                                <p className="text-sm text-slate-500 mb-4">Remove temporary session data. Usually not needed—runs automatically at 6 AM.</p>
+                                <button onClick={handleClearExamProgress} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-700 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
+                                    Clear Now
                                 </button>
                             </div>
-                            
-                            <div className="mt-4 space-y-3">
-                                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                                    <div className="flex items-start gap-3">
-                                        <svg className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-semibold text-[#1D293D] mb-1">Clear Exam Progress Now</h4>
-                                            <p className="text-sm text-slate-600 leading-relaxed">
-                                                Manually clear all exam progress records from the database. This action removes temporary exam session data.
-                                            </p>
-                                            <p className="text-xs text-slate-500 mt-2 font-medium">
-                                                Note: The system automatically clears exam progress every day at 6:00 AM, so manual clearing is usually not needed.
-                                            </p>
-                                        </div>
-                                    </div>
+                            <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 p-6">
+                                <div className="w-10 h-10 rounded-xl bg-[#1447E6]/10 text-[#1447E6] flex items-center justify-center mb-4 group-hover:bg-[#1447E6]/15 transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
                                 </div>
-                                
-                                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                                    <div className="flex items-start gap-3">
-                                        <svg className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-semibold text-[#1D293D] mb-1">Check Exam Status</h4>
-                                            <p className="text-sm text-slate-600 leading-relaxed mb-2">
-                                                Find exams that are finished but still marked as &quot;In Progress&quot;. This helps identify exams that need their status updated.
-                                            </p>
-                                            <ul className="text-xs text-slate-600 space-y-1 ml-4 list-disc">
-                                                <li>View all finished exams with incorrect status</li>
-                                                <li>Select which exams to fix</li>
-                                                <li>System will mark them as &quot;Passed&quot; (≥10% score) or &quot;Failed&quot; (&lt;10% score)</li>
-                                            </ul>
-                                        </div>
-                                    </div>
+                                <h3 className="font-semibold text-[#1D293D] mb-1">Check Exam Status</h3>
+                                <p className="text-sm text-slate-500 mb-4">Find finished exams still marked &quot;In Progress&quot; and fix status (Pass/Fail).</p>
+                                <button onClick={handleCheckExamStatus} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#1447E6] text-white hover:bg-[#1240d0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
+                                    Check Status
+                                </button>
+                            </div>
+                            <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 p-6">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-4 group-hover:bg-emerald-500/15 transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                    </svg>
                                 </div>
-                                
-                                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                                    <div className="flex items-start gap-3">
-                                        <svg className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                                        </svg>
-                                        <div className="flex-1">
-                                            <h4 className="text-sm font-semibold text-[#1D293D] mb-1">Delete Abandoned Exams</h4>
-                                            <p className="text-sm text-slate-600 leading-relaxed mb-2">
-                                                Permanently remove exams that were started but never completed. Only deletes exams that meet ALL of these conditions:
-                                            </p>
-                                            <ul className="text-xs text-slate-600 space-y-1 ml-4 list-disc mb-2">
-                                                <li>Status is &quot;In Progress&quot;</li>
-                                                <li>Not finished (no completion time)</li>
-                                                <li>No questions answered (0 total items)</li>
-                                                <li>No correct answers (0 correct)</li>
-                                            </ul>
-                                            <p className="text-xs text-slate-600 font-medium bg-white px-2 py-1.5 rounded-lg border border-slate-200">
-                                                ✓ Safe: Completed exams with Pass/Fail status will NOT be deleted
-                                            </p>
-                                        </div>
-                                    </div>
+                                <h3 className="font-semibold text-[#1D293D] mb-1">All In Progress</h3>
+                                <p className="text-sm text-slate-500 mb-4">List exams with &quot;In Progress&quot; remarks. Mark as finished or delete selected.</p>
+                                <button onClick={handleCheckAllInProgress} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
+                                    View List
+                                </button>
+                            </div>
+                            <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 p-6">
+                                <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center mb-4 group-hover:bg-red-500/15 transition-colors">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <h3 className="font-semibold text-[#1D293D] mb-1">Delete Abandoned</h3>
+                                <p className="text-sm text-slate-500 mb-4">Permanently remove started-but-never-finished exams (0 answers). Completed exams are safe.</p>
+                                <button onClick={handleClearInProgressExams} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
+                                    Delete Abandoned
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Registration Management */}
+                    <section className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn" style={{ animationDelay: '120ms' }}>
+                        <div className="px-6 py-5 border-b border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[#1447E6]/10 flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-semibold text-[#1D293D]">Registration Management</h2>
+                                    <p className="text-sm text-slate-500">Find and fix incomplete student registrations</p>
                                 </div>
                             </div>
                         </div>
+                        <div className="p-6">
 
-                        {/* Registration Management Section */}
-                        <div className="p-8 animate-up" style={{ animationDelay: '300ms' }}>
-                            <div className="mb-8">
-                                <h3 className="text-xl font-semibold text-[#1D293D] mb-2">Registration Management</h3>
-                                <p className="text-slate-600">Find and fix incomplete student registrations that may be causing issues in the system</p>
-                            </div>
-
-                            {/* Hours Selection */}
-                            <div className="mb-6">
-                                <label className="block text-sm font-semibold text-[#1D293D] mb-2">
-                                    Find registrations older than:
-                                </label>
-                                <select 
-                                    value={hours} 
-                                    onChange={(e) => setHours(parseInt(e.target.value))}
-                                    className="border border-slate-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-[#1447E6]/30 focus:border-[#1447E6] bg-white text-[#1D293D]"
-                                >
-                                    <option value={1}>1 hour</option>
-                                    <option value={24}>24 hours</option>
-                                    <option value={72}>72 hours</option>
-                                    <option value={168}>1 week</option>
-                                </select>
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex flex-wrap gap-4 mb-8">
-                                <button
-                                    onClick={handleDryRun}
-                                    disabled={isLoading}
-                                    className="bg-[#1447E6] text-white px-6 py-3 rounded-xl hover:bg-[#1240d0] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-semibold"
-                                >
-                                    {isLoading ? (
-                                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                    )}
+                            <div className="flex flex-wrap items-end gap-4 mb-6">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-500 mb-1.5">Find registrations older than</label>
+                                    <select value={hours} onChange={(e) => setHours(parseInt(e.target.value))} className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#1447E6]/20 focus:border-[#1447E6] bg-white text-[#1D293D]">
+                                        <option value={1}>1 hour</option>
+                                        <option value={24}>24 hours</option>
+                                        <option value={72}>72 hours</option>
+                                        <option value={168}>1 week</option>
+                                    </select>
+                                </div>
+                                <button onClick={handleDryRun} disabled={isLoading} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-[#1447E6] text-white hover:bg-[#1240d0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
                                     Check Incomplete Registrations
                                 </button>
-
-                              
                             </div>
 
-                            {/* Dry Run Results */}
                             {dryRunData && (
-                                <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-6 mb-6">
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="text-lg font-semibold text-[#1D293D]">Incomplete Registrations Found</h4>
                                         <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold border border-slate-300">
@@ -690,9 +595,8 @@ const Settings = ({ user }) => {
                                 </div>
                             )}
 
-                            {/* Operation Results */}
                             {operationResult && (
-                                <div className="bg-white rounded-xl border border-slate-200 p-6">
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-6">
                                     <h4 className="text-lg font-semibold text-[#1D293D] mb-4">Operation Result</h4>
                                     <div className={`p-4 rounded-xl border ${operationResult.success ? 'bg-slate-50 border-slate-200' : 'bg-slate-50 border-slate-200'}`}>
                                         <div className="flex items-center gap-2 mb-2">
@@ -719,15 +623,15 @@ const Settings = ({ user }) => {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
 
             {/* Cleanup Confirmation Modal */}
             {showCleanupModal && (
-                <div className="fixed inset-0 z-50">
-                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowCleanupModal(false)}></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-4 z-50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-40" onClick={() => setShowCleanupModal(false)} aria-hidden="true" />
+                    <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-md z-50" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
@@ -1004,9 +908,9 @@ const Settings = ({ user }) => {
 
             {/* Delete In Progress Confirmation Modal */}
             {showDeleteInProgressModal && (
-                <div className="fixed inset-0 z-50">
-                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowDeleteInProgressModal(false)}></div>
-                    <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-4 z-50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-40" onClick={() => setShowDeleteInProgressModal(false)} aria-hidden="true" />
+                    <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-md z-50" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
