@@ -1,9 +1,7 @@
 // Replace with your deployed web app URL
 export const API_CONFIG = {
-  baseURL: 'https://admission.occph.com/',
+  baseURL: 'https://occadmission.site/',
   apiPrefix: '/api',
 };
 
 export default API_CONFIG;
-
-

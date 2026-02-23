@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  defaultHost: 'http://10.65.26.143:8000', // Laptop IP - php artisan serve --host=0.0.0.0 --port=8000
+  defaultHost: 'http://192.168.1.103:8000', // Laptop IP - php artisan serve --host=0.0.0.0 --port=8000
   altHost: 'http://192.168.56.1:8000', // Laragon virtual adapter IP (optional fallback)
   apiPrefix: '/api',
 };
