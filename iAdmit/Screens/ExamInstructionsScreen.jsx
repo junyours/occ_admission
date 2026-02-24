@@ -172,45 +172,47 @@ export default function ExamInstructionsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0a0a1a", "#1a1a2e", "#16213e"]} style={StyleSheet.absoluteFillObject} />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      {/* Offline Indicator */}
-      <OfflineIndicator />
-
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.replace('Dashboard')}
           style={styles.backButton}
           activeOpacity={0.8}
         >
-          <Icon name="arrow-back" size={20} color="#ffffff" />
+          <Icon name="arrow-back" size={20} color="#1D293D" />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.title}>Exam Instructions</Text>
           <Text style={styles.subtitle} numberOfLines={1}>{examTitle || examRefNo}</Text>
         </View>
-        {/* Offline download button removed - exams are now online only */}
       </View>
 
+      {/* Content */}
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={["rgba(168, 85, 247, 0.1)", "rgba(124, 58, 237, 0.05)"]} style={styles.infoCard}>
+        {/* Exam Info Card */}
+        <View style={styles.infoCard}>
           <View style={styles.infoHeader}>
-            <View style={styles.infoIcon}><Icon name="assignment" size={22} color="#a855f7" /></View>
+            <View style={styles.infoIcon}>
+              <Icon name="assignment" size={22} color="#1447E6" />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.refText}>Exam: {examTitle || examRefNo}</Text>
               <Text style={styles.detailsText}>
                 {loading ? 'Loading...' : `${totalQuestions} Questions`} • {timeLimit} Minutes
               </Text>
-              {/* Offline status removed - exams are now online only */}
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Category Breakdown */}
         {!loading && categories.length > 0 && (
-          <LinearGradient colors={["rgba(16, 185, 129, 0.1)", "rgba(5, 150, 105, 0.05)"]} style={styles.categoryCard}>
+          <View style={styles.categoryCard}>
             <View style={styles.categoryHeader}>
-              <View style={styles.categoryIcon}><Icon name="category" size={22} color="#10b981" /></View>
+              <View style={styles.categoryIcon}>
+                <Icon name="category" size={22} color="#10b981" />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.categoryTitle}>Exam Categories</Text>
                 <Text style={styles.categorySubtitle}>This exam covers the following subjects:</Text>
@@ -224,26 +226,48 @@ export default function ExamInstructionsScreen({ navigation, route }) {
                 </View>
               ))}
             </View>
-          </LinearGradient>
+          </View>
         )}
 
-        <LinearGradient colors={["rgba(255,255,255,0.05)", "rgba(255,255,255,0.02)"]} style={styles.card}>
+        {/* Instructions Card */}
+        <View style={styles.instructionsCard}>
           <View style={styles.cardHeader}>
-            <View style={styles.cardIcon}><Icon name="warning" size={24} color="#f59e0b" /></View>
+            <View style={styles.cardIcon}>
+              <Icon name="warning" size={24} color="#f59e0b" />
+            </View>
             <Text style={styles.cardTitle}>Important Instructions</Text>
           </View>
 
           <View style={styles.list}>
-            <View style={styles.item}><Icon name="schedule" size={16} color="#a855f7" /><Text style={styles.itemText}>You have {timeLimit} minutes for the exam.</Text></View>
-            <View style={styles.item}><Icon name="screenshot-monitor" size={16} color="#a855f7" /><Text style={styles.itemText}>Screenshots and navigation are disabled.</Text></View>
-            <View style={styles.item}><Icon name="warning" size={16} color="#ef4444" /><Text style={styles.itemText}>Screen will be pinned. Allow Screen Pinning to proceed.</Text></View>
-            <View style={styles.item}><Icon name="block" size={16} color="#ef4444" /><Text style={styles.itemText}>You cannot exit once the exam starts.</Text></View>
-            <View style={styles.item}><Icon name="timer-off" size={16} color="#ef4444" /><Text style={styles.itemText}>Security violations deduct time from your timer.</Text></View>
-            <View style={styles.item}><Icon name="edit" size={16} color="#10b981" /><Text style={styles.itemText}>You can review and change answers before submitting.</Text></View>
+            <View style={styles.item}>
+              <Icon name="schedule" size={16} color="#1D293D" />
+              <Text style={styles.itemText}>You have {timeLimit} minutes for the exam.</Text>
+            </View>
+            <View style={styles.item}>
+              <Icon name="screenshot-monitor" size={16} color="#1D293D" />
+              <Text style={styles.itemText}>Screenshots and navigation are disabled.</Text>
+            </View>
+            <View style={styles.item}>
+              <Icon name="warning" size={16} color="#ef4444" />
+              <Text style={styles.itemText}>Screen will be pinned. Allow Screen Pinning to proceed.</Text>
+            </View>
+            <View style={styles.item}>
+              <Icon name="block" size={16} color="#ef4444" />
+              <Text style={styles.itemText}>You cannot exit once the exam starts.</Text>
+            </View>
+            <View style={styles.item}>
+              <Icon name="timer-off" size={16} color="#ef4444" />
+              <Text style={styles.itemText}>Security violations deduct time from your timer.</Text>
+            </View>
+            <View style={styles.item}>
+              <Icon name="edit" size={16} color="#10b981" />
+              <Text style={styles.itemText}>You can review and change answers before submitting.</Text>
+            </View>
           </View>
-        </LinearGradient>
+        </View>
       </ScrollView>
 
+      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
           onPress={async () => {
@@ -281,19 +305,19 @@ export default function ExamInstructionsScreen({ navigation, route }) {
 
             // Validate all required params before navigation
             if (!examId) {
-              Alert.alert('Error', 'Exam ID is missing. Please scan the QR code again.');
+              Alert.alert('Error', 'Exam ID is missing. Please scan QR code again.');
               console.log('[ExamInstructionsScreen] Missing examId:', { examId, examRefNo, examTitle });
               return;
             }
             
             if (!examRefNo) {
-              Alert.alert('Error', 'Exam reference number is missing. Please scan the QR code again.');
+              Alert.alert('Error', 'Exam reference number is missing. Please scan QR code again.');
               console.log('[ExamInstructionsScreen] Missing examRefNo:', { examId, examRefNo, examTitle });
               return;
             }
             
             if (!timeLimit) {
-              Alert.alert('Error', 'Time limit is missing. Please scan the QR code again.');
+              Alert.alert('Error', 'Time limit is missing. Please scan QR code again.');
               console.log('[ExamInstructionsScreen] Missing timeLimit:', { examId, examRefNo, timeLimit });
               return;
             }
@@ -324,7 +348,7 @@ export default function ExamInstructionsScreen({ navigation, route }) {
           style={styles.startButton}
           activeOpacity={0.85}
         >
-          <LinearGradient colors={["#a855f7", "#7c3aed"]} style={styles.startButtonGradient}>
+          <LinearGradient colors={["#1447E6", "#0d47aa"]} style={styles.startButtonGradient}>
             <Icon name="play-arrow" size={20} color="#ffffff" style={{ marginRight: 8 }} />
             <Text style={styles.startText}>Start Exam</Text>
           </LinearGradient>
@@ -341,7 +365,7 @@ export default function ExamInstructionsScreen({ navigation, route }) {
         <View style={styles.modalOverlay}>
           <View style={styles.batteryModalContainer}>
             <LinearGradient
-              colors={['#1a1a2e', '#16213e', '#0f172a']}
+              colors={['#1D293D', '#1447E6', '#0d47aa']}
               style={styles.batteryModalGradient}
             >
               {/* Modal Header */}
@@ -373,7 +397,7 @@ export default function ExamInstructionsScreen({ navigation, route }) {
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={['#10b981', '#059669']}
+                    colors={["#10b981", "#059669"]}
                     style={styles.batteryButtonGradient}
                   >
                     <Icon name="check-circle" size={20} color="#ffffff" style={{ marginRight: 8 }} />
@@ -385,8 +409,6 @@ export default function ExamInstructionsScreen({ navigation, route }) {
           </View>
         </View>
       </Modal>
-
-      {/* Offline Exam Downloader removed - exams are now online only */}
     </View>
   );
 }
@@ -394,172 +416,170 @@ export default function ExamInstructionsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#F8FAFC',
     paddingTop: Platform.OS === 'ios' ? 44 : 0, // Account for notch on iOS
   },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: isSmallScreen ? 16 : 20, paddingTop: Platform.OS === 'ios' ? (isShortScreen ? 10 : 20) : 20,
-    paddingBottom: isShortScreen ? 12 : 16, marginTop: 21
+    paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? (isShortScreen ? 12 : 20) : 20,
+    paddingBottom: 12, marginTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(29, 41, 61, 0.04)',
+    backgroundColor: 'rgba(29, 41, 61, 0.01)',
   },
-  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
+  backButton: { 
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(29, 41, 61, 0.02)', 
+    justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(29, 41, 61, 0.05)' 
+  },
   headerCenter: { flex: 1, alignItems: 'center' },
-  title: { color: '#ffffff', fontSize: 18, fontWeight: '700' },
-  subtitle: { color: '#9ca3af', fontSize: 12, marginTop: 2 },
-  offlineButton: { 
-    width: 40, 
-    height: 40, 
-    borderRadius: 20, 
-    backgroundColor: 'rgba(255,255,255,0.1)', 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)'
+  title: { 
+    color: '#1D293D', fontSize: 16, fontWeight: '700', letterSpacing: -0.5 
   },
-  content: { paddingHorizontal: isSmallScreen ? 16 : 20, paddingBottom: 100 },
-  infoCard: { borderRadius: 14, borderWidth: 1, borderColor: 'rgba(168,85,247,0.2)', overflow: 'hidden', marginBottom: 16 },
-  infoHeader: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  infoIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(168,85,247,0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  refText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  detailsText: { color: '#9ca3af', fontSize: 13, marginTop: 2 },
-  offlineStatusContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginTop: 6,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    alignSelf: 'flex-start'
+  subtitle: { 
+    color: '#6b7280', fontSize: 12, marginTop: 2, letterSpacing: 0.1 
   },
-  offlineStatusText: { 
-    color: '#10b981', 
-    fontSize: 12, 
-    fontWeight: '600', 
-    marginLeft: 4 
+  content: { 
+    paddingHorizontal: 16, paddingBottom: 80 
   },
-  categoryCard: { borderRadius: 14, borderWidth: 1, borderColor: 'rgba(16,185,129,0.2)', overflow: 'hidden', marginBottom: 16 },
-  categoryHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 10 },
-  categoryIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(16,185,129,0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  categoryTitle: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  categorySubtitle: { color: '#9ca3af', fontSize: 12, marginTop: 2 },
-  categoryList: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
-  categoryItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  categoryBullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' },
-  categoryText: { color: '#ffffff', fontSize: 14, flex: 1 },
-  card: { borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden' },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 10 },
-  cardIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(245,158,11,0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  cardTitle: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  list: { paddingHorizontal: 16, paddingBottom: 16, gap: 12 },
-  item: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  itemText: { color: '#ffffff', fontSize: 14, flex: 1, lineHeight: 20 },
-  footer: { position: 'absolute', bottom: 40, left: 0, right: 0, paddingHorizontal: isSmallScreen ? 16 : 20 },
-  startButton: { borderRadius: 16, overflow: 'hidden' },
-  startButtonGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 52 },
-  startText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  infoCard: { 
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(29, 41, 61, 0.04)', overflow: 'hidden', 
+    marginBottom: 16, backgroundColor: '#F8FAFC', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 
+  },
+  infoHeader: { 
+    flexDirection: 'row', alignItems: 'center', padding: 12, 
+    backgroundColor: 'rgba(20, 71, 230, 0.02)', borderRadius: 6
+  },
+  infoIcon: { 
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(20, 71, 230, 0.08)', 
+    justifyContent: 'center', alignItems: 'center', marginRight: 12 
+  },
+  refText: { 
+    color: '#1D293D', fontSize: 14, fontWeight: '600' 
+  },
+  detailsText: { 
+    color: '#6b7280', fontSize: 12, marginTop: 2, letterSpacing: 0.1 
+  },
+  categoryCard: { 
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(29, 41, 61, 0.04)', overflow: 'hidden', 
+    marginBottom: 16, backgroundColor: '#F8FAFC', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 
+  },
+  categoryHeader: { 
+    flexDirection: 'row', alignItems: 'center', padding: 12, paddingBottom: 8,
+    backgroundColor: 'rgba(16, 185, 129, 0.02)', borderRadius: 6
+  },
+  categoryIcon: { 
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(16, 185, 129, 0.08)', 
+    justifyContent: 'center', alignItems: 'center', marginRight: 12 
+  },
+  categoryTitle: { 
+    color: '#1D293D', fontSize: 14, fontWeight: '700', letterSpacing: -0.5 
+  },
+  categorySubtitle: { 
+    color: '#6b7280', fontSize: 12, marginTop: 2, letterSpacing: 0.1 
+  },
+  categoryList: { 
+    paddingHorizontal: 16, paddingBottom: 12, gap: 8 
+  },
+  categoryItem: { 
+    flexDirection: 'row', alignItems: 'center', gap: 8 
+  },
+  categoryBullet: { 
+    width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981' 
+  },
+  categoryText: { 
+    color: '#1D293D', fontSize: 12, flex: 1, letterSpacing: 0.1 
+  },
+  instructionsCard: { 
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(29, 41, 61, 0.04)', overflow: 'hidden', 
+    marginBottom: 16, backgroundColor: '#F8FAFC', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 
+  },
+  cardHeader: { 
+    flexDirection: 'row', alignItems: 'center', padding: 12, paddingBottom: 8,
+    backgroundColor: 'rgba(245, 158, 11, 0.02)', borderRadius: 6
+  },
+  cardIcon: { 
+    width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(245, 158, 11, 0.08)', 
+    justifyContent: 'center', alignItems: 'center', marginRight: 12 
+  },
+  cardTitle: { 
+    color: '#1D293D', fontSize: 14, fontWeight: '700', letterSpacing: -0.5 
+  },
+  list: { 
+    paddingHorizontal: 16, paddingBottom: 12, gap: 12 
+  },
+  item: { 
+    flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 8 
+  },
+  itemText: { 
+    color: '#1D293D', fontSize: 13, flex: 1, lineHeight: 18, letterSpacing: 0.1 
+  },
+  footer: { 
+    position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 16,
+    paddingVertical: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    backgroundColor: '#F8FAFC', borderTopWidth: 1, borderTopColor: 'rgba(29, 41, 61, 0.04)',
+    shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 
+  },
+  startButton: { 
+    borderRadius: 12, overflow: 'hidden', shadowColor: '#1447E6', shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 
+  },
+  startButtonGradient: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 48 
+  },
+  startText: { 
+    color: '#ffffff', fontSize: 14, fontWeight: '600', letterSpacing: 0.5 
+  },
   // Battery Low Modal Styles
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.8)', justifyContent: 'center', alignItems: 'center'
   },
   batteryModalContainer: {
-    width: '90%',
-    maxWidth: 400,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    width: '80%', maxWidth: 320, borderRadius: 12, overflow: 'hidden',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 8
   },
   batteryModalGradient: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(29, 41, 61, 0.1)'
   },
   batteryModalHeader: {
-    alignItems: 'center',
-    padding: 24,
-    paddingBottom: 16,
+    alignItems: 'center', padding: 24, paddingBottom: 12
   },
   batteryModalIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 2, borderColor: 'rgba(239, 68, 68, 0.2)'
   },
   batteryModalTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#ffffff',
-    textAlign: 'center',
+    fontSize: 18, fontWeight: '700', color: '#ffffff', textAlign: 'center', letterSpacing: -0.5
   },
   batteryModalContent: {
-    padding: 24,
-    paddingTop: 8,
-    paddingBottom: 16,
+    padding: 24, paddingTop: 8, paddingBottom: 12
   },
   batteryModalMessage: {
-    fontSize: 16,
-    color: '#d1d5db',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
+    fontSize: 14, color: '#d1d5db', textAlign: 'center', lineHeight: 22, marginBottom: 16, letterSpacing: 0.1
   },
   batteryModalInfoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    padding: 12, borderRadius: 6, borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.2)'
   },
   batteryModalInfoText: {
-    fontSize: 14,
-    color: '#fbbf24',
-    marginLeft: 12,
-    flex: 1,
+    fontSize: 12, color: '#fbbf24', marginLeft: 12, flex: 1, letterSpacing: 0.1
   },
   batteryModalInfoBold: {
-    fontWeight: '700',
-    color: '#ffffff',
+    fontWeight: '700', color: '#ffffff', letterSpacing: 0.1
   },
   batteryModalFooter: {
-    padding: 24,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.1)'
   },
   batteryModalButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    borderRadius: 12, overflow: 'hidden', shadowColor: '#10b981', shadowOffset: { width: 0, height: 4 }, 
+    shadowOpacity: 0.3, shadowRadius: 6, elevation: 4
   },
   batteryButtonGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    paddingVertical: 16, alignItems: 'center', justifyContent: 'center', flexDirection: 'row'
   },
   batteryModalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontSize: 14, fontWeight: '600', color: '#ffffff', letterSpacing: 0.1
   },
 });
-
-
