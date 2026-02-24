@@ -784,14 +784,14 @@ export default function PersonalityTestScreen({ navigation, route }) {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
+        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
         <LinearGradient
-          colors={['#0a0a1a', '#1a1a2e', '#16213e']}
+          colors={['rgba(20, 71, 230, 0.02)', 'rgba(29, 41, 61, 0.01)']}
           style={styles.loadingGradient}
         >
           <View style={styles.loadingContent}>
             <View style={styles.loadingIconContainer}>
-              <Icon name="psychology" size={60} color="#a855f7" />
+              <Icon name="psychology" size={60} color="#1447E6" />
             </View>
             <Text style={styles.loadingText}>Loading Personality Test...</Text>
             <View style={styles.loadingDots}>
@@ -807,13 +807,9 @@ export default function PersonalityTestScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={StyleSheet.absoluteFillObject}
-      />
+      {/* Background - removed for light theme */}
 
       {/* Minimal Header */}
       <Animated.View style={[styles.minimalHeader, { opacity: fadeAnim }]}>
@@ -835,7 +831,7 @@ export default function PersonalityTestScreen({ navigation, route }) {
               <Icon 
                 name={isOverviewExpanded ? "expand-less" : "info-outline"} 
                 size={20} 
-                color="#a855f7" 
+                color="#1447E6" 
               />
             </TouchableOpacity>
             
@@ -855,7 +851,7 @@ export default function PersonalityTestScreen({ navigation, route }) {
               styles.minimalProgressFill, 
               { 
                 width: `${getProgressPercentage()}%`,
-                backgroundColor: getTimeColor()
+                backgroundColor: '#1447E6'
               }
             ]} 
           />
@@ -879,13 +875,10 @@ export default function PersonalityTestScreen({ navigation, route }) {
             }
           ]}
         >
-          <LinearGradient
-            colors={['rgba(168, 85, 247, 0.06)', 'rgba(124, 58, 237, 0.02)']}
-            style={styles.compactOverviewCard}
-          >
+          <View style={styles.compactOverviewCard}>
             <View style={styles.compactSteps}>
               <View style={styles.compactStep}>
-                <Icon name="radio-button-checked" size={14} color="#a855f7" />
+                <Icon name="radio-button-checked" size={14} color="#1447E6" />
                 <Text style={styles.compactStepTextCurrent}>1. Personality Test (Current)</Text>
               </View>
               <View style={styles.compactStep}>
@@ -893,7 +886,7 @@ export default function PersonalityTestScreen({ navigation, route }) {
                 <Text style={styles.compactStepTextPending}>2. Academic Exam (Next)</Text>
               </View>
             </View>
-          </LinearGradient>
+          </View>
         </Animated.View>
       )}
 
@@ -964,63 +957,77 @@ export default function PersonalityTestScreen({ navigation, route }) {
         </Animated.View>
       )}
 
-      {/* Minimal Footer */}
+      {/* Footer */}
       <Animated.View 
         style={[
-          styles.minimalFooter,
+          styles.footer,
           { 
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }]
           }
         ]}
       >
-        <View style={styles.minimalFooterContent}>
+        <View style={styles.footerContent}>
+          {/* Previous Button */}
           <TouchableOpacity
             onPress={handlePreviousQuestion}
-            style={[styles.minimalNavButton, currentQuestionIndex === 0 && styles.minimalNavButtonDisabled]}
+            style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
             disabled={currentQuestionIndex === 0}
             activeOpacity={0.8}
           >
-            <Icon name="chevron-left" size={18} color="#9ca3af" />
+            <Icon name="chevron-left" size={16} color="#9ca3af" />
           </TouchableOpacity>
 
-          <View style={styles.minimalProgress}>
-            <Text style={styles.minimalProgressText}>
+          {/* Progress Info */}
+          <View style={styles.progressInfo}>
+            <Text style={styles.progressText}>
               {getAnsweredCount()}/{questions.length}
             </Text>
             {!isAllAnswered() ? (
-              <Text style={styles.autoAdvanceHint}>
-                {getUnansweredCount()} unanswered
-              </Text>
+              <View style={styles.unansweredBadge}>
+                <Icon name="help-outline" size={10} color="#f59e0b" />
+                <Text style={styles.unansweredBadgeText}>
+                  {getUnansweredCount()}
+                </Text>
+              </View>
             ) : (
-              <Text style={styles.completedHint}>
-                All completed!
-              </Text>
+              <View style={styles.completedBadge}>
+                <Icon name="check-circle" size={10} color="#10b981" />
+                <Text style={styles.completedBadgeText}>
+                  Complete
+                </Text>
+              </View>
             )}
           </View>
 
+          {/* Action Button */}
           {isAllAnswered() ? (
             <TouchableOpacity
               onPress={handleCompletePersonalityTest}
-              style={styles.doneButton}
+              style={styles.actionButton}
               activeOpacity={0.8}
             >
-              <Icon name="check" size={18} color="#ffffff" />
-              <Text style={styles.doneButtonText}>Done</Text>
+              <Icon name="check" size={16} color="#ffffff" />
+              <Text style={styles.actionButtonText}>Complete</Text>
             </TouchableOpacity>
           ) : getUnansweredCount() > 0 ? (
             <TouchableOpacity
               onPress={goToUnansweredQuestion}
-              style={styles.unansweredButton}
+              style={styles.unansweredActionButton}
               activeOpacity={0.8}
             >
-              <Icon name="help-outline" size={18} color="#f59e0b" />
-              <Text style={styles.unansweredButtonText}>Go to Unanswered</Text>
+              <Icon name="help-outline" size={16} color="#ffffff" />
+              <Text style={styles.unansweredActionText}>Unanswered</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.minimalNextIndicator}>
-              <Icon name="chevron-right" size={18} color="#9ca3af" />
-            </View>
+            <TouchableOpacity
+              onPress={handleNextQuestion}
+              style={styles.nextButton}
+              activeOpacity={0.8}
+            >
+              <Icon name="chevron-right" size={16} color="#ffffff" />
+              <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
           )}
         </View>
       </Animated.View>
@@ -1090,13 +1097,13 @@ export default function PersonalityTestScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
   },
   
   // Loading Styles
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
   },
   loadingGradient: {
     flex: 1,
@@ -1115,10 +1122,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
     borderWidth: 3,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.3)',
   },
   loadingText: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 20,
@@ -1131,7 +1138,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#a855f7',
+    backgroundColor: '#1447E6',
   },
   dot1: {
     opacity: 0.4,
@@ -1162,18 +1169,18 @@ const styles = StyleSheet.create({
   minimalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 2,
   },
   examTitleText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#9ca3af',
+    color: '#6b7280',
     marginBottom: 4,
   },
   questionCounter: {
     fontSize: 13,
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '500',
   },
   headerActions: {
@@ -1185,16 +1192,16 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   compactTimer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
@@ -1207,7 +1214,7 @@ const styles = StyleSheet.create({
   },
   minimalProgressBar: {
     height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(29, 41, 61, 0.1)',
     borderRadius: 2,
     overflow: 'hidden',
   },
@@ -1390,18 +1397,23 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   minimalQuestionCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(29, 41, 61, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   minimalQuestionSection: {
     marginBottom: 32,
   },
   minimalQuestionText: {
     fontSize: 19,
-    color: '#ffffff',
+    color: '#1D293D',
     lineHeight: 28,
     fontWeight: '500',
     textAlign: 'center',
@@ -1410,15 +1422,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   minimalOptionButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(29, 41, 61, 0.15)',
     overflow: 'hidden',
   },
   minimalOptionSelected: {
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
-    borderColor: '#a855f7',
+    backgroundColor: 'rgba(20, 71, 230, 0.08)',
+    borderColor: '#1447E6',
   },
   minimalOptionContent: {
     flexDirection: 'row',
@@ -1430,17 +1442,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(29, 41, 61, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   minimalOptionIndicatorSelected: {
-    backgroundColor: '#a855f7',
+    backgroundColor: '#1447E6',
   },
   minimalOptionText: {
     flex: 1,
     fontSize: 16,
-    color: '#ffffff',
+    color: '#1D293D',
     fontWeight: '500',
   },
   minimalOptionTextSelected: {
@@ -1594,6 +1606,152 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
 
+  // Footer Styles
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(29, 41, 61, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  footerContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 72,
+  },
+  
+  // Navigation Buttons
+  navButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#1D293D',
+  },
+  navButtonDisabled: {
+    opacity: 0.3,
+  },
+  
+  // Progress Info
+  progressInfo: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1447E6',
+    marginBottom: 8,
+  },
+  unansweredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    gap: 6,
+  },
+  unansweredBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#f59e0b',
+  },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#10b981',
+    gap: 6,
+  },
+  completedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#10b981',
+  },
+  
+  // Action Buttons
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1447E6',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 22,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+    gap: 8,
+  },
+  actionButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  unansweredActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 22,
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+    gap: 8,
+  },
+  unansweredActionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  nextButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: '#1D293D',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+    gap: 8,
+  },
+  nextButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1D293D',
+  },
+
   // Minimal Footer Styles
   minimalFooter: {
     position: 'absolute',
@@ -1603,10 +1761,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: isSmallScreen ? 20 : 28,
     paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-    backgroundColor: 'rgba(10, 10, 26, 0.95)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-
+    borderTopColor: 'rgba(29, 41, 61, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 4,
   },
   minimalFooterContent: {
     flexDirection: 'row',
@@ -1617,33 +1779,19 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(29, 41, 61, 0.15)',
   },
   minimalNavButtonDisabled: {
     opacity: 0.3,
   },
   minimalProgress: {
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.08)',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
-    alignItems: 'center',
-  },
-  minimalProgressText: {
-    fontSize: 14,
-    color: '#a855f7',
-    fontWeight: '600',
-  },
-  autoAdvanceHint: {
-    fontSize: 10,
-    color: '#f59e0b',
-    fontWeight: '500',
     marginTop: 2,
   },
   completedHint: {
@@ -1655,12 +1803,12 @@ const styles = StyleSheet.create({
   doneButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10b981',
+    backgroundColor: '#1447E6',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 24,
     gap: 6,
-    shadowColor: '#10b981',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -1737,9 +1885,15 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(29, 41, 61, 0.1)',
     overflow: 'hidden',
     padding: 24,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   confirmModalHeader: {
     alignItems: 'center',
@@ -1759,12 +1913,12 @@ const styles = StyleSheet.create({
   confirmModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     textAlign: 'center',
   },
   confirmModalText: {
     fontSize: 16,
-    color: '#9ca3af',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
@@ -1775,18 +1929,18 @@ const styles = StyleSheet.create({
   },
   confirmModalSecondaryButton: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(29, 41, 61, 0.15)',
   },
   confirmModalSecondaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
   },
   confirmModalPrimaryButton: {
     flex: 1,
@@ -1806,99 +1960,6 @@ const styles = StyleSheet.create({
   confirmModalPrimaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
-  },
-
-  // Enhanced Footer Styles (kept for reference)
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: isSmallScreen ? 16 : 24,
-    paddingVertical: isShortScreen ? 12 : 16,
-    paddingBottom: Platform.OS === 'ios' ? (isShortScreen ? 30 : 40) : 20,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(10, 10, 26, 0.98)',
-    marginBottom: 40,
-  },
-  footerStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flex: 1,
-    minWidth: '30%',
-  },
-  footerStat: {
-    fontSize: 14,
-    color: '#9ca3af',
-    fontWeight: '500',
-  },
-  footerActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 16,
-  },
-  navButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderRadius: 18,
-    flex: 1,
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    minHeight: 52,
-  },
-  navButtonDisabled: {
-    opacity: 0.3,
-  },
-  navButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginHorizontal: 8,
-  },
-  completeButton: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    flex: 1,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  completeButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    justifyContent: 'center',
-    minHeight: 52,
-  },
-  completeButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  completeButtonIcon: {
-    marginRight: 8,
-  },
-  completeButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
     color: '#ffffff',
   },
 });

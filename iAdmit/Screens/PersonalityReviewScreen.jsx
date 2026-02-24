@@ -83,18 +83,22 @@ export default function PersonalityReviewScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
-
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={StyleSheet.absoluteFillObject}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View style={styles.header}>
-        <Text style={styles.reviewTitle}>Review Personality Answers</Text>
-        <Text style={styles.reviewSubtitle}>
-          {getAnsweredCount()}/{questions.length} answered • {getUnansweredCount()} unanswered
-        </Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerTitleSection}>
+            <Text style={styles.reviewTitle}>Review Personality Answers</Text>
+            <Text style={styles.reviewSubtitle}>
+              {getAnsweredCount()}/{questions.length} answered • {getUnansweredCount()} unanswered
+            </Text>
+          </View>
+          <View style={styles.headerStats}>
+            <Text style={styles.headerStatsText}>
+              Progress: {Math.round((getAnsweredCount() / questions.length) * 100)}%
+            </Text>
+          </View>
+        </View>
       </View>
 
       <ScrollView 
@@ -135,7 +139,7 @@ export default function PersonalityReviewScreen({ navigation, route }) {
             disabled={submitting}
           >
             <LinearGradient
-              colors={['#10b981', '#059669']}
+              colors={['#1447E6', '#0d47aa']}
               style={styles.submitButtonGradient}
             >
               <View style={styles.submitButtonContent}>
@@ -153,27 +157,53 @@ export default function PersonalityReviewScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: isSmallScreen ? 16 : 20,
+    paddingHorizontal: isSmallScreen ? 16 : 24,
     paddingTop: Platform.OS === 'ios' ? (isShortScreen ? 10 : 20) : 50,
     paddingBottom: isShortScreen ? 16 : 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(29, 41, 61, 0.08)',
+    backgroundColor: 'rgba(29, 41, 61, 0.02)',
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: isSmallScreen ? 18 : 20,
+    fontWeight: '700',
+    color: '#1D293D',
+    marginBottom: 4,
+  },
+  headerStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 71, 230, 0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.2)',
+  },
+  headerStatsText: {
+    fontSize: isSmallScreen ? 11 : 12,
+    fontWeight: '600',
+    color: '#1447E6',
   },
   reviewTitle: {
     fontSize: isSmallScreen ? 18 : 20,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 4,
   },
   reviewSubtitle: {
     fontSize: isSmallScreen ? 12 : 14,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
   },
   questionScrollView: {
@@ -186,7 +216,7 @@ const styles = StyleSheet.create({
   compactItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: 'rgba(29, 41, 61, 0.08)',
   },
   compactHeader: {
     flexDirection: 'row',
@@ -196,13 +226,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   compactQLabel: {
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '700',
     width: 40,
+    fontSize: 13,
   },
   compactQuestion: {
     flex: 1,
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '500',
@@ -219,7 +250,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   compactAnswerLetterAnswered: {
-    color: '#10b981',
+    color: '#1447E6',
   },
   compactAnswerLetterUnanswered: {
     color: '#ef4444',
@@ -229,6 +260,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   compactAnswerTextAnswered: {
+    color: '#1D293D',
     color: '#9ae6b4',
   },
   compactAnswerTextUnanswered: {
@@ -240,11 +272,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isShortScreen ? 12 : 16,
+    paddingVertical: 16,
     paddingBottom: Platform.OS === 'ios' ? (isShortScreen ? 25 : 34) : 60,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(10, 10, 26, 0.98)',
+    borderTopColor: 'rgba(29, 41, 61, 0.08)',
+    backgroundColor: '#FFFFFF',
   },
   footerActions: {
     flexDirection: 'row',
@@ -256,11 +288,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     flex: 1,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonGradient: {
     flexDirection: 'row',
@@ -285,5 +317,3 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
 });
-
-
