@@ -24,11 +24,11 @@ const { width } = Dimensions.get('window');
 
 // Course category colors
 const CATEGORY_COLORS = {
-  'BSIT': { primary: '#3b82f6', secondary: '#2563eb', icon: 'computer' },
-  'BSBA': { primary: '#10b981', secondary: '#059669', icon: 'business-center' },
-  'BSED': { primary: '#f59e0b', secondary: '#d97706', icon: 'school' },
-  'BEED': { primary: '#ec4899', secondary: '#db2777', icon: 'child-care' },
-  'default': { primary: '#6366f1', secondary: '#4f46e5', icon: 'local-library' }
+  'BSIT': { primary: '#1447E6', secondary: '#1D293D', icon: 'computer' },
+  'BSBA': { primary: '#1447E6', secondary: '#1D293D', icon: 'business-center' },
+  'BSED': { primary: '#1447E6', secondary: '#1D293D', icon: 'school' },
+  'BEED': { primary: '#1447E6', secondary: '#1D293D', icon: 'child-care' },
+  'default': { primary: '#1447E6', secondary: '#1D293D', icon: 'local-library' }
 };
 
 const getCategoryColor = (courseCode) => {
@@ -168,13 +168,9 @@ export default function CoursesScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <LinearGradient
-          colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-          style={StyleSheet.absoluteFillObject}
-        />
         <View style={styles.loadingContainer}>
           <View style={styles.loadingIconContainer}>
-            <Icon name="school" size={48} color="#3b82f6" />
+            <Icon name="school" size={48} color="#1447E6" />
           </View>
           <Text style={styles.loadingText}>Loading Courses...</Text>
         </View>
@@ -184,12 +180,7 @@ export default function CoursesScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={StyleSheet.absoluteFillObject}
-      />
-      
-      {/* Enhanced Header */}
+      {/* Simplified Header */}
       <Animated.View 
         style={[
           styles.header,
@@ -204,29 +195,23 @@ export default function CoursesScreen({ navigation }) {
             onPress={() => navigation.goBack()} 
             style={styles.backButton}
           >
-            <Icon name="arrow-back" size={22} color="#ffffff" />
+            <Icon name="arrow-back" size={22} color="#1D293D" />
           </TouchableOpacity>
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>Available Courses</Text>
-            <View style={styles.headerBadgeContainer}>
-              <View style={styles.courseBadge}>
-                <Icon name="school" size={14} color="#3b82f6" />
-                <Text style={styles.headerSubtitle}>
-                  {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
-                </Text>
-              </View>
-              {isOffline && (
-                <View style={styles.offlineBadge}>
-                  <Icon name="wifi-off" size={12} color="#f59e0b" />
-                  <Text style={styles.offlineText}>Offline</Text>
-                </View>
-              )}
-            </View>
+            <Text style={styles.headerSubtitle}>
+              {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+            </Text>
           </View>
+          {isOffline && (
+            <View style={styles.offlineBadge}>
+              <Icon name="wifi-off" size={12} color="#F59E0B" />
+            </View>
+          )}
         </View>
       </Animated.View>
 
-      {/* Category Filter Pills */}
+      {/* Simplified Category Filter */}
       <Animated.View 
         style={[
           styles.categoryContainer,
@@ -243,30 +228,25 @@ export default function CoursesScreen({ navigation }) {
         >
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
-            const color = cat === 'all' ? CATEGORY_COLORS.default : getCategoryColor(cat);
+            const color = getCategoryColor(cat);
             
             return (
               <TouchableOpacity
                 key={cat}
                 style={[
                   styles.categoryPill,
-                  isSelected && { backgroundColor: `${color.primary}20`, borderColor: color.primary }
+                  isSelected && styles.categoryPillSelected
                 ]}
                 onPress={() => setSelectedCategory(cat)}
                 activeOpacity={0.7}
               >
-                <Icon 
-                  name={cat === 'all' ? 'apps' : getCategoryColor(cat).icon} 
-                  size={16} 
-                  color={isSelected ? color.primary : '#9ca3af'} 
-                />
                 <Text 
                   style={[
                     styles.categoryText,
-                    isSelected && { color: color.primary, fontWeight: '700' }
+                    isSelected && styles.categoryTextSelected
                   ]}
                 >
-                  {cat === 'all' ? 'All Courses' : cat}
+                  {cat === 'all' ? 'All' : cat}
                 </Text>
               </TouchableOpacity>
             );
@@ -281,9 +261,9 @@ export default function CoursesScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#3b82f6"
-            colors={['#3b82f6', '#2563eb']}
-            progressBackgroundColor="#1a1a2e"
+            tintColor="#1447E6"
+            colors={['#1447E6', '#1D293D']}
+            progressBackgroundColor="#FFFFFF"
           />
         }
       >
@@ -296,138 +276,64 @@ export default function CoursesScreen({ navigation }) {
             }
           ]}
         >
-          {/* Info Card */}
-          <View style={styles.infoCard}>
-            <LinearGradient
-              colors={['rgba(59, 130, 246, 0.1)', 'rgba(37, 99, 235, 0.05)']}
-              style={styles.infoCardGradient}
-            >
-              <View style={styles.infoIconContainer}>
-                <Icon name="info-outline" size={20} color="#3b82f6" />
-              </View>
-              <Text style={styles.infoText}>
-                Course recommendations based on your exam score and personality assessment
-              </Text>
-            </LinearGradient>
-          </View>
-
-          {/* Courses by Category */}
+          {/* Courses List */}
           {filteredCourses.length > 0 ? (
-            Object.entries(groupedCourses).map(([category, categoryCourses]) => {
-              const categoryColor = getCategoryColor(category);
-              
-              return (
-                <View key={category} style={styles.categorySection}>
-                  <View style={styles.categorySectionHeader}>
-                    <View style={[styles.categoryIconContainer, { backgroundColor: `${categoryColor.primary}15` }]}>
-                      <Icon name={categoryColor.icon} size={20} color={categoryColor.primary} />
-                    </View>
-                    <Text style={styles.categoryTitle}>{category}</Text>
-                    <View style={[styles.categoryCountBadge, { backgroundColor: `${categoryColor.primary}20` }]}>
-                      <Text style={[styles.categoryCount, { color: categoryColor.primary }]}>
-                        {categoryCourses.length}
-                      </Text>
-                    </View>
-                  </View>
+            <View style={styles.coursesList}>
+              {filteredCourses.map((course) => {
+                const isExpanded = expandedCourses[course.id];
+                const color = getCategoryColor(course.course_code);
+                
+                return (
+                  <TouchableOpacity
+                    key={course.id}
+                    style={styles.courseCard}
+                    onPress={() => toggleCourseExpansion(course.id)}
+                    activeOpacity={0.9}
+                  >
+                    <View style={styles.courseCardGradient}>
+                      {/* Course Header */}
+                      <View style={styles.courseHeader}>
+                        <View style={styles.courseCodeBadge}>
+                          <Text style={styles.courseCode}>{course.course_code}</Text>
+                        </View>
+                        <Icon 
+                          name={isExpanded ? "expand-less" : "expand-more"} 
+                          size={20} 
+                          color="#6B7280" 
+                        />
+                      </View>
 
-                  {categoryCourses.map((course) => {
-                    const isExpanded = expandedCourses[course.id];
-                    const color = getCategoryColor(course.course_code);
-                    
-                    return (
-                      <TouchableOpacity
-                        key={course.id}
-                        style={styles.courseCard}
-                        onPress={() => toggleCourseExpansion(course.id)}
-                        activeOpacity={0.9}
-                      >
-                        <LinearGradient
-                          colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
-                          style={styles.courseCardGradient}
-                        >
-                          {/* Course Header */}
-                          <View style={styles.courseHeader}>
-                            <View style={styles.courseHeaderLeft}>
-                              <View style={[styles.courseCodeBadge, { backgroundColor: `${color.primary}20`, borderColor: color.primary }]}>
-                                <Text style={[styles.courseCode, { color: color.primary }]}>
-                                  {course.course_code}
-                                </Text>
-                              </View>
-                            </View>
-                            <View style={styles.expandIconContainer}>
-                              <Icon 
-                                name={isExpanded ? "expand-less" : "expand-more"} 
-                                size={24} 
-                                color="#9ca3af" 
-                              />
-                            </View>
-                          </View>
+                      <Text style={styles.courseName}>{course.course_name}</Text>
 
-                          <Text style={styles.courseName} numberOfLines={isExpanded ? undefined : 2}>
-                            {course.course_name}
-                          </Text>
+                      {/* Passing Rate */}
+                      <View style={styles.passingRateContainer}>
+                        <Icon name="trending-up" size={14} color="#10B981" />
+                        <Text style={styles.passingRateText}>{course.passing_rate_display} pass rate</Text>
+                      </View>
 
-                          {/* Passing Rate Badge */}
-                          <View style={styles.passingRateContainer}>
-                            <Icon name="trending-up" size={16} color="#10b981" />
-                            <Text style={styles.passingRateLabel}>Passing Rate:</Text>
-                            <Text style={styles.passingRateValue}>{course.passing_rate_display}</Text>
-                          </View>
-
-                          {/* Expanded Content */}
-                          {isExpanded && (
-                            <View style={styles.expandedContent}>
-                              {course.description && (
-                                <View style={styles.descriptionContainer}>
-                                  <Text style={styles.descriptionLabel}>Description</Text>
-                                  <Text style={styles.descriptionText}>{course.description}</Text>
-                                </View>
-                              )}
-                              
-                              <View style={styles.requirementsContainer}>
-                                <Text style={styles.requirementsTitle}>Requirements</Text>
-                                
-                                <View style={styles.requirementItem}>
-                                  <View style={styles.requirementIconContainer}>
-                                    <Icon name="check-circle" size={18} color="#10b981" />
-                                  </View>
-                                  <Text style={styles.requirementText}>
-                                    Minimum passing score of {course.passing_rate_display}
-                                  </Text>
-                                </View>
-
-                                <View style={styles.requirementItem}>
-                                  <View style={styles.requirementIconContainer}>
-                                    <Icon name="psychology" size={18} color="#a855f7" />
-                                  </View>
-                                  <Text style={styles.requirementText}>
-                                    Personality assessment compatibility
-                                  </Text>
-                                </View>
-
-                                <View style={styles.requirementItem}>
-                                  <View style={styles.requirementIconContainer}>
-                                    <Icon name="assignment-turned-in" size={18} color="#3b82f6" />
-                                  </View>
-                                  <Text style={styles.requirementText}>
-                                    Completed entrance examination
-                                  </Text>
-                                </View>
-                              </View>
-                            </View>
+                      {/* Expanded Content */}
+                      {isExpanded && (
+                        <View style={styles.expandedContent}>
+                          {course.description && (
+                            <Text style={styles.descriptionText}>{course.description}</Text>
                           )}
-                        </LinearGradient>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              );
-            })
+                          
+                          <View style={styles.requirementsList}>
+                            <Text style={styles.requirementsTitle}>Requirements:</Text>
+                            <Text style={styles.requirementItem}>• Minimum score: {course.passing_rate_display}</Text>
+                            <Text style={styles.requirementItem}>• Personality assessment</Text>
+                            <Text style={styles.requirementItem}>• Completed entrance exam</Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           ) : (
             <View style={styles.emptyState}>
-              <View style={styles.emptyIconContainer}>
-                <Icon name="search-off" size={64} color="#6b7280" />
-              </View>
+              <Icon name="search-off" size={48} color="#9CA3AF" />
               <Text style={styles.emptyTitle}>No Courses Found</Text>
               <Text style={styles.emptyText}>
                 {selectedCategory === 'all' 
@@ -440,13 +346,7 @@ export default function CoursesScreen({ navigation }) {
                   onPress={() => setSelectedCategory('all')}
                   activeOpacity={0.7}
                 >
-                  <LinearGradient
-                    colors={['#3b82f6', '#2563eb']}
-                    style={styles.clearFilterGradient}
-                  >
-                    <Icon name="clear-all" size={18} color="#fff" />
-                    <Text style={styles.clearFilterText}>Clear Filter</Text>
-                  </LinearGradient>
+                  <Text style={styles.clearFilterText}>Show All Courses</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -460,7 +360,7 @@ export default function CoursesScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
@@ -472,14 +372,14 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   loadingText: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -497,57 +397,35 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   headerTextContainer: {
     flex: 1,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#ffffff',
-    marginBottom: 6,
-  },
-  headerBadgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  courseBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1D293D',
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: '#3b82f6',
-    fontWeight: '600',
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   offlineBadge: {
-    flexDirection: 'row',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-  },
-  offlineText: {
-    fontSize: 11,
-    color: '#f59e0b',
-    fontWeight: '600',
+    borderColor: '#F59E0B',
   },
   categoryContainer: {
     paddingVertical: 8,
@@ -557,21 +435,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F3F4F6',
     marginRight: 8,
   },
+  categoryPillSelected: {
+    backgroundColor: '#1447E6',
+  },
   categoryText: {
-    fontSize: 13,
-    color: '#9ca3af',
+    fontSize: 14,
+    color: '#6B7280',
     fontWeight: '600',
+  },
+  categoryTextSelected: {
+    color: '#FFFFFF',
   },
   scrollContent: {
     flexGrow: 1,
@@ -580,74 +459,17 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   content: {
-    maxWidth: 440,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  infoCard: {
-    marginBottom: 20,
-  },
-  infoCardGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-    padding: 14,
-  },
-  infoIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  infoText: {
     flex: 1,
-    fontSize: 13,
-    color: '#d1d5db',
-    lineHeight: 18,
   },
-  categorySection: {
-    marginBottom: 24,
-  },
-  categorySectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  coursesList: {
     gap: 12,
-    marginBottom: 12,
-    paddingHorizontal: 4,
-  },
-  categoryIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  categoryCountBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryCount: {
-    fontSize: 13,
-    fontWeight: '700',
   },
   courseCard: {
-    marginBottom: 12,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#E5E7EB',
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
   },
   courseCardGradient: {
     padding: 16,
@@ -656,157 +478,91 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  courseHeaderLeft: {
-    flex: 1,
+    marginBottom: 8,
   },
   courseCodeBadge: {
-    alignSelf: 'flex-start',
+    backgroundColor: '#1447E6',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
   courseCode: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
+    color: '#FFFFFF',
     letterSpacing: 0.5,
-  },
-  expandIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   courseName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 12,
+    color: '#1D293D',
+    marginBottom: 8,
     lineHeight: 22,
   },
   passingRateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    alignSelf: 'flex-start',
     gap: 6,
   },
-  passingRateLabel: {
-    fontSize: 12,
-    color: '#9ca3af',
-    fontWeight: '500',
-  },
-  passingRateValue: {
+  passingRateText: {
     fontSize: 13,
-    color: '#10b981',
-    fontWeight: '700',
+    color: '#10B981',
+    fontWeight: '600',
   },
   expandedContent: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  descriptionContainer: {
-    marginBottom: 16,
-  },
-  descriptionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#a855f7',
-    marginBottom: 8,
+    borderTopColor: '#F3F4F6',
+    gap: 12,
   },
   descriptionText: {
     fontSize: 14,
-    color: '#d1d5db',
+    color: '#6B7280',
     lineHeight: 20,
+    marginBottom: 8,
   },
-  requirementsContainer: {
-    gap: 10,
+  requirementsList: {
+    gap: 4,
   },
   requirementsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 6,
+    color: '#1D293D',
+    marginBottom: 4,
   },
   requirementItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    padding: 12,
-    borderRadius: 10,
-  },
-  requirementIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  requirementText: {
-    flex: 1,
     fontSize: 13,
-    color: '#e5e7eb',
-    lineHeight: 18,
+    color: '#6B7280',
+    paddingLeft: 8,
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(107, 114, 128, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(107, 114, 128, 0.2)',
+    paddingVertical: 80,
+    gap: 16,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1D293D',
   },
   emptyText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 32,
   },
   clearFilterBtn: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  clearFilterGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
+    backgroundColor: '#1447E6',
     paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
   clearFilterText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

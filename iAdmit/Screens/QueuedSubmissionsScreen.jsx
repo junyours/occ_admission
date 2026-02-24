@@ -165,10 +165,10 @@ export default function QueuedSubmissionsScreen({ navigation }) {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return '#f59e0b';
-      case 'submitting': return '#3b82f6';
-      case 'failed': return '#ef4444';
-      default: return '#6b7280';
+      case 'pending': return '#F59E0B';
+      case 'submitting': return '#1447E6';
+      case 'failed': return '#EF4444';
+      default: return '#6B7280';
     }
   };
 
@@ -203,13 +203,10 @@ export default function QueuedSubmissionsScreen({ navigation }) {
           }
         ]}
       >
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
-          style={styles.card}
-        >
+        <View style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.examIconContainer}>
-              <Icon name="quiz" size={20} color="#a855f7" />
+              <Icon name="quiz" size={20} color="#1447E6" />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.title} numberOfLines={1}>{examTitle}</Text>
@@ -227,26 +224,26 @@ export default function QueuedSubmissionsScreen({ navigation }) {
 
           <View style={styles.detailsContainer}>
             <View style={styles.detailRow}>
-              <Icon name="tag" size={14} color="#9ca3af" />
+              <Icon name="tag" size={14} color="#6B7280" />
               <Text style={styles.detailLabel}>Ref:</Text>
               <Text style={styles.detailValue}>{item?.meta?.examRefNo || 'N/A'}</Text>
             </View>
             
             <View style={styles.detailRow}>
-              <Icon name="category" size={14} color="#9ca3af" />
+              <Icon name="category" size={14} color="#6B7280" />
               <Text style={styles.detailLabel}>Type:</Text>
               <Text style={styles.detailValue}>{item?.meta?.examType || 'Regular'}</Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Icon name="help" size={14} color="#9ca3af" />
+              <Icon name="help" size={14} color="#6B7280" />
               <Text style={styles.detailLabel}>Questions:</Text>
               <Text style={styles.detailValue}>{item?.meta?.totalQuestions || 0}</Text>
             </View>
 
             {item?.meta?.timeTaken && (
               <View style={styles.detailRow}>
-                <Icon name="timer" size={14} color="#9ca3af" />
+                <Icon name="timer" size={14} color="#6B7280" />
                 <Text style={styles.detailLabel}>Time:</Text>
                 <Text style={styles.detailValue}>
                   {Math.floor(item.meta.timeTaken / 60)}m {item.meta.timeTaken % 60}s
@@ -255,7 +252,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
             )}
 
             <View style={styles.detailRow}>
-              <Icon name="schedule" size={14} color="#9ca3af" />
+              <Icon name="schedule" size={14} color="#6B7280" />
               <Text style={styles.detailLabel}>Submitted:</Text>
               <Text style={styles.detailValue} numberOfLines={1}>
                 {new Date(item.submittedAt).toLocaleString()}
@@ -265,7 +262,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
 
           {item.lastError && (
             <View style={styles.errorContainer}>
-              <Icon name="error-outline" size={14} color="#ef4444" />
+              <Icon name="error-outline" size={14} color="#EF4444" />
               <Text style={styles.errorText} numberOfLines={2}>{item.lastError}</Text>
             </View>
           )}
@@ -277,10 +274,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
               disabled={Boolean(isSubmitting || submittingAll)}
               activeOpacity={0.7}
             >
-              <LinearGradient
-                colors={isSubmitting || submittingAll ? ['#4b5563', '#374151'] : ['#7c3aed', '#a855f7']}
-                style={styles.btnGradient}
-              >
+              <View style={[styles.btnGradient, isSubmitting && styles.btnGradientDisabled]}>
                 {isSubmitting ? (
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
@@ -289,7 +283,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
                 <Text style={styles.btnText}>
                   {isSubmitting ? 'Submitting...' : 'Submit'}
                 </Text>
-              </LinearGradient>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -301,7 +295,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
               <Icon name="delete" size={18} color="#fff" />
             </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
       </Animated.View>
     );
   };
@@ -317,7 +311,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
       ]}
     >
       <View style={styles.emptyIconContainer}>
-        <Icon name="cloud-done" size={64} color="#6b7280" />
+        <Icon name="cloud-done" size={64} color="#6B7280" />
       </View>
       <Text style={styles.emptyTitle}>All Clear!</Text>
       <Text style={styles.emptyText}>No pending submissions in queue</Text>
@@ -326,13 +320,10 @@ export default function QueuedSubmissionsScreen({ navigation }) {
         onPress={() => navigation.goBack()}
         activeOpacity={0.7}
       >
-        <LinearGradient
-          colors={['#7c3aed', '#a855f7']}
-          style={styles.emptyButtonGradient}
-        >
+        <View style={styles.emptyButtonGradient}>
           <Icon name="arrow-back" size={18} color="#fff" />
           <Text style={styles.emptyButtonText}>Back to Dashboard</Text>
-        </LinearGradient>
+        </View>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -340,9 +331,8 @@ export default function QueuedSubmissionsScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={["#0a0a1a", "#1a1a2e", "#16213e"]} style={StyleSheet.absoluteFillObject} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#a855f7" />
+          <ActivityIndicator size="large" color="#1447E6" />
           <Text style={styles.loadingText}>Loading queue...</Text>
         </View>
       </View>
@@ -351,8 +341,6 @@ export default function QueuedSubmissionsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#0a0a1a", "#1a1a2e", "#16213e"]} style={StyleSheet.absoluteFillObject} />
-      
       {/* Enhanced Header */}
       <Animated.View 
         style={[
@@ -364,7 +352,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
         ]}
       >
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Icon name="arrow-back" size={22} color="#fff" />
+          <Icon name="arrow-back" size={22} color="#1D293D" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Queued Submissions</Text>
@@ -396,10 +384,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
             disabled={Boolean(submittingAll || submittingId)}
             activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={submittingAll || submittingId ? ['#4b5563', '#374151'] : ['#10b981', '#059669']}
-              style={styles.submitAllGradient}
-            >
+            <View style={[styles.submitAllGradient, (submittingAll || submittingId) && styles.submitAllGradientDisabled]}>
               {submittingAll ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
@@ -408,7 +393,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
               <Text style={styles.submitAllText}>
                 {submittingAll ? 'Submitting All...' : 'Submit All'}
               </Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -424,9 +409,9 @@ export default function QueuedSubmissionsScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#a855f7"
-            colors={['#a855f7', '#7c3aed']}
-            progressBackgroundColor="#1a1a2e"
+            tintColor="#1447E6"
+            colors={['#1447E6', '#1D293D']}
+            progressBackgroundColor="#FFFFFF"
           />
         }
         showsVerticalScrollIndicator={false}
@@ -438,7 +423,7 @@ export default function QueuedSubmissionsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0a0a1a' 
+    backgroundColor: '#FFFFFF' 
   },
   loadingContainer: {
     flex: 1,
@@ -447,7 +432,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   loadingText: {
-    color: '#9ca3af',
+    color: '#1D293D',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -464,36 +449,36 @@ const styles = StyleSheet.create({
     width: 40, 
     height: 40, 
     borderRadius: 20, 
-    backgroundColor: 'rgba(168, 85, 247, 0.15)', 
+    backgroundColor: 'rgba(20, 71, 230, 0.1)', 
     alignItems: 'center', 
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   headerTextContainer: {
     flex: 1,
   },
   headerTitle: { 
-    color: '#fff', 
+    color: '#1D293D', 
     fontSize: 20, 
     fontWeight: '700',
     marginBottom: 2,
   },
   headerSubtitle: {
-    color: '#9ca3af',
+    color: '#6B7280',
     fontSize: 12,
     fontWeight: '500',
   },
   headerBadge: {
-    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   headerBadgeText: {
-    color: '#a855f7',
+    color: '#1447E6',
     fontSize: 14,
     fontWeight: '700',
   },
@@ -504,11 +489,7 @@ const styles = StyleSheet.create({
   submitAllBtn: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: '#1447E6',
   },
   submitAllGradient: {
     flexDirection: 'row',
@@ -517,6 +498,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
+  },
+  submitAllGradientDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   submitAllText: {
     color: '#fff',
@@ -540,7 +524,8 @@ const styles = StyleSheet.create({
     borderRadius: 16, 
     padding: 16, 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -552,14 +537,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   title: { 
-    color: '#fff', 
+    color: '#1D293D', 
     fontSize: 16, 
     fontWeight: '700',
     marginBottom: 4,
@@ -574,7 +559,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   retryText: {
-    color: '#6b7280',
+    color: '#6B7280',
     fontSize: 11,
     fontWeight: '500',
   },
@@ -588,13 +573,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   detailLabel: {
-    color: '#9ca3af',
+    color: '#6B7280',
     fontSize: 13,
     fontWeight: '500',
     width: 75,
   },
   detailValue: {
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 13,
     fontWeight: '600',
     flex: 1,
@@ -603,15 +588,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: '#FEF2F2',
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: '#FECACA',
   },
   errorText: {
-    color: '#ef4444',
+    color: '#EF4444',
     fontSize: 12,
     fontWeight: '500',
     flex: 1,
@@ -625,11 +610,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 10,
     overflow: 'hidden',
-    shadowColor: '#7c3aed',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: '#1447E6',
   },
   btnGradient: {
     flexDirection: 'row',
@@ -638,6 +619,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 10,
     paddingHorizontal: 14,
+  },
+  btnGradientDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   btnDanger: { 
     width: 44,
@@ -662,21 +646,21 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: 'rgba(107, 114, 128, 0.2)',
+    borderColor: '#E5E7EB',
   },
   emptyTitle: {
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 24,
     fontWeight: '700',
     marginBottom: 8,
   },
   emptyText: { 
-    color: '#9ca3af', 
+    color: '#6B7280', 
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 24,
@@ -685,11 +669,7 @@ const styles = StyleSheet.create({
   emptyButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: '#1447E6',
   },
   emptyButtonGradient: {
     flexDirection: 'row',
