@@ -18,7 +18,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { TextInput } from 'react-native-paper';
-import LinearGradient from 'react-native-linear-gradient';
 import client from '../API/client';
 import { launchImageLibrary } from 'react-native-image-picker';
 import * as FingerprintAPI from '../API/fingerprint';
@@ -656,7 +655,7 @@ export default function EditableProfileModal({
     return (
       <View style={styles.fieldContainer}>
         <View style={styles.fieldHeader}>
-          <Icon name="wc" size={16} color="rgba(255, 255, 255, 0.6)" />
+          <Icon name="wc" size={16} color="rgba(0, 0, 0, 0.6)" />
           <Text style={styles.fieldLabel}>Gender</Text>
         </View>
         {isEditing ? (
@@ -722,7 +721,7 @@ export default function EditableProfileModal({
       return (
         <View style={styles.fieldContainer}>
           <View style={styles.fieldHeader}>
-            <Icon name={icon} size={16} color="rgba(255, 255, 255, 0.6)" />
+            <Icon name={icon} size={16} color="rgba(0, 0, 0, 0.6)" />
             <Text style={styles.fieldLabel}>{label}</Text>
           </View>
           {isEditing ? (
@@ -736,9 +735,9 @@ export default function EditableProfileModal({
                 underlineStyle={{ display: 'none' }}
                 theme={{
                   colors: {
-                    primary: '#6b7280',
-                    placeholder: '#6b7280',
-                    text: '#9ca3af',
+                    primary: '#FFFFFF',
+                    placeholder: '#FFFFFF',
+                    text: '#FFFFFF',
                     background: 'transparent',
                   }
                 }}
@@ -756,7 +755,7 @@ export default function EditableProfileModal({
     return (
       <View style={styles.fieldContainer}>
         <View style={styles.fieldHeader}>
-          <Icon name={icon} size={16} color="rgba(255, 255, 255, 0.6)" />
+          <Icon name={icon} size={16} color="rgba(0, 0, 0, 0.6)" />
           <Text style={styles.fieldLabel}>{label}</Text>
         </View>
         {isEditing ? (
@@ -790,9 +789,9 @@ export default function EditableProfileModal({
               underlineStyle={{ display: 'none' }}
               theme={{
                 colors: {
-                  primary: '#667eea',
-                  placeholder: 'rgba(255, 255, 255, 0.4)',
-                  text: '#ffffff',
+                  primary: '#1447E6',
+                  placeholder: 'rgba(0, 0, 0, 0.4)',
+                  text: '#1D293D',
                   background: 'transparent',
                 }
               }}
@@ -811,10 +810,7 @@ export default function EditableProfileModal({
 
   return (
     <View style={styles.modal}>
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={styles.modalGradient}
-      >
+      <View style={styles.modalGradient}>
         <SafeAreaView style={styles.safeArea}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -825,7 +821,7 @@ export default function EditableProfileModal({
                 onPress={onClose}
                 style={styles.backButton}
               >
-                <Icon name="arrow-back" size={20} color="#ffffff" />
+                <Icon name="arrow-back" size={20} color="#1D293D" />
               </TouchableOpacity>
               <Text style={styles.title}>{isEditing ? 'Edit Profile' : 'Student Profile'}</Text>
               <View style={styles.headerActions}>
@@ -834,14 +830,14 @@ export default function EditableProfileModal({
                     onPress={handleCancel}
                     style={styles.actionButton}
                   >
-                    <Icon name="close" size={20} color="#ffffff" />
+                    <Icon name="close" size={20} color="#1D293D" />
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
                     onPress={() => setIsEditing(true)}
                     style={styles.actionButton}
                   >
-                    <Icon name="edit" size={20} color="#ffffff" />
+                    <Icon name="edit" size={20} color="#1D293D" />
                   </TouchableOpacity>
                 )}
               </View>
@@ -854,37 +850,12 @@ export default function EditableProfileModal({
             bounces={false}
           >
             {examineeData && (
-              <View style={styles.profileSection}>
-                {/* Identity Card */}
+              <>
+                {/* Profile Header Section */}
                 <View style={styles.profileCard}>
-                  <LinearGradient
-                    colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)']}
-                    style={styles.cardGradient}
-                  >
-                    <View style={styles.sectionHeaderRow}>
-                      <View style={styles.sectionHeaderBadge}>
-                        <Icon name="badge" size={14} color="#a855f7" />
-                        <Text style={styles.sectionHeaderText}>Identity</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text style={styles.sectionHint}></Text>
-                        <TouchableOpacity
-                          onPress={() => setShowIdCard(true)}
-                          style={styles.viewIdButton}
-                          accessibilityLabel="View ID Card"
-                        >
-                          <Icon name="credit-card" size={14} color="#ffffff" />
-                          <Text style={styles.viewIdButtonText}>View ID</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    <View style={styles.profileInfo}>
-                      <TouchableOpacity 
-                        style={styles.profileAvatar}
-                        onPress={isEditing ? handleImagePicker : null}
-                        disabled={!isEditing}
-                      >
+                  <View style={styles.cardGradient}>
+                    <View style={styles.profileHeaderSection}>
+                      <View style={styles.profileAvatar}>
                         {profileImage ? (
                           <View style={styles.avatarImageContainer}>
                             <Image
@@ -893,21 +864,18 @@ export default function EditableProfileModal({
                               resizeMode="cover"
                             />
                             {isEditing && (
-                              <View style={styles.avatarOverlay}>
-                                <Icon name="camera-alt" size={20} color="#ffffff" />
-                              </View>
+                              <TouchableOpacity style={styles.avatarOverlay} onPress={handleImagePicker}>
+                                <Icon name="camera-alt" size={20} color="#FFFFFF" />
+                              </TouchableOpacity>
                             )}
                           </View>
                         ) : (
-                          <LinearGradient
-                            colors={['#667eea', '#764ba2']}
-                            style={styles.avatarGradient}
-                          >
-                            <Icon name={isEditing ? "add-a-photo" : "person"} size={30} color="#ffffff" />
-                          </LinearGradient>
+                          <View style={styles.avatarGradient}>
+                            <Icon name={isEditing ? "add-a-photo" : "person"} size={30} color="#FFFFFF" />
+                          </View>
                         )}
-                      </TouchableOpacity>
-                      <View style={styles.profileDetails}>
+                      </View>
+                      <View style={styles.profileInfoText}>
                         <Text style={styles.profileName}>
                           {formData.fname + (formData.mname ? ' ' + formData.mname : '') + ' ' + formData.lname || 'N/A'}
                         </Text>
@@ -921,56 +889,72 @@ export default function EditableProfileModal({
                         )}
                       </View>
                     </View>
-
-                    <View style={styles.fieldsContainer}>
-                      {renderField('name', 'Full Name', 'person', 'default')}
-                      {renderGenderField()}
-                      {renderField('age', 'Age', 'calendar-today', 'numeric')}
-                      {renderField('school_name', 'Previous Attended School', 'school', 'default')}
-                    </View>
-                  </LinearGradient>
+                  </View>
                 </View>
 
-                {/* Contact Card */}
+                {/* Personal Information Card */}
                 <View style={styles.profileCard}>
-                  <LinearGradient
-                    colors={['rgba(16, 185, 129, 0.08)', 'rgba(59, 130, 246, 0.06)']}
-                    style={styles.cardGradient}
-                  >
+                  <View style={styles.cardGradient}>
                     <View style={styles.sectionHeaderRow}>
-                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(16,185,129,0.08)', borderColor: 'rgba(16,185,129,0.2)' }]}>
-                        <Icon name="contact-phone" size={14} color="#10b981" />
-                        <Text style={[styles.sectionHeaderText, { color: '#10b981' }]}>Contact</Text>
+                      <View style={styles.sectionHeaderBadge}>
+                        <Icon name="person" size={14} color="#1447E6" />
+                        <Text style={styles.sectionHeaderText}>Personal Information</Text>
                       </View>
-                      <Text style={styles.sectionHint}>Use active numbers so we can reach you.</Text>
                     </View>
+                    <View style={styles.fieldsContainer}>
+                      {renderField('fname', 'First Name', 'person', 'default')}
+                      {renderField('lname', 'Last Name', 'person', 'default')}
+                      {renderField('mname', 'Middle Name', 'person', 'default')}
+                      {renderGenderField()}
+                      {renderField('age', 'Age', 'calendar-today', 'numeric')}
+                    </View>
+                  </View>
+                </View>
 
+                {/* Education Card */}
+                <View style={styles.profileCard}>
+                  <View style={styles.cardGradient}>
+                    <View style={styles.sectionHeaderRow}>
+                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(20, 71, 230, 0.06)', borderColor: 'rgba(20, 71, 230, 0.12)' }]}>
+                        <Icon name="school" size={14} color="#1447E6" />
+                        <Text style={[styles.sectionHeaderText, { color: '#1447E6' }]}>Education</Text>
+                      </View>
+                    </View>
+                    <View style={styles.fieldsContainer}>
+                      {renderField('school_name', 'Previous Attended School', 'school', 'default')}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Contact Information Card */}
+                <View style={styles.profileCard}>
+                  <View style={styles.cardGradient}>
+                    <View style={styles.sectionHeaderRow}>
+                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(16,185,129,0.05)', borderColor: 'rgba(16,185,129,0.15)' }]}>
+                        <Icon name="contact-phone" size={14} color="#10b981" />
+                        <Text style={[styles.sectionHeaderText, { color: '#10b981' }]}>Contact Information</Text>
+                      </View>
+                    </View>
                     <View style={styles.fieldsContainer}>
                       {renderField('phone', 'Phone Number', 'phone', 'phone-pad')}
                       {renderField('address', 'Address', 'home', 'default')}
                     </View>
-                  </LinearGradient>
+                  </View>
                 </View>
 
-                {/* Guardian Card */}
+                {/* Guardian Information Card */}
                 <View style={styles.profileCard}>
-                  <LinearGradient
-                    colors={['rgba(245, 158, 11, 0.08)', 'rgba(168, 85, 247, 0.06)']}
-                    style={styles.cardGradient}
-                  >
+                  <View style={styles.cardGradient}>
                     <View style={styles.sectionHeaderRow}>
-                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)' }]}>
+                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(245,158,11,0.05)', borderColor: 'rgba(245,158,11,0.15)' }]}>
                         <Icon name="family-restroom" size={14} color="#f59e0b" />
-                        <Text style={[styles.sectionHeaderText, { color: '#f59e0b' }]}>Parent/Guardian</Text>
+                        <Text style={[styles.sectionHeaderText, { color: '#f59e0b' }]}>Guardian Information</Text>
                       </View>
-                      <Text style={styles.sectionHint}>We'll use this for emergencies only.</Text>
                     </View>
-
                     <View style={styles.fieldsContainer}>
                       {renderField('parent_name', 'Parent Name', 'people', 'default')}
                       {renderField('parent_phone', 'Parent Phone', 'phone-iphone', 'phone-pad')}
                     </View>
-
                     {isEditing && (
                       <View style={styles.editActions}>
                         <TouchableOpacity
@@ -984,28 +968,22 @@ export default function EditableProfileModal({
                           style={[styles.saveButtonLarge, loading && styles.saveButtonDisabled]}
                           disabled={loading}
                         >
-                          <LinearGradient
-                            colors={['#667eea', '#764ba2']}
-                            style={styles.saveButtonGradient}
-                          >
+                          <View style={styles.saveButtonGradient}>
                             <Text style={styles.saveButtonText}>
                               {loading ? 'Saving...' : 'Save Changes'}
                             </Text>
-                          </LinearGradient>
+                          </View>
                         </TouchableOpacity>
                       </View>
                     )}
-                  </LinearGradient>
+                  </View>
                 </View>
 
                 {/* Biometric Security Card */}
                 <View style={styles.profileCard}>
-                  <LinearGradient
-                    colors={['rgba(139, 92, 246, 0.08)', 'rgba(59, 130, 246, 0.06)']}
-                    style={styles.cardGradient}
-                  >
+                  <View style={styles.cardGradient}>
                     <View style={styles.sectionHeaderRow}>
-                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(139,92,246,0.08)', borderColor: 'rgba(139,92,246,0.2)' }]}>
+                      <View style={[styles.sectionHeaderBadge, { backgroundColor: 'rgba(139,92,246,0.05)', borderColor: 'rgba(139,92,246,0.15)' }]}>
                         <Icon name="fingerprint" size={14} color="#8b5cf6" />
                         <Text style={[styles.sectionHeaderText, { color: '#8b5cf6' }]}>Biometric Security</Text>
                       </View>
@@ -1013,73 +991,64 @@ export default function EditableProfileModal({
 
                     <View style={styles.fingerprintContainer}>
                       {hasFingerprint ? (
-                        <View style={styles.fingerprintRegisteredSimple}>
-                          <View style={styles.fingerprintActiveCard}>
+                        <View style={styles.fingerprintRegisteredCompact}>
+                          <View style={styles.fingerprintStatusRow}>
                             <View style={styles.fingerprintIconCircle}>
-                              <LinearGradient
-                                colors={['#10b981', '#059669']}
-                                style={styles.fingerprintIconGradient}
-                              >
-                                <Icon name="fingerprint" size={32} color="#ffffff" />
-                              </LinearGradient>
+                              <View style={styles.fingerprintIconGradient}>
+                                <Icon name="fingerprint" size={24} color="#FFFFFF" />
+                              </View>
                             </View>
-                            <View style={styles.fingerprintStatusBadge}>
-                              <Icon name="check-circle" size={16} color="#10b981" />
-                              <Text style={styles.fingerprintStatusBadgeText}>Active</Text>
+                            <View style={styles.fingerprintStatusInfo}>
+                              <View style={styles.fingerprintStatusBadge}>
+                                <Icon name="check-circle" size={12} color="#10b981" />
+                                <Text style={styles.fingerprintStatusBadgeText}>Active</Text>
+                              </View>
+                              <Text style={styles.fingerprintStatusTitle}>Biometric Enabled</Text>
+                              <Text style={styles.fingerprintStatusSubtitle}>Your fingerprint is registered</Text>
                             </View>
-                            <Text style={styles.fingerprintStatusTitle}>Biometric Security Enabled</Text>
-                            <Text style={styles.fingerprintStatusSubtitle}>
-                              Your fingerprint is registered and ready to use
-                            </Text>
+                            <TouchableOpacity
+                              onPress={handleDeleteFingerprint}
+                              style={styles.removeFingerprintButtonCompact}
+                              disabled={fingerprintLoading}
+                            >
+                              <Icon name="delete-outline" size={16} color="#ef4444" />
+                            </TouchableOpacity>
                           </View>
-                          <TouchableOpacity
-                            onPress={handleDeleteFingerprint}
-                            style={styles.removeFingerprintButtonSimple}
-                            disabled={fingerprintLoading}
-                          >
-                            <Icon name="delete-outline" size={18} color="#ef4444" />
-                            <Text style={[styles.removeFingerprintTextSimple, { marginLeft: 6 }]}>Remove</Text>
-                          </TouchableOpacity>
                         </View>
                       ) : (
-                        <View style={styles.fingerprintNotRegisteredSimple}>
+                        <View style={styles.fingerprintNotRegisteredCompact}>
                           <View style={styles.fingerprintIconCircleInactive}>
-                            <Icon name="fingerprint" size={36} color="rgba(139, 92, 246, 0.6)" />
+                            <Icon name="fingerprint" size={28} color="rgba(139, 92, 246, 0.6)" />
                           </View>
-                          <Text style={styles.fingerprintPromptTitle}>Enable Biometric Login</Text>
-                          <Text style={styles.fingerprintPromptSubtitle}>
-                            Secure your account with fingerprint.
-                          </Text>
+                          <View style={styles.fingerprintPromptInfo}>
+                            <Text style={styles.fingerprintPromptTitle}>Enable Biometric Login</Text>
+                            <Text style={styles.fingerprintPromptSubtitle}>Secure your account with fingerprint</Text>
+                          </View>
                           <TouchableOpacity
                             onPress={handleRegisterFingerprint}
-                            style={[styles.registerFingerprintButtonSimple, fingerprintLoading && styles.registerFingerprintButtonDisabled]}
+                            style={[styles.registerFingerprintButtonCompact, fingerprintLoading && styles.registerFingerprintButtonDisabled]}
                             disabled={fingerprintLoading}
                           >
-                            <LinearGradient
-                              colors={['#8b5cf6', '#6366f1']}
-                              style={styles.registerFingerprintGradientSimple}
-                            >
+                            <View style={styles.registerFingerprintGradientCompact}>
                               {fingerprintLoading ? (
-                                <Icon name="refresh" size={20} color="#ffffff" />
+                                <Icon name="refresh" size={16} color="#FFFFFF" />
                               ) : (
-                                <Icon name="fingerprint" size={20} color="#ffffff" />
+                                <Icon name="fingerprint" size={16} color="#FFFFFF" />
                               )}
-                              <Text style={[styles.registerFingerprintTextSimple, { marginLeft: 8 }]}>
-                                {fingerprintLoading ? 'Setting up...' : 'Enable Now'}
-                              </Text>
-                            </LinearGradient>
+                              <Text style={styles.registerFingerprintTextCompact}>Enable Now</Text>
+                            </View>
                           </TouchableOpacity>
                         </View>
                       )}
                     </View>
-                  </LinearGradient>
+                  </View>
                 </View>
-              </View>
+              </>
             )}
           </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
       {/* ID Card Modal */}
       <IdCardModal
         visible={showIdCard}
@@ -1336,6 +1305,7 @@ const styles = StyleSheet.create({
   },
   modalGradient: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
   },
   safeArea: {
     flex: 1,
@@ -1347,38 +1317,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isShortScreen ? 12 : 20,
+    paddingHorizontal: isSmallScreen ? 20 : 24,
+    paddingVertical: isShortScreen ? 16 : 20,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(20, 71, 230, 0.08)',
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   backButton: {
-    width: isSmallScreen ? 36 : 40,
-    height: isSmallScreen ? 36 : 40,
-    borderRadius: isSmallScreen ? 18 : 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: isSmallScreen ? 40 : 44,
+    height: isSmallScreen ? 40 : 44,
+    borderRadius: isSmallScreen ? 20 : 22,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.1)',
   },
   title: {
-    fontSize: isSmallScreen ? 18 : 22,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 16,
+    marginHorizontal: 20,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 8,
   },
   actionButton: {
-    width: isSmallScreen ? 36 : 40,
-    height: isSmallScreen ? 36 : 40,
-    borderRadius: isSmallScreen ? 18 : 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: isSmallScreen ? 40 : 44,
+    height: isSmallScreen ? 40 : 44,
+    borderRadius: isSmallScreen ? 20 : 22,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.1)',
   },
   saveButton: {
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
@@ -1389,34 +1369,61 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: isSmallScreen ? 16 : 20,
     paddingTop: isShortScreen ? 16 : 20,
-    paddingBottom: Platform.OS === 'ios' ? (isShortScreen ? 40 : 60) : 40, // Extra padding for action buttons
+    paddingBottom: Platform.OS === 'ios' ? (isShortScreen ? 32 : 48) : 32,
   },
   profileSection: {
-    marginBottom: isShortScreen ? 16 : 25,
+    marginBottom: isShortScreen ? 16 : 20,
+  },
+  profileHeaderSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(20, 71, 230, 0.03)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.1)',
+  },
+  profileInfoText: {
+    flex: 1,
+    marginLeft: 18,
   },
   profileCard: {
-    borderRadius: 15,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(20, 71, 230, 0.06)',
     marginBottom: 16,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cardGradient: {
     padding: isSmallScreen ? 16 : 20,
     paddingBottom: isSmallScreen ? 18 : 22,
+    backgroundColor: '#FFFFFF',
   },
   profileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   profileAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     overflow: 'hidden',
-    marginRight: 15,
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
   },
   avatarImageContainer: {
     width: '100%',
@@ -1442,13 +1449,14 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#1447E6',
   },
   changePhotoButton: {
     marginTop: 4,
   },
   changePhotoText: {
     fontSize: 12,
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '600',
   },
   profileDetails: {
@@ -1457,12 +1465,12 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 4,
   },
   profileRole: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: '#64748B',
     fontWeight: '500',
   },
   fieldsContainer: {
@@ -1482,48 +1490,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: 'rgba(168,85,247,0.08)',
+    backgroundColor: 'rgba(20, 71, 230, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.2)'
+    borderColor: 'rgba(20, 71, 230, 0.15)'
   },
   sectionHeaderText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#a855f7',
+    color: '#1447E6',
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
   },
   sectionHint: {
     fontSize: 11,
-    color: 'rgba(255,255,255,0.6)'
+    color: 'rgba(0,0,0,0.6)'
   },
   viewIdButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    gap: 8,
+    backgroundColor: 'rgba(20, 71, 230, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    borderColor: 'rgba(20, 71, 230, 0.12)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
   },
   viewIdButtonText: {
-    color: '#ffffff',
+    color: '#1447E6',
     fontSize: 12,
     fontWeight: '600',
   },
   fieldContainer: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   fieldHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   fieldLabel: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'rgba(0, 0, 0, 0.6)',
     marginLeft: 8,
     fontWeight: '500',
   },
@@ -1531,23 +1539,23 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderRadius: 12,
     overflow: 'hidden',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    height: 50,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.08)',
+    backgroundColor: '#F8FAFC',
+    height: 48,
   },
   inputContainerFocused: {
-    borderColor: '#667eea',
-    borderWidth: 1,
-    shadowColor: '#667eea',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    borderColor: '#1447E6',
+    borderWidth: 2,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
   inputDisabledContainer: {
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)'
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    backgroundColor: 'rgba(0, 0, 0, 0.04)'
   },
   inputBackground: {
     position: 'absolute',
@@ -1559,14 +1567,14 @@ const styles = StyleSheet.create({
   textInput: {
     backgroundColor: 'transparent',
     fontSize: 16,
-    paddingHorizontal: 15,
-    height: 50,
+    paddingHorizontal: 18,
+    height: 56,
     paddingTop: 0,
     paddingBottom: 0,
     textAlignVertical: 'center',
   },
   inputContent: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 16,
     fontWeight: '500',
     textAlignVertical: 'center',
@@ -1578,16 +1586,16 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
   },
   valueContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.01)',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(0, 0, 0, 0.04)',
   },
   valueText: {
     fontSize: 16,
-    color: '#ffffff',
+    color: '#1D293D',
     fontWeight: '500',
     lineHeight: 22,
   },
@@ -1598,18 +1606,18 @@ const styles = StyleSheet.create({
   genderButton: {
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(20, 71, 230, 0.15)',
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   genderButtonSelected: {
-    backgroundColor: 'rgba(102, 126, 234, 0.3)',
-    borderColor: '#667eea',
+    backgroundColor: '#1447E6',
+    borderColor: '#1447E6',
     borderWidth: 2,
   },
   genderButtonError: {
@@ -1617,26 +1625,26 @@ const styles = StyleSheet.create({
   },
   genderButtonText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(0, 0, 0, 0.7)',
     fontWeight: '600',
   },
   genderButtonTextSelected: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontWeight: '700',
   },
   editActions: {
     flexDirection: 'row',
-    gap: isSmallScreen ? 8 : 10,
-    marginTop: isShortScreen ? 20 : 25,
+    gap: isSmallScreen ? 10 : 12,
+    marginTop: isShortScreen ? 20 : 24,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: 'rgba(0, 0, 0, 0.06)',
   },
   cancelButton: {
     flex: 1,
-    height: isShortScreen ? 44 : 50,
-    borderRadius: isShortScreen ? 22 : 25,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    height: isShortScreen ? 44 : 48,
+    borderRadius: isShortScreen ? 22 : 24,
+    backgroundColor: '#FEE2E2',
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.2)',
     justifyContent: 'center',
@@ -1656,11 +1664,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonGradient: {
-    height: isShortScreen ? 44 : 50,
+    height: isShortScreen ? 44 : 48,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: isSmallScreen ? 16 : 20,
+    borderRadius: isShortScreen ? 22 : 24,
+    backgroundColor: '#1447E6',
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   saveButtonText: {
     color: '#ffffff',
@@ -2117,35 +2132,89 @@ const styles = StyleSheet.create({
   },
   // Fingerprint styles - Simplified
   fingerprintContainer: {
-    marginTop: 16,
+    marginTop: 20,
   },
-  fingerprintRegisteredSimple: {
+  fingerprintRegisteredCompact: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+  },
+  fingerprintStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  fingerprintStatusInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  removeFingerprintButtonCompact: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.12)',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fingerprintNotRegisteredCompact: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 20,
     paddingHorizontal: 16,
   },
+  fingerprintPromptInfo: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  registerFingerprintButtonCompact: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    minWidth: 120,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  registerFingerprintGradientCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#1447E6',
+  },
+  registerFingerprintTextCompact: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
   fingerprintActiveCard: {
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: 'rgba(16, 185, 129, 0.06)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    borderColor: 'rgba(16, 185, 129, 0.15)',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    marginBottom: 12,
   },
   fingerprintIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 12,
     overflow: 'hidden',
     shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -2154,50 +2223,48 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#10b981',
   },
   fingerprintStatusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: 'rgba(16, 185, 129, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginBottom: 16,
+    borderColor: 'rgba(16, 185, 129, 0.16)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 8,
   },
   fingerprintStatusBadgeText: {
     color: '#10b981',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    marginLeft: 6,
+    marginLeft: 4,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   fingerprintStatusTitle: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: '#1D293D',
+    fontSize: 14,
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   fingerprintStatusSubtitle: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 8,
+    color: 'rgba(0, 0, 0, 0.6)',
+    fontSize: 12,
+    lineHeight: 16,
   },
   removeFingerprintButtonSimple: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    borderRadius: 10,
-    marginTop: 8,
+    borderColor: 'rgba(239, 68, 68, 0.12)',
+    borderRadius: 16,
+    marginTop: 12,
   },
   removeFingerprintTextSimple: {
     color: '#ef4444',
@@ -2207,44 +2274,41 @@ const styles = StyleSheet.create({
   fingerprintNotRegisteredSimple: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
   },
   fingerprintIconCircleInactive: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(139, 92, 246, 0.06)',
     borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.2)',
+    borderColor: 'rgba(139, 92, 246, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   fingerprintPromptTitle: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: '#1D293D',
+    fontSize: 14,
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   fingerprintPromptSubtitle: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
+    color: 'rgba(0, 0, 0, 0.6)',
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-    paddingHorizontal: 8,
   },
   registerFingerprintButtonSimple: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    minWidth: 180,
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    minWidth: 200,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   registerFingerprintButtonDisabled: {
     opacity: 0.6,
@@ -2255,8 +2319,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    backgroundColor: '#1447E6',
   },
   registerFingerprintTextSimple: {
     color: '#ffffff',
