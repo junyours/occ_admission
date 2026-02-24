@@ -1526,15 +1526,12 @@ export default function DashboardScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <LinearGradient
-          colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-          style={styles.loadingGradient}
-        >
+        <View style={styles.loadingGradient}>
           <Animated.View style={[styles.loadingContent, { opacity: fadeAnim }]}>
             <View style={styles.loadingIconContainer}>
               <Image
                 source={require('../logo.png')}
-                style={{ width: 64, height: 64 }}
+                style={{ width: 56, height: 56 }}
                 resizeMode="contain"
               />
             </View>
@@ -1545,22 +1542,14 @@ export default function DashboardScreen({ navigation }) {
               <Animated.View style={[styles.dot, { opacity: dot3Anim }]} />
             </View>
           </Animated.View>
-        </LinearGradient>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      
-      {/* Moved offline indicator below into content to avoid camera cutouts */}
-      
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={StyleSheet.absoluteFillObject}
-      />
-      
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -1569,11 +1558,11 @@ export default function DashboardScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#a855f7"
-            colors={['#a855f7', '#7c3aed']}
-            progressBackgroundColor="#1a1a2e"
+            tintColor="#1447E6"
+            colors={['#1447E6']}
+            progressBackgroundColor="#FFFFFF"
             title="Pull to refresh"
-            titleColor="#9ca3af"
+            titleColor="#6b7280"
           />
         }
       >
@@ -1599,7 +1588,7 @@ export default function DashboardScreen({ navigation }) {
 
           {queuedCount > 0 && (
             <View style={styles.queuedIndicatorInline}>
-              <Icon name="cloud-queue" size={16} color="#7c3aed" />
+              <Icon name="cloud-queue" size={16} color="#1447E6" />
               <Text style={styles.queuedText}>
                 {queuedCount} exam submission{queuedCount > 1 ? 's' : ''} pending upload
               </Text>
@@ -1625,7 +1614,7 @@ export default function DashboardScreen({ navigation }) {
                 />
               </View>
               <View style={styles.headerTextContainer}>
-                <Text style={styles.header}>Dashboard</Text>
+                <Text style={styles.headerTitle} numberOfLines={1}>Dashboard</Text>
               </View>
             </View>
             <View style={styles.headerActions}>
@@ -1767,7 +1756,7 @@ export default function DashboardScreen({ navigation }) {
                 onPress={() => setShowEditableProfile(true)} 
                 style={styles.profileButton}
               >
-                <Icon name="person" size={18} color="#ffffff" />
+                <Icon name="person" size={18} color="#1447E6" />
               </TouchableOpacity>
             </View>
           </View>
@@ -1796,10 +1785,7 @@ export default function DashboardScreen({ navigation }) {
 
           {/* Compact Welcome Section */}
           <View style={styles.welcomeSection}>
-            <LinearGradient
-              colors={['rgba(168, 85, 247, 0.06)', 'rgba(124, 58, 237, 0.03)']}
-              style={styles.welcomeCard}
-            >
+            <View style={styles.welcomeCard}>
               <View style={styles.welcomeContent}>
                 <View style={styles.welcomeHeader}>
                   <View style={styles.welcomeTextContainer}>
@@ -1809,7 +1795,7 @@ export default function DashboardScreen({ navigation }) {
                     </Text>
                     <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                       <View style={styles.welcomeBadge}>
-                        <Icon name="verified-user" size={12} color="#10b981" />
+                        <Icon name="verified-user" size={12} color="#059669" />
                         <Text style={styles.welcomeBadgeText}>Verified</Text>
                       </View>
                       {personalityType && (
@@ -1818,7 +1804,7 @@ export default function DashboardScreen({ navigation }) {
                           onPress={() => setShowPersonalityModal(true)}
                           activeOpacity={0.7}
                         >
-                          <Icon name="psychology" size={12} color="#a855f7" />
+                          <Icon name="psychology" size={12} color="#1447E6" />
                           <Text style={styles.personalityBadgeText}>{personalityType}</Text>
                         </TouchableOpacity>
                       )}
@@ -1836,12 +1822,9 @@ export default function DashboardScreen({ navigation }) {
                         defaultSource={require('../logo.png')}
                       />
                     ) : (
-                      <LinearGradient
-                        colors={['#667eea', '#764ba2']}
-                        style={styles.welcomeProfilePlaceholder}
-                      >
-                        <Icon name="person" size={24} color="#ffffff" />
-                      </LinearGradient>
+                      <View style={styles.welcomeProfilePlaceholder}>
+                        <Icon name="person" size={28} color="#1447E6" />
+                      </View>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1856,14 +1839,14 @@ export default function DashboardScreen({ navigation }) {
                   return null;
                 })()}
                 {examineeData?.exam_schedule?.status === 'cancelled' && examineeData?.exam_schedule?.status !== 'archived' ? (
-                  <View style={{ width: '100%', marginTop: 12 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                      <Icon name="warning" size={18} color="#ef4444" />
-                      <Text style={[styles.sectionTitle, { marginLeft: 8, color: '#ef4444' }]}>Exam Status</Text>
+                  <View style={styles.welcomeScheduleBlock}>
+                    <View style={styles.welcomeScheduleBlockHeader}>
+                      <Icon name="warning" size={18} color="#e11d48" />
+                      <Text style={[styles.sectionTitle, styles.welcomeScheduleBlockTitle, { color: '#e11d48' }]}>Exam Status</Text>
                     </View>
                     <View style={styles.cancelledMessageContainer}>
                       <View style={styles.cancelledMessageHeader}>
-                        <Icon name="info" size={16} color="#ef4444" />
+                        <Icon name="info" size={16} color="#e11d48" />
                         <Text style={styles.cancelledMessageTitle}>Exam Schedule Cancelled</Text>
                       </View>
                       <Text style={styles.cancelledMessageText}>
@@ -1876,7 +1859,7 @@ export default function DashboardScreen({ navigation }) {
                         activeOpacity={0.8}
                       >
                         <LinearGradient
-                          colors={['#ef4444', '#dc2626']}
+                          colors={['#e11d48', '#e11d48']}
                           style={styles.rescheduleButtonGradient}
                         >
                           <Icon name="schedule" size={18} color="#ffffff" style={{ marginRight: 8 }} />
@@ -1891,16 +1874,16 @@ export default function DashboardScreen({ navigation }) {
                     </View>
                   </View>
                 ) : hasActiveSchedule && (
-                  <View style={{ width: '100%', marginTop: 12 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                      <Icon name="event" size={18} color="#10b981" />
-                      <Text style={[styles.sectionTitle, { marginLeft: 8 }]}>Your Exam Schedule</Text>
+                  <View style={styles.welcomeScheduleBlock}>
+                    <View style={styles.welcomeScheduleBlockHeader}>
+                      <Icon name="event" size={18} color="#059669" />
+                      <Text style={[styles.sectionTitle, styles.welcomeScheduleBlockTitle]}>Your Exam Schedule</Text>
                     </View>
 
                     {examSchedule ? (
                       <View style={styles.scheduleDetails}>
                         <View style={styles.scheduleItem}>
-                          <Icon name="calendar-today" size={16} color="#10b981" />
+                          <Icon name="calendar-today" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Exam Date:</Text>
                           <Text style={styles.scheduleValue}>
                             {examSchedule.exam_date_formatted}
@@ -1908,7 +1891,7 @@ export default function DashboardScreen({ navigation }) {
                         </View>
 
                         <View style={styles.scheduleItem}>
-                          <Icon name="schedule" size={16} color="#10b981" />
+                          <Icon name="schedule" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Session:</Text>
                           <Text style={[styles.scheduleValue, styles.sessionText]}>
                             {examSchedule.session_display} Session
@@ -1916,7 +1899,7 @@ export default function DashboardScreen({ navigation }) {
                         </View>
 
                         <View style={styles.scheduleItem}>
-                          <Icon name="access-time" size={16} color="#10b981" />
+                          <Icon name="access-time" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Time:</Text>
                           <Text style={[styles.scheduleValue, styles.timeText]}>
                             {examSchedule.start_time_formatted} - {examSchedule.end_time_formatted}
@@ -1924,7 +1907,7 @@ export default function DashboardScreen({ navigation }) {
                         </View>
 
                         <View style={styles.scheduleItem}>
-                          <Icon name="info" size={16} color="#10b981" />
+                          <Icon name="info" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Status:</Text>
                           <Text style={[styles.scheduleValue, styles.statusText]}>
                             Assigned
@@ -1934,7 +1917,7 @@ export default function DashboardScreen({ navigation }) {
                     ) : examineeData?.exam_schedule?.assigned_exam_date && examineeData?.exam_schedule?.status !== 'completed' ? (
                       <View style={styles.scheduleDetails}>
                         <View style={styles.scheduleItem}>
-                          <Icon name="calendar-today" size={16} color="#10b981" />
+                          <Icon name="calendar-today" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Exam Date:</Text>
                           <Text style={styles.scheduleValue}>
                             {new Date(examineeData.exam_schedule.assigned_exam_date).toLocaleDateString('en-US', {
@@ -1947,7 +1930,7 @@ export default function DashboardScreen({ navigation }) {
                         </View>
 
                         <View style={styles.scheduleItem}>
-                          <Icon name="school" size={16} color="#10b981" />
+                          <Icon name="school" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Academic Year:</Text>
                           <Text style={styles.scheduleValue}>
                             {examineeData.exam_schedule.school_year || 'Current Year'}
@@ -1955,7 +1938,7 @@ export default function DashboardScreen({ navigation }) {
                         </View>
 
                         <View style={styles.scheduleItem}>
-                          <Icon name="info" size={16} color="#10b981" />
+                          <Icon name="info" size={16} color="#059669" />
                           <Text style={styles.scheduleLabel}>Status:</Text>
                           <Text style={[styles.scheduleValue, styles.statusText]}>
                             Assigned
@@ -1966,7 +1949,7 @@ export default function DashboardScreen({ navigation }) {
                   </View>
                 )}
               </View>
-            </LinearGradient>
+            </View>
           </View>
 
 
@@ -1974,13 +1957,10 @@ export default function DashboardScreen({ navigation }) {
 
           {/* Enhanced Exam Code Section */}
           <View style={styles.examSection}>
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
-              style={styles.examCard}
-            >
+            <View style={styles.examCard}>
               <View style={styles.examHeader}>
                 <View style={styles.examIconContainer}>
-                  <Icon name="quiz" size={24} color="#a855f7" />
+                  <Icon name="quiz" size={24} color="#1447E6" />
                 </View>
                 <View style={styles.examHeaderText}>
                   <Text style={styles.sectionTitle}>Take an Exam</Text>
@@ -1999,7 +1979,7 @@ export default function DashboardScreen({ navigation }) {
                     <Icon 
                       name="key" 
                       size={20} 
-                      color={examCodeFocused ? '#a855f7' : '#6b7280'} 
+                      color={examCodeFocused ? '#1447E6' : '#6b7280'} 
                     />
                   </View>
                   <TextInput
@@ -2013,12 +1993,12 @@ export default function DashboardScreen({ navigation }) {
                     contentStyle={styles.inputContent}
                     underlineStyle={{ display: 'none' }}
                     editable={isOnline}
-                    placeholderTextColor={isOnline ? '#6b7280' : '#6b728099'}
+                    placeholderTextColor={isOnline ? '#9ca3af' : '#6b728099'}
                     theme={{
                       colors: {
-                        primary: '#a855f7',
-                        placeholder: '#6b7280',
-                        text: '#ffffff',
+                        primary: '#1447E6',
+                        placeholder: '#9ca3af',
+                        text: '#1D293D',
                         background: 'transparent'
                       }
                     }}
@@ -2038,20 +2018,20 @@ export default function DashboardScreen({ navigation }) {
                   <LinearGradient
                     colors={
                       isOnline && examCode.trim() && !examCodeLoading && !autoDownloading
-                        ? ['#a855f7', '#7c3aed'] 
-                        : ['#374151', '#4b5563']
+                        ? ['#1447E6', '#1447E6'] 
+                        : ['#e5e7eb', '#e5e7eb']
                     }
                     style={styles.buttonGradient}
                   >
                     <View style={styles.buttonContent}>
                       {examCodeLoading ? (
-                        <Icon name="refresh" size={20} color="#ffffff" style={styles.buttonIcon} />
+                        <Icon name="refresh" size={20} color={isOnline && examCode.trim() && !examCodeLoading && !autoDownloading ? '#FFFFFF' : '#9ca3af'} style={styles.buttonIcon} />
                       ) : autoDownloading ? (
-                        <Icon name="download" size={20} color="#ffffff" style={styles.buttonIcon} />
+                        <Icon name="download" size={20} color={isOnline && examCode.trim() && !examCodeLoading && !autoDownloading ? '#FFFFFF' : '#9ca3af'} style={styles.buttonIcon} />
                       ) : (
-                        <Icon name="play-arrow" size={20} color="#ffffff" style={styles.buttonIcon} />
+                        <Icon name="play-arrow" size={20} color={isOnline && examCode.trim() && !examCodeLoading && !autoDownloading ? '#FFFFFF' : '#9ca3af'} style={styles.buttonIcon} />
                       )}
-                      <Text style={styles.startExamButtonText}>
+                      <Text style={[styles.startExamButtonText, (!isOnline || !examCode.trim() || examCodeLoading || autoDownloading) && styles.startExamButtonTextDisabled]}>
                         {examCodeLoading 
                           ? (retryInfo 
                               ? `Retrying... (${retryInfo.attempt}/${retryInfo.maxRetries})` 
@@ -2066,7 +2046,7 @@ export default function DashboardScreen({ navigation }) {
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
-            </LinearGradient>
+            </View>
           </View>
 
         </Animated.View>
@@ -2075,10 +2055,7 @@ export default function DashboardScreen({ navigation }) {
       {/* Footer with Navigation Buttons - Hidden when profile modal is open */}
       {!showEditableProfile && (
         <View style={styles.footer}>
-          <LinearGradient
-            colors={['rgba(10, 10, 26, 0.95)', 'rgba(26, 26, 46, 0.95)']}
-            style={styles.footerGradient}
-          >
+          <View style={styles.footerGradient}>
             <View style={styles.footerContent}>
               {/* Logout Button */}
               <TouchableOpacity 
@@ -2088,7 +2065,7 @@ export default function DashboardScreen({ navigation }) {
               >
                 <View style={styles.footerButtonContent}>
                   <View style={styles.footerButtonIconContainer}>
-                    <Icon name="logout" size={20} color="#ef4444" />
+                    <Icon name="logout" size={20} color="#e11d48" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -2102,7 +2079,7 @@ export default function DashboardScreen({ navigation }) {
               >
                 <View style={styles.footerButtonContent}>
                   <View style={styles.footerButtonIconContainer}>
-                    <Icon name="assessment" size={20} color="#10b981" />
+                    <Icon name="assessment" size={20} color="#059669" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -2121,10 +2098,10 @@ export default function DashboardScreen({ navigation }) {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={isOnline ? ['#a855f7', '#7c3aed'] : ['#374151', '#4b5563']}
+                  colors={isOnline ? ['#1447E6', '#1447E6'] : ['#e5e7eb', '#e5e7eb']}
                   style={styles.centralQRButtonGradient}
                 >
-                  <Icon name="qr-code-scanner" size={28} color="#ffffff" />
+                  <Icon name="qr-code-scanner" size={28} color={isOnline ? '#ffffff' : '#9ca3af'} />
                 </LinearGradient>
               </TouchableOpacity>
 
@@ -2136,7 +2113,7 @@ export default function DashboardScreen({ navigation }) {
               >
                 <View style={styles.footerButtonContent}>
                   <View style={styles.footerButtonIconContainer}>
-                    <Icon name="school" size={20} color="#3b82f6" />
+                    <Icon name="school" size={20} color="#1447E6" />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -2149,7 +2126,7 @@ export default function DashboardScreen({ navigation }) {
               >
                 <View style={styles.footerButtonContent}>
                   <View style={styles.footerButtonIconContainer}>
-                    <Icon name="cloud-queue" size={20} color="#a855f7" />
+                    <Icon name="cloud-queue" size={20} color="#1447E6" />
                   </View>
                   {queuedCount > 0 && (
                     <View style={styles.badge}>
@@ -2159,7 +2136,7 @@ export default function DashboardScreen({ navigation }) {
                 </View>
               </TouchableOpacity>
             </View>
-          </LinearGradient>
+          </View>
         </View>
       )}
 
@@ -2180,10 +2157,7 @@ export default function DashboardScreen({ navigation }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.courseModalContainer}>
-            <LinearGradient
-              colors={['#1a1a2e', '#16213e', '#0f172a']}
-              style={styles.courseModalGradient}
-            >
+            <View style={styles.courseModalGradient}>
               {/* Modal Header */}
               <View style={styles.courseModalHeader}>
                 <View style={styles.courseModalHeaderLeft}>
@@ -2200,7 +2174,7 @@ export default function DashboardScreen({ navigation }) {
                   onPress={() => setShowCourseModal(false)}
                   activeOpacity={0.7}
                 >
-                  <Icon name="close" size={20} color="#9ca3af" />
+                  <Icon name="close" size={20} color="#1D293D" />
                 </TouchableOpacity>
               </View>
 
@@ -2260,21 +2234,21 @@ export default function DashboardScreen({ navigation }) {
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={selectedCourse && !courseUpdateLoading ? ['#f59e0b', '#d97706'] : ['#374151', '#4b5563']}
+                    colors={selectedCourse && !courseUpdateLoading ? ['#1447E6', '#1447E6'] : ['#e5e7eb', '#e5e7eb']}
                     style={styles.courseButtonGradient}
                   >
                     {courseUpdateLoading ? (
-                      <Icon name="refresh" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                      <Icon name="refresh" size={20} color={selectedCourse && !courseUpdateLoading ? '#FFFFFF' : '#9ca3af'} style={{ marginRight: 8 }} />
                     ) : (
-                      <Icon name="check" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+                      <Icon name="check" size={20} color={selectedCourse && !courseUpdateLoading ? '#FFFFFF' : '#9ca3af'} style={{ marginRight: 8 }} />
                     )}
-                    <Text style={styles.courseModalButtonText}>
+                    <Text style={[styles.courseModalButtonText, (!selectedCourse || courseUpdateLoading) && { color: '#9ca3af' }]}>
                       {courseUpdateLoading ? 'Updating...' : 'Confirm'}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
-            </LinearGradient>
+            </View>
           </View>
         </View>
       </Modal>
@@ -2340,7 +2314,7 @@ export default function DashboardScreen({ navigation }) {
                     {/* Additional Info */}
                     <View style={styles.personalityInfoContainer}>
                       <View style={styles.personalityInfoItem}>
-                        <Icon name="info" size={16} color="#10b981" />
+                        <Icon name="info" size={16} color="#059669" />
                         <Text style={styles.personalityInfoText}>
                           This result is based on your personality assessment responses
                         </Text>
@@ -2558,15 +2532,12 @@ export default function DashboardScreen({ navigation }) {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.rescheduleModalContainer}>
-              <LinearGradient
-                colors={['#1a1a2e', '#16213e', '#0f172a']}
-                style={styles.rescheduleModalGradient}
-              >
+              <View style={styles.rescheduleModalGradient}>
                 {/* Modal Header */}
                 <View style={styles.rescheduleModalHeader}>
                   <View style={styles.rescheduleModalHeaderLeft}>
                     <View style={styles.rescheduleModalIconContainer}>
-                      <Icon name="schedule" size={24} color="#ef4444" />
+                      <Icon name="schedule" size={24} color="#e11d48" />
                     </View>
                     <View style={styles.rescheduleModalHeaderText}>
                       <Text style={styles.rescheduleModalTitle}>Reschedule Exam</Text>
@@ -2578,7 +2549,7 @@ export default function DashboardScreen({ navigation }) {
                     onPress={() => setShowRescheduleModal(false)}
                     activeOpacity={0.7}
                   >
-                    <Icon name="close" size={20} color="#9ca3af" />
+                    <Icon name="close" size={20} color="#1D293D" />
                   </TouchableOpacity>
                 </View>
 
@@ -2724,22 +2695,12 @@ export default function DashboardScreen({ navigation }) {
                 <View style={styles.rescheduleModalFooter}>
                   <TouchableOpacity
                     style={styles.rescheduleModalButton}
-                    onPress={() => setShowRescheduleModal(false)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.rescheduleModalButtonSecondary}>
-                      <Text style={styles.rescheduleModalButtonTextSecondary}>Cancel</Text>
-                    </View>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={styles.rescheduleModalButton}
                     onPress={handleConfirmReschedule}
                     activeOpacity={0.7}
                     disabled={!selectedSlot || rescheduleLoading}
                   >
                     <LinearGradient
-                      colors={selectedSlot && !rescheduleLoading ? ['#ef4444', '#dc2626'] : ['#6b7280', '#4b5563']}
+                      colors={selectedSlot && !rescheduleLoading ? ['#e11d48', '#e11d48'] : ['#e5e7eb', '#e5e7eb']}
                       style={styles.rescheduleButtonGradient}
                     >
                       {rescheduleLoading ? (
@@ -2753,7 +2714,7 @@ export default function DashboardScreen({ navigation }) {
                     </LinearGradient>
                   </TouchableOpacity>
                 </View>
-              </LinearGradient>
+              </View>
             </View>
           </View>
         </Modal>
@@ -2826,8 +2787,8 @@ export default function DashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
-    paddingTop: Platform.OS === 'ios' ? 44 : 0, // Account for notch on iOS
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'ios' ? 44 : 0,
   },
   offlineIndicator: {
     position: 'absolute',
@@ -2845,70 +2806,70 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   offlineIndicatorInline: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    backgroundColor: '#fef3c7',
+    borderColor: 'rgba(245, 158, 11, 0.25)',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   offlineText: {
-    color: '#f59e0b',
-    fontSize: 12,
+    color: '#b45309',
+    fontSize: 13,
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 8,
   },
   queuedIndicatorInline: {
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-    borderColor: 'rgba(124, 58, 237, 0.3)',
+    backgroundColor: '#eff6ff',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   queuedText: {
-    color: '#7c3aed',
+    color: '#1447E6',
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 6,
     flex: 1,
   },
   queuedButton: {
-    backgroundColor: 'rgba(124, 58, 237, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: 'rgba(20, 71, 230, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
   queuedButtonText: {
-    color: '#7c3aed',
+    color: '#1447E6',
     fontSize: 11,
     fontWeight: '600',
   },
   // Preferred Course Warning Styles
   preferredCourseWarning: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    backgroundColor: '#fef3c7',
+    borderColor: 'rgba(245, 158, 11, 0.25)',
     borderWidth: 1,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 20,
     overflow: 'hidden',
   },
   preferredCourseWarningContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
+    padding: 16,
   },
   preferredCourseWarningIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -2920,12 +2881,12 @@ const styles = StyleSheet.create({
   preferredCourseWarningTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#f59e0b',
+    color: '#d97706',
     marginBottom: 2,
   },
   preferredCourseWarningText: {
     fontSize: 12,
-    color: '#fbbf24',
+    color: '#92400e',
     fontWeight: '500',
   },
   // Course Selection Modal Styles
@@ -2935,6 +2896,7 @@ const styles = StyleSheet.create({
     maxHeight: '75%',
     borderRadius: 16,
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
@@ -2942,9 +2904,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   courseModalGradient: {
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
+    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
   },
   courseModalHeader: {
     flexDirection: 'row',
@@ -2953,7 +2916,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: '#e5e7eb',
   },
   courseModalHeaderLeft: {
     flexDirection: 'row',
@@ -2963,13 +2926,13 @@ const styles = StyleSheet.create({
   courseModalIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 12,
+    backgroundColor: '#fef3c7',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
+    borderColor: 'rgba(245, 158, 11, 0.25)',
   },
   courseModalHeaderText: {
     flex: 1,
@@ -2977,36 +2940,37 @@ const styles = StyleSheet.create({
   courseModalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 2,
   },
   courseModalSubtitle: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
   },
   courseModalCloseButton: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   courseModalContent: {
     maxHeight: 350,
     padding: 16,
+    backgroundColor: '#FFFFFF',
   },
   courseItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
     overflow: 'hidden',
   },
   courseItemSelected: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: '#fef3c7',
     borderColor: 'rgba(245, 158, 11, 0.4)',
     borderWidth: 2,
   },
@@ -3020,19 +2984,19 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: '#d1d5db',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   courseRadioSelected: {
-    borderColor: '#f59e0b',
+    borderColor: '#d97706',
   },
   courseRadioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#f59e0b',
+    backgroundColor: '#d97706',
   },
   courseInfo: {
     flex: 1,
@@ -3040,13 +3004,13 @@ const styles = StyleSheet.create({
   courseTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 4,
     lineHeight: 18,
   },
   courseDescription: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     lineHeight: 16,
     marginTop: 1,
   },
@@ -3055,24 +3019,24 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: '#e5e7eb',
     gap: 10,
   },
   courseModalButton: {
     flex: 1,
-    borderRadius: 10,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   courseModalButtonSecondary: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 12,
   },
   courseModalButtonPrimary: {
-    shadowColor: '#f59e0b',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -3095,12 +3059,12 @@ const styles = StyleSheet.create({
   courseModalButtonTextSecondary: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#9ca3af',
+    color: '#1D293D',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
-    paddingTop: Platform.OS === 'ios' ? 44 : 0, // Account for notch on iOS
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'ios' ? 44 : 0,
   },
   loadingGradient: {
     flex: 1,
@@ -3111,21 +3075,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingIconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    width: 88,
+    height: 88,
+    borderRadius: 20,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 2,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.15)',
   },
   loadingText: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: '#1D293D',
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   loadingDots: {
     flexDirection: 'row',
@@ -3135,7 +3099,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#a855f7',
+    backgroundColor: '#1447E6',
   },
   dot1: {
     opacity: 0.4,
@@ -3148,9 +3112,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 120, // Increased padding to account for footer
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 100,
   },
   content: {
     maxWidth: 440,
@@ -3162,9 +3126,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 20,
-    paddingTop: 16,
-    paddingHorizontal: 4,
+    marginBottom: 24,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
   },
   headerContent: {
     flexDirection: 'row',
@@ -3173,35 +3137,32 @@ const styles = StyleSheet.create({
     minWidth: 0, // Prevent overflow
   },
   logoContainer: {
-    width: isSmallScreen ? 40 : 48,
-    height: isSmallScreen ? 40 : 48,
-    borderRadius: isSmallScreen ? 20 : 24,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    width: isSmallScreen ? 40 : 44,
+    height: isSmallScreen ? 40 : 44,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: isSmallScreen ? 12 : 16,
+    marginRight: isSmallScreen ? 12 : 14,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
-
+    borderColor: 'rgba(20, 71, 230, 0.15)',
   },
   headerTextContainer: {
     flex: 1,
-    minWidth: 0, // Prevent text overflow
-    marginRight: 12, // Add margin to ensure spacing from actions
+    minWidth: 0,
+    marginRight: 12,
     padding: 4,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontWeight: '700',
+    color: '#1D293D',
     marginBottom: 2,
-    numberOfLines: 1, // Prevent title from wrapping
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
-    numberOfLines: 1, // Prevent subtitle from wrapping
   },
   headerActions: {
     flexDirection: 'row',
@@ -3217,10 +3178,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 3,
     paddingVertical: 2,
-    backgroundColor: 'rgba(30, 30, 46, 0.95)',
-    borderRadius: 4,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: '#e5e7eb',
     position: 'relative',
     zIndex: 2,
     gap: 3,
@@ -3233,11 +3194,11 @@ const styles = StyleSheet.create({
   batteryMinimalBar: {
     width: 26,
     height: 11,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 1.5,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 2,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: '#d1d5db',
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
@@ -3260,7 +3221,7 @@ const styles = StyleSheet.create({
   batteryMinimalText: {
     fontSize: 7,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
   },
   batteryTerminal: {
     width: 2,
@@ -3289,10 +3250,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 3,
     paddingVertical: 2,
-    backgroundColor: 'rgba(30, 30, 46, 0.95)',
-    borderRadius: 4,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: '#e5e7eb',
     position: 'relative',
     zIndex: 2,
     gap: 3,
@@ -3317,34 +3278,40 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   profileButton: {
-    width: 36, // Slightly smaller for better mobile fit
+    width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   logoutButton: {
-    width: 36, // Slightly smaller for better mobile fit
+    width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
   welcomeSection: {
-    marginBottom: 12,
+    marginBottom: 20,
   },
   welcomeCard: {
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.15)',
+    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+    shadowColor: '#1D293D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   welcomeContent: {
-    padding: 14,
+    padding: 20,
     alignItems: 'flex-start',
   },
   welcomeHeader: {
@@ -3355,26 +3322,31 @@ const styles = StyleSheet.create({
   },
   welcomeTextContainer: {
     flex: 1,
+    marginRight: 12,
+    minWidth: 0,
   },
   welcomeTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
     marginBottom: 4,
     textAlign: 'left',
+    letterSpacing: 0.2,
   },
   welcomeSubtitle: {
-    fontSize: 14,
-    color: '#9ca3af',
+    fontSize: 18,
+    color: '#1D293D',
+    fontWeight: '600',
     textAlign: 'left',
   },
   welcomeProfileContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#e5e7eb',
+    flexShrink: 0,
   },
   welcomeProfileImage: {
     width: '100%',
@@ -3385,38 +3357,55 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#eff6ff',
   },
   welcomeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+    backgroundColor: 'rgba(5, 150, 105, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+    borderColor: 'rgba(5, 150, 105, 0.2)',
   },
   welcomeBadgeText: {
     fontSize: 11,
-    color: '#10b981',
+    color: '#059669',
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 4,
   },
   personalityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+    backgroundColor: '#eff6ff',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   personalityBadgeText: {
     fontSize: 11,
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '700',
-    marginLeft: 6,
+    marginLeft: 4,
+  },
+  welcomeScheduleBlock: {
+    width: '100%',
+    marginTop: 18,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  welcomeScheduleBlockHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  welcomeScheduleBlockTitle: {
+    marginLeft: 8,
+    marginBottom: 0,
   },
   profileCard: {
     borderRadius: 20,
@@ -3482,67 +3471,76 @@ const styles = StyleSheet.create({
   },
   // Schedule Section Styles
   scheduleSection: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   scheduleCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+    borderColor: 'rgba(5, 150, 105, 0.18)',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+    shadowColor: '#1D293D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   scheduleHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 18,
+    paddingHorizontal: 20,
+    paddingTop: 18,
     paddingBottom: 12,
   },
   scheduleIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(5, 150, 105, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   scheduleHeaderText: {
     flex: 1,
+    minWidth: 0,
   },
   scheduleContent: {
-    padding: 18,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     paddingTop: 0,
   },
   scheduleDetails: {
-    gap: 12,
+    gap: 14,
   },
   scheduleItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   scheduleLabel: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
-    minWidth: 90,
+    minWidth: 100,
   },
   scheduleValue: {
     fontSize: 14,
-    color: '#ffffff',
+    color: '#1D293D',
     fontWeight: '600',
     flex: 1,
   },
   statusText: {
-    color: '#10b981',
+    color: '#059669',
     textTransform: 'capitalize',
   },
   sessionText: {
-    color: '#f59e0b',
+    color: '#d97706',
     fontWeight: '700',
     textTransform: 'capitalize',
   },
   timeText: {
-    color: '#3b82f6',
+    color: '#1447E6',
     fontWeight: '600',
   },
   noScheduleContainer: {
@@ -3562,69 +3560,79 @@ const styles = StyleSheet.create({
   },
   
   examSection: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   examCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+    shadowColor: '#1D293D',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   examHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 18,
-    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 14,
   },
   examIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   examHeaderText: {
     flex: 1,
+    minWidth: 0,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 4,
   },
   sectionSubtitle: {
-    fontSize: 12,
-    color: '#9ca3af',
+    fontSize: 13,
+    color: '#6b7280',
+    lineHeight: 18,
   },
   examCodeContainer: {
-    padding: 18,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     paddingTop: 0,
-    gap: 12,
+    gap: 14,
   },
   inputContainer: {
     position: 'relative',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
     height: 52,
     overflow: 'hidden',
   },
   inputContainerFocused: {
-    borderColor: '#a855f7',
-    backgroundColor: 'rgba(168, 85, 247, 0.05)',
-    shadowColor: '#a855f7',
+    borderColor: '#1447E6',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 2,
   },
   inputIconContainer: {
     position: 'absolute',
     left: 16,
-    top: 18,
+    top: 16,
     zIndex: 1,
   },
   textInput: {
@@ -3634,22 +3642,22 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     height: 52,
     fontWeight: '500',
-    color: '#ffffff',
+    color: '#1D293D',
   },
   inputContent: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 15,
     fontWeight: '500',
   },
   startExamButton: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#a855f7',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
-    elevation: 6,
-    minHeight: 50, // Ensure proper touch target
+    elevation: 4,
+    minHeight: 50,
   },
   startExamButtonDisabled: {
     shadowOpacity: 0,
@@ -3669,21 +3677,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonIcon: {
-    marginRight: 6,
+    marginRight: 8,
   },
   startExamButtonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
+  startExamButtonTextDisabled: {
+    color: '#9ca3af',
+  },
   // Cancelled Status Styles
   cancelledMessageContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    backgroundColor: 'rgba(225, 29, 72, 0.06)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(225, 29, 72, 0.2)',
     padding: 16,
-    marginTop: 8,
   },
   cancelledMessageHeader: {
     flexDirection: 'row',
@@ -3693,28 +3703,28 @@ const styles = StyleSheet.create({
   cancelledMessageTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ef4444',
+    color: '#e11d48',
     marginLeft: 8,
   },
   cancelledMessageText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: '#1D293D',
     lineHeight: 20,
     marginBottom: 12,
   },
   cancelledMessageFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+    backgroundColor: '#F9FAFB',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(107, 114, 128, 0.2)',
+    borderColor: '#e5e7eb',
   },
   cancelledMessageFooterText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '600',
     marginLeft: 6,
   },
@@ -3723,11 +3733,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#ef4444',
+    shadowColor: '#e11d48',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 4,
   },
   rescheduleButtonGradient: {
     flexDirection: 'row',
@@ -3748,6 +3758,7 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
     borderRadius: 20,
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
@@ -3757,7 +3768,8 @@ const styles = StyleSheet.create({
   rescheduleModalGradient: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: '#e5e7eb',
+    backgroundColor: '#FFFFFF',
   },
   rescheduleModalHeader: {
     flexDirection: 'row',
@@ -3766,7 +3778,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: '#e5e7eb',
   },
   rescheduleModalHeaderLeft: {
     flexDirection: 'row',
@@ -3776,13 +3788,13 @@ const styles = StyleSheet.create({
   rescheduleModalIconContainer: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 14,
+    backgroundColor: 'rgba(225, 29, 72, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(225, 29, 72, 0.2)',
   },
   rescheduleModalHeaderText: {
     flex: 1,
@@ -3790,19 +3802,19 @@ const styles = StyleSheet.create({
   rescheduleModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 4,
   },
   rescheduleModalSubtitle: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
   },
   rescheduleModalCloseButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -3816,32 +3828,32 @@ const styles = StyleSheet.create({
   rescheduleSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 12,
   },
   dateSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
   },
   dateSelectorText: {
     flex: 1,
     fontSize: 16,
-    color: '#ffffff',
+    color: '#1D293D',
     marginLeft: 12,
     fontWeight: '500',
   },
   sessionContainer: {
     marginBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
   },
   sessionHeader: {
     flexDirection: 'row',
@@ -3849,31 +3861,31 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: '#e5e7eb',
   },
   sessionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginLeft: 8,
   },
   sessionSlotsContainer: {
     gap: 8,
   },
   slotItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
   },
   slotItemUnavailable: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    opacity: 0.6,
+    backgroundColor: 'rgba(225, 29, 72, 0.06)',
+    borderColor: 'rgba(225, 29, 72, 0.25)',
+    opacity: 0.8,
   },
   slotItemSelected: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: 'rgba(16, 185, 129, 0.6)',
+    backgroundColor: 'rgba(5, 150, 105, 0.08)',
+    borderColor: 'rgba(5, 150, 105, 0.4)',
     borderWidth: 2,
   },
   slotItemContent: {
@@ -3887,18 +3899,18 @@ const styles = StyleSheet.create({
   },
   slotItemText: {
     fontSize: 16,
-    color: '#ffffff',
+    color: '#1D293D',
     fontWeight: '600',
   },
   slotItemTextUnavailable: {
     color: '#9ca3af',
   },
   slotItemTextSelected: {
-    color: '#10b981',
+    color: '#059669',
   },
   slotItemSession: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
     marginTop: 2,
   },
@@ -3907,12 +3919,12 @@ const styles = StyleSheet.create({
   },
   slotItemStatus: {
     fontSize: 12,
-    color: '#ef4444',
+    color: '#e11d48',
     fontWeight: '600',
   },
   slotItemCapacity: {
     fontSize: 12,
-    color: '#10b981',
+    color: '#059669',
     fontWeight: '600',
   },
   noSlotsContainer: {
@@ -3922,7 +3934,7 @@ const styles = StyleSheet.create({
   },
   noSlotsText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6b7280',
     marginTop: 16,
     textAlign: 'center',
   },
@@ -3931,16 +3943,17 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: '#e5e7eb',
     gap: 12,
   },
   rescheduleModalButton: {
     flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
+    
   },
   rescheduleModalButtonSecondary: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 14,
@@ -3948,7 +3961,7 @@ const styles = StyleSheet.create({
   rescheduleModalButtonTextSecondary: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#9ca3af',
+    color: '#1D293D',
   },
   rescheduleButtonGradient: {
     flexDirection: 'row',
@@ -4467,18 +4480,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
+    borderTopColor: '#e5e7eb',
+    shadowColor: '#1D293D',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 8,
-    zIndex: 9999, // Ensure footer is above everything
+    zIndex: 9999,
   },
   footerGradient: {
-    paddingTop: 8,
-    paddingBottom: Platform.OS === 'android' ? 52 : 8, // Even more reduced padding
+    backgroundColor: '#FFFFFF',
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'android' ? 52 : 10,
     paddingHorizontal: 20,
   },
   footerContent: {
@@ -4499,13 +4514,13 @@ const styles = StyleSheet.create({
   footerButtonContent: {
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative'
+    position: 'relative',
   },
   badge: {
     position: 'absolute',
     top: -4,
     right: -6,
-    backgroundColor: '#ef4444',
+    backgroundColor: '#e11d48',
     borderRadius: 10,
     minWidth: 18,
     paddingHorizontal: 5,
@@ -4513,24 +4528,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)'
+    borderColor: '#FFFFFF',
   },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   footerButtonIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
   },
   footerButtonText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
     textAlign: 'center',
   },
   centralQRButton: {
@@ -4538,11 +4553,11 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     marginHorizontal: 20,
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   centralQRButtonGradient: {
     width: '100%',
@@ -4551,7 +4566,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
 });
 

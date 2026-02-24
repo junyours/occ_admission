@@ -17,7 +17,6 @@ import { NavigationBar } from 'react-native-navigation-bar-color';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Text } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import LinearGradient from 'react-native-linear-gradient';
 import { getExamResults } from '../API/exam';
 import ScreenPinning from '../utils/ScreenPinning';
 import userDataCache from '../utils/UserDataCache';
@@ -185,40 +184,32 @@ export default function ExamResultsScreen({ navigation }) {
   };
 
   const getStatusColor = (isPassed) => {
-    return isPassed ? '#10b981' : '#ef4444';
+    return isPassed ? '#34C759' : '#FF3737';
+  };
+
+  const getScoreColor = (percentage) => {
+    if (percentage >= 80) return '#34C759'; // Success - emerald-600
+    if (percentage >= 60) return '#F7DC6F'; // Warning - amber-500
+    return '#FF3737'; // Danger - rose-600
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <LinearGradient
-          colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-          style={styles.loadingGradient}
-        >
+        <View style={styles.loadingGradient}>
           <View style={styles.loadingContent}>
             <View style={styles.loadingIconContainer}>
-              <Icon name="assessment" size={60} color="#a855f7" />
+              <Icon name="assessment" size={60} color="#1447E6" />
             </View>
             <Text style={styles.loadingText}>Loading Results...</Text>
-            <View style={styles.loadingDots}>
-              <View style={[styles.dot, styles.dot1]} />
-              <View style={[styles.dot, styles.dot2]} />
-              <View style={[styles.dot, styles.dot3]} />
-            </View>
           </View>
-        </LinearGradient>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={StyleSheet.absoluteFillObject}
-      />
       
       {/* Enhanced Header */}
       <View style={styles.header}>
@@ -227,7 +218,7 @@ export default function ExamResultsScreen({ navigation }) {
           style={styles.backButton}
           activeOpacity={0.8}
         >
-          <Icon name="arrow-back" size={20} color="#ffffff" />
+          <Icon name="arrow-back" size={20} color="#1D293D" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Exam Results</Text>
@@ -235,7 +226,7 @@ export default function ExamResultsScreen({ navigation }) {
         </View>
         <View style={styles.headerActions}>
           <View style={styles.resultsIconContainer}>
-            <Icon name="assessment" size={20} color="#a855f7" />
+            <Icon name="assessment" size={20} color="#1447E6" />
           </View>
         </View>
       </View>
@@ -247,10 +238,7 @@ export default function ExamResultsScreen({ navigation }) {
       >
         {results.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
-              style={styles.emptyCard}
-            >
+            <View style={styles.emptyCard}>
               <View style={styles.emptyIconContainer}>
                 <Icon name="assessment" size={60} color="#6b7280" />
               </View>
@@ -263,15 +251,12 @@ export default function ExamResultsScreen({ navigation }) {
                 onPress={() => navigation.navigate('Dashboard')}
                 activeOpacity={0.8}
               >
-                <LinearGradient
-                  colors={['#a855f7', '#7c3aed']}
-                  style={styles.buttonGradient}
-                >
+                <View style={styles.buttonGradient}>
                   <Icon name="dashboard" size={20} color="#ffffff" style={styles.buttonIcon} />
                   <Text style={styles.dashboardButtonText}>Go to Dashboard</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </View>
         ) : (
           <View style={styles.content}>
@@ -287,14 +272,11 @@ export default function ExamResultsScreen({ navigation }) {
               const entrance = results.find(r => r.exam_type === 'regular');
               const personality = entrance?.personality_type || null;
               return (
-                <LinearGradient
-                  colors={['rgba(168, 85, 247, 0.1)', 'rgba(124, 58, 237, 0.05)']}
-                  style={styles.summaryCard}
-                >
+                <View style={styles.summaryCard}>
                   <View style={styles.summaryHeaderRow}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                       <View style={styles.summaryIconContainer}>
-                        <Icon name="trending-up" size={18} color="#a855f7" />
+                        <Icon name="trending-up" size={18} color="#1447E6" />
                       </View>
                       <Text style={styles.summaryTitle}>Performance Summary</Text>
                     </View>
@@ -302,7 +284,7 @@ export default function ExamResultsScreen({ navigation }) {
                     {!summaryExpanded && (
                       <View style={styles.summaryPreviewRow}>
                         <View style={styles.previewPill}>
-                          <Icon name="percent" size={12} color="#a855f7" />
+                          <Icon name="percent" size={12} color="#1447E6" />
                           <Text style={styles.previewText}>{passRate}%</Text>
                         </View>
                         <View style={styles.previewPill}>
@@ -316,7 +298,7 @@ export default function ExamResultsScreen({ navigation }) {
                       style={styles.summaryToggle}
                       activeOpacity={0.8}
                     >
-                      <Icon name={summaryExpanded ? 'expand-less' : 'expand-more'} size={18} color="#a855f7" />
+                      <Icon name={summaryExpanded ? 'expand-less' : 'expand-more'} size={18} color="#1447E6" />
                       <Text style={styles.summaryToggleText}>{summaryExpanded ? 'Hide' : 'Show'}</Text>
                     </TouchableOpacity>
                   </View>
@@ -361,7 +343,7 @@ export default function ExamResultsScreen({ navigation }) {
                       </View>
                     </>
                   )}
-                </LinearGradient>
+                </View>
               );
             })()}
             
@@ -376,7 +358,7 @@ export default function ExamResultsScreen({ navigation }) {
                     <View style={styles.resultsSectionHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         <TouchableOpacity onPress={() => setEntranceExpanded(!entranceExpanded)} activeOpacity={0.8} style={styles.collapseButton}>
-                          <Icon name={entranceExpanded ? 'expand-less' : 'expand-more'} size={18} color="#a855f7" />
+                          <Icon name={entranceExpanded ? 'expand-less' : 'expand-more'} size={18} color="#1447E6" />
                           <Text style={styles.collapseButtonText}>{entranceExpanded ? 'Hide' : 'Show'}</Text>
                         </TouchableOpacity>
                         <Text style={styles.resultsTitle}>Entrance Exams</Text>
@@ -393,16 +375,12 @@ export default function ExamResultsScreen({ navigation }) {
                         </View>
                       ) : (
                         entranceResults.map((result, index) => (
-                        <LinearGradient
-                          key={`entrance-${index}`}
-                          colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
-                          style={styles.resultCard}
-                        >
+                        <View key={`entrance-${index}`} style={styles.resultCard}>
                           {/* Reuse existing regular result rendering */}
                           <View style={styles.resultHeader}>
                             <View style={styles.resultInfo}>
                               <View style={styles.examRefContainer}>
-                                <Icon name="assignment" size={16} color="#a855f7" />
+                                <Icon name="assignment" size={16} color="#1447E6" />
                                 <Text style={styles.examRef}>{result.exam_ref_no}</Text>
                               </View>
                               <Text style={styles.examTitle}>{result.exam_title}</Text>
@@ -429,7 +407,7 @@ export default function ExamResultsScreen({ navigation }) {
                           <View style={styles.scoreDetails}>
                             <View style={styles.scoreItem}>
                               <View style={styles.scoreIconContainer}>
-                                <Icon name="grade" size={14} color="#a855f7" />
+                                <Icon name="grade" size={14} color="#1447E6" />
                               </View>
                               <Text style={styles.scoreLabel}>Score</Text>
                               <Text style={styles.scoreValue}>{result.percentage}%</Text>
@@ -549,7 +527,7 @@ export default function ExamResultsScreen({ navigation }) {
                               )}
                             </View>
                           )}
-                        </LinearGradient>
+                        </View>
                         ))
                       )
                     )}
@@ -560,7 +538,7 @@ export default function ExamResultsScreen({ navigation }) {
                     <View style={styles.resultsSectionHeader}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                         <TouchableOpacity onPress={() => setDepartmentalExpanded(!departmentalExpanded)} activeOpacity={0.8} style={styles.collapseButton}>
-                          <Icon name={departmentalExpanded ? 'expand-less' : 'expand-more'} size={18} color="#a855f7" />
+                          <Icon name={departmentalExpanded ? 'expand-less' : 'expand-more'} size={18} color="#1447E6" />
                           <Text style={styles.collapseButtonText}>{departmentalExpanded ? 'Hide' : 'Show'}</Text>
                         </TouchableOpacity>
                         <Text style={styles.resultsTitle}>Departmental Exams</Text>
@@ -577,15 +555,11 @@ export default function ExamResultsScreen({ navigation }) {
                         </View>
                       ) : (
                         departmentalResults.map((result, index) => (
-                        <LinearGradient
-                          key={`dept-${index}`}
-                          colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
-                          style={styles.resultCard}
-                        >
+                        <View key={`dept-${index}`} style={styles.resultCard}>
                           <View style={styles.resultHeader}>
                             <View style={styles.resultInfo}>
                               <View style={styles.examRefContainer}>
-                                <Icon name="assignment" size={16} color="#a855f7" />
+                                <Icon name="assignment" size={16} color="#1447E6" />
                                 <Text style={styles.examRef}>{result.exam_ref_no}</Text>
                               </View>
                               <Text style={styles.examTitle}>{result.exam_title}</Text>
@@ -604,7 +578,7 @@ export default function ExamResultsScreen({ navigation }) {
                           <View style={styles.scoreDetails}>
                             <View style={styles.scoreItem}>
                               <View style={styles.scoreIconContainer}>
-                                <Icon name="grade" size={14} color="#a855f7" />
+                                <Icon name="grade" size={14} color="#1447E6" />
                               </View>
                               <Text style={styles.scoreLabel}>Score</Text>
                               <Text style={styles.scoreValue}>{result.percentage}%</Text>
@@ -630,7 +604,7 @@ export default function ExamResultsScreen({ navigation }) {
                             <Icon name="info" size={14} color="#6b7280" />
                             <Text style={styles.remarksText}>Taken via {result.remarks}</Text>
                           </View>
-                        </LinearGradient>
+                        </View>
                         ))
                       )
                     )}
@@ -648,12 +622,12 @@ export default function ExamResultsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
     paddingTop: Platform.OS === 'ios' ? 44 : 0, // Account for notch on iOS
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
     paddingTop: Platform.OS === 'ios' ? 44 : 0, // Account for notch on iOS
   },
   loadingGradient: {
@@ -668,15 +642,15 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   loadingText: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
@@ -689,7 +663,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#a855f7',
+    backgroundColor: '#1447E6',
   },
   dot1: {
     opacity: 0.4,
@@ -712,9 +686,11 @@ const styles = StyleSheet.create({
     width: isSmallScreen ? 32 : 36,
     height: isSmallScreen ? 32 : 36,
     borderRadius: isSmallScreen ? 16 : 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   headerContent: {
     flex: 1,
@@ -724,12 +700,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: isSmallScreen ? 16 : 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 0,
   },
   headerSubtitle: {
     fontSize: isSmallScreen ? 11 : 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
   },
   headerActions: {
@@ -740,9 +716,11 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   scrollContent: {
     flexGrow: 1,
@@ -760,7 +738,8 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(20, 71, 230, 0.15)',
+    backgroundColor: '#FFFFFF',
   },
   emptyIconContainer: {
     width: 84,
@@ -776,13 +755,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 8,
     textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 16,
@@ -790,9 +769,9 @@ const styles = StyleSheet.create({
   dashboardButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#a855f7',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 6,
   },
@@ -803,6 +782,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     minHeight: 42,
+    backgroundColor: '#1447E6',
   },
   buttonIcon: {
     marginRight: 8,
@@ -822,7 +802,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.15)',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
   },
   summaryHeader: {
@@ -840,7 +821,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -848,7 +829,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     flex: 1,
   },
   summaryStats: {
@@ -871,12 +852,12 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 2,
   },
   statLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -892,26 +873,27 @@ const styles = StyleSheet.create({
   resultsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
   },
   resultsBadge: {
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.15)',
   },
   resultsBadgeText: {
     fontSize: 10,
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '600',
   },
   resultCard: {
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(20, 71, 230, 0.15)',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
   },
   resultHeader: {
@@ -931,17 +913,17 @@ const styles = StyleSheet.create({
   examRef: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginLeft: 8,
   },
   examDate: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#6b7280',
     marginLeft: 24,
   },
   examTitle: {
     fontSize: 12,
-    color: '#c4b5fd',
+    color: '#1447E6',
     marginLeft: 24,
     marginBottom: 2,
     fontWeight: '600',
@@ -982,14 +964,14 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#6b7280',
     marginBottom: 2,
     fontWeight: '500',
   },
   scoreValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
   },
   categoryContainer: {
     marginTop: 6,
@@ -1004,7 +986,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   categoryHeaderText: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 13,
     fontWeight: '700'
   },
@@ -1018,43 +1000,43 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   categoryLabel: {
-    color: '#e5e7eb',
+    color: '#6b7280',
     fontSize: 12,
     fontWeight: '600'
   },
   categoryValue: {
-    color: '#a855f7',
+    color: '#1447E6',
     fontSize: 12,
     fontWeight: '700'
   },
   categoryMeter: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)'
+    backgroundColor: 'rgba(20, 71, 230, 0.1)'
   },
   categoryMeterFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#a855f7'
+    backgroundColor: '#1447E6'
   },
   remarksContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: 'rgba(20, 71, 230, 0.1)',
     gap: 6,
   },
   remarksText: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontStyle: 'italic',
     flex: 1,
   },
   recommendationContainer: {
     backgroundColor: 'rgba(16, 185, 129, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.2)',
+    borderColor: 'rgba(16, 185, 129, 0.15)',
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
@@ -1076,18 +1058,18 @@ const styles = StyleSheet.create({
   courseCode: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#a855f7',
+    color: '#1447E6',
     marginBottom: 2,
   },
   courseName: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 6,
   },
   courseDescription: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     lineHeight: 18,
     marginBottom: 6,
   },
@@ -1104,11 +1086,11 @@ const styles = StyleSheet.create({
   },
   courseContainer: {
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.15)',
     borderRadius: 10,
     padding: 10,
     marginBottom: 8,
-    backgroundColor: 'rgba(168, 85, 247, 0.05)'
+    backgroundColor: 'rgba(20, 71, 230, 0.05)'
   },
   courseHeaderRow: {
     flexDirection: 'row',
@@ -1123,10 +1105,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: 'rgba(168, 85, 247, 0.12)'
+    backgroundColor: 'rgba(20, 71, 230, 0.12)'
   },
   collapseButtonText: {
-    color: '#a855f7',
+    color: '#1447E6',
     fontSize: 11,
     fontWeight: '600'
   },
@@ -1134,11 +1116,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)'
+    borderColor: 'rgba(20, 71, 230, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.03)'
   },
   emptySectionText: {
-    color: '#9ca3af',
+    color: '#6b7280',
     fontSize: 11,
   },
   summaryGrid: {
@@ -1149,21 +1131,21 @@ const styles = StyleSheet.create({
   },
   summaryCell: {
     width: (width - (isSmallScreen ? 24 : 32)) / 3 - 6, // 3 per row compact
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: 'rgba(20, 71, 230, 0.04)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(20, 71, 230, 0.08)',
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: 'center',
   },
   summaryValue: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 14,
     fontWeight: '700',
     marginBottom: 2,
   },
   summaryKey: {
-    color: '#9ca3af',
+    color: '#6b7280',
     fontSize: 10,
     fontWeight: '600',
   },
@@ -1178,7 +1160,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   summaryFooterText: {
-    color: '#9ca3af',
+    color: '#6b7280',
     fontSize: 11,
     fontWeight: '500',
   },
@@ -1189,10 +1171,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: 'rgba(168, 85, 247, 0.12)'
+    backgroundColor: 'rgba(20, 71, 230, 0.12)'
   },
   summaryToggleText: {
-    color: '#a855f7',
+    color: '#1447E6',
     fontSize: 11,
     fontWeight: '600'
   },
@@ -1209,10 +1191,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.06)'
+    backgroundColor: 'rgba(20, 71, 230, 0.06)'
   },
   previewText: {
-    color: '#e5e7eb',
+    color: '#1D293D',
     fontSize: 11,
     fontWeight: '600',
   },
