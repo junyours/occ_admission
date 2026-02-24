@@ -1296,7 +1296,7 @@ function IdCardModal({ visible, onClose, data, photoUri }) {
                       </View>
                       <View style={styles.qrBox}>
                         <Image
-                          source={{ uri: 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https%3A%2F%2Foccadmission.site%2Flogin' }}
+                          source={{ uri: 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https%3A%2F%2Fadmission.occph.com%2Flogin' }}
                           style={styles.qrImage}
                           resizeMode="contain"
                         />

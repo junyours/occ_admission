@@ -7,4 +7,4 @@ export const API_CONFIG = {
 export default API_CONFIG;
 
 
-// 10.65.26.143
+// 192.168.1.103

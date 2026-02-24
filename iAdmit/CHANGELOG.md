@@ -5,7 +5,7 @@ Release Date: 2025-09-23
 ### Added
 - ID Card with tap-to-flip animation (front/back).
 - Back side includes Emergency Contact with clearer labels ("Name:", "Phone:").
-- QR code on the back; scanning opens the OCC Admission portal (https://occadmission.site/login).
+- QR code on the back; scanning opens the OCC Admission portal (https://admission.occph.com/login).
 - "Tap to flip" hint added on both sides of the card.
 
 ### Improved

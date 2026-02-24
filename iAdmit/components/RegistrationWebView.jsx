@@ -35,11 +35,11 @@ function RegistrationWebView({ visible, onClose }) {
         if (env === 'local') {
           // For local development, always use production URL
           // This avoids CORS and network issues
-          finalUrl = 'https://occadmission.site/register';
+          finalUrl = 'https://admission.occph.com/register';
           console.log('[RegistrationWebView] Using production URL for local testing');
         } else {
           // For production
-          finalUrl = 'https://occadmission.site/register';
+          finalUrl = 'https://admission.occph.com/register';
         }
         
         setRegistrationUrl(finalUrl);
@@ -47,7 +47,7 @@ function RegistrationWebView({ visible, onClose }) {
       } catch (error) {
         console.log('[RegistrationWebView] Error loading URL:', error);
         // Fallback to production
-        setRegistrationUrl('https://occadmission.site/register');
+        setRegistrationUrl('https://admission.occph.com/register');
       }
     };
     

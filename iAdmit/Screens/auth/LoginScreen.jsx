@@ -469,7 +469,7 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <ToastNotification
         visible={toast.visible}
         message={toast.message}
@@ -479,7 +479,7 @@ export default function LoginScreen({ navigation }) {
       
       {/* Background Gradient */}
       <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
+        colors={['#FFFFFF', '#FFFFFF', '#FFFFFF']}
         style={StyleSheet.absoluteFillObject}
       />
       
@@ -503,9 +503,9 @@ export default function LoginScreen({ navigation }) {
             ]}
           >
             
-            {/* Enhanced Header */}
+            {/* Header / Banner */}
             <View style={styles.header}>
-              <View style={styles.headerContent}>
+              <View style={styles.bannerContent}>
                 <View style={styles.logoContainer}>
                   <Image 
                     source={AppLogo} 
@@ -513,14 +513,14 @@ export default function LoginScreen({ navigation }) {
                     resizeMode="contain"
                   />
                 </View>
-                <View style={styles.titleContainer}>
-                  <Text style={styles.appTitle}>iAdmit</Text>
+                <View style={styles.titleBlock}>
+                  <Text style={styles.appTitle}>E-Admission</Text>
                   <Text style={styles.subtitle}>Online College Admission</Text>
                 </View>
               </View>
               <View style={styles.securityBadge}>
-                <Icon name="security" size={12} color="#a855f7" />
-                <Text style={styles.securityText}>Secure Login</Text>
+                <Icon name="lock" size={11} color="#1447E6" />
+                <Text style={styles.securityText}>Secure</Text>
               </View>
             </View>
 
@@ -535,7 +535,7 @@ export default function LoginScreen({ navigation }) {
               {error && (
                 <View style={styles.errorContainer}>
                   <View style={styles.errorContent}>
-                    <Icon name="error-outline" size={24} color="#ef4444" />
+                    <Icon name="error-outline" size={24} color="#e11d48" />
                     <View style={styles.errorTextContainer}>
                       <Text style={styles.errorTitle}>Login Failed</Text>
                       <Text style={styles.errorMessage}>{error}</Text>
@@ -558,7 +558,7 @@ export default function LoginScreen({ navigation }) {
                       <Icon 
                         name="email" 
                         size={20} 
-                        color={emailFocused ? '#a855f7' : '#6b7280'} 
+                        color={emailFocused ? '#1447E6' : '#6b7280'} 
                       />
                     </View>
                     <TextInput
@@ -579,16 +579,16 @@ export default function LoginScreen({ navigation }) {
                       underlineStyle={{ display: 'none' }}
                       theme={{
                         colors: {
-                          primary: '#a855f7',
-                          placeholder: '#6b7280',
-                          text: '#ffffff',
+                          primary: '#1447E6',
+                          placeholder: '#9ca3af',
+                          text: '#1D293D',
                           background: 'transparent',
                         }
                       }}
                     />
                     {isValidEmail && (
                       <View style={styles.validationIcon}>
-                        <Icon name="check-circle" size={20} color="#10b981" />
+                        <Icon name="check-circle" size={20} color="#059669" />
                       </View>
                     )}
                   </View>
@@ -611,7 +611,7 @@ export default function LoginScreen({ navigation }) {
                       <Icon 
                         name="lock" 
                         size={20} 
-                        color={passwordFocused ? '#a855f7' : '#6b7280'} 
+                        color={passwordFocused ? '#1447E6' : '#6b7280'} 
                       />
                     </View>
                     <TextInput
@@ -633,9 +633,9 @@ export default function LoginScreen({ navigation }) {
                       underlineStyle={{ display: 'none' }}
                       theme={{
                         colors: {
-                          primary: '#a855f7',
-                          placeholder: '#6b7280',
-                          text: '#ffffff',
+                          primary: '#1447E6',
+                          placeholder: '#9ca3af',
+                          text: '#1D293D',
                           background: 'transparent',
                         }
                       }}
@@ -648,7 +648,7 @@ export default function LoginScreen({ navigation }) {
                       <Icon 
                         name={showPassword ? "visibility-off" : "visibility"} 
                         size={20} 
-                        color="#6b7280" 
+                        color="#1447E6" 
                       />
                     </TouchableOpacity>
                   </View>
@@ -673,19 +673,21 @@ export default function LoginScreen({ navigation }) {
                   <LinearGradient
                     colors={
                       hasRegisteredFingerprint && !fingerprintLoading && !loading
-                        ? ['#8b5cf6', '#6366f1'] 
-                        : ['#374151', '#4b5563']
+                        ? ['#1447E6', '#1447E6'] 
+                        : ['#e5e7eb', '#e5e7eb']
                     }
-                    style={styles.sideButtonGradient}
+                    style={styles.fingerprintButtonGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                   >
                     {fingerprintLoading ? (
-                      <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                        <Icon name="fingerprint" size={24} color="#ffffff" />
+                      <Animated.View style={[styles.fingerprintIconWrap, { transform: [{ rotate: spin }] }]}>
+                        <Icon name="fingerprint" size={20} color={(hasRegisteredFingerprint && !fingerprintLoading && !loading) ? '#FFFFFF' : '#9ca3af'} />
                       </Animated.View>
                     ) : (
-                      <Icon name="fingerprint" size={24} color="#ffffff" />
+                      <View style={styles.fingerprintIconWrap}>
+                        <Icon name="fingerprint" size={20} color={(hasRegisteredFingerprint && !fingerprintLoading && !loading) ? '#FFFFFF' : '#9ca3af'} />
+                      </View>
                     )}
                   </LinearGradient>
                 </TouchableOpacity>
@@ -704,8 +706,8 @@ export default function LoginScreen({ navigation }) {
                     <LinearGradient
                       colors={
                         canSubmit && !loading && !fingerprintLoading
-                          ? ['#a855f7', '#7c3aed'] 
-                          : ['#374151', '#4b5563']
+                          ? ['#1447E6', '#1447E6'] 
+                          : ['#e5e7eb', '#e5e7eb']
                       }
                       style={styles.sideButtonGradient}
                       start={{ x: 0, y: 0 }}
@@ -713,10 +715,13 @@ export default function LoginScreen({ navigation }) {
                     >
                       {loading ? (
                         <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                          <Icon name="login" size={24} color="#ffffff" />
+                          <Icon name="login" size={22} color={(!canSubmit || loading || fingerprintLoading) ? '#9ca3af' : '#FFFFFF'} />
                         </Animated.View>
                       ) : (
-                        <Icon name="login" size={24} color="#ffffff" />
+                        <>
+                          <Icon name="login" size={22} color={(!canSubmit || loading || fingerprintLoading) ? '#9ca3af' : '#FFFFFF'} />
+                          <Text style={[styles.signInButtonText, (!canSubmit || loading || fingerprintLoading) && styles.signInButtonTextDisabled]}>Sign In</Text>
+                        </>
                       )}
                     </LinearGradient>
                   </TouchableOpacity>
@@ -742,11 +747,11 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.divider} />
               <TouchableOpacity onPress={toggleEnvironment} activeOpacity={0.8} style={styles.serverToggle}>
                 <View style={styles.serverToggleContent}>
-                  <Icon name="cloud" size={18} color="#9ca3af" />
+                  <Icon name="cloud" size={18} color="#1447E6" />
                   <Text style={styles.serverText}>Server Environment</Text>
                   <View style={styles.serverStatus}>
-                    <View style={[styles.statusDot, { backgroundColor: env === 'production' ? '#10b981' : '#f59e0b' }]} />
-                    <Text style={[styles.statusText, { color: env === 'production' ? '#10b981' : '#f59e0b' }]}>
+                    <View style={[styles.statusDot, { backgroundColor: env === 'production' ? '#059669' : '#f59e0b' }]} />
+                    <Text style={[styles.statusText, { color: env === 'production' ? '#059669' : '#d97706' }]}>
                       {env === 'production' ? 'Production' : 'Local'}
                     </Text>
                   </View>
@@ -784,10 +789,10 @@ export default function LoginScreen({ navigation }) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.modalContent}>
-            <LinearGradient
-              colors={['#1a1a2e', '#16213e', '#0f172a']}
-              style={styles.modalGradient}
-            >
+      <LinearGradient
+        colors={['#FFFFFF', '#FFFFFF', '#FFFFFF']}
+        style={styles.modalGradient}
+      >
               {/* Modal Header */}
               <View style={styles.modalHeader}>
                 <View style={styles.modalIconContainer}>
@@ -802,7 +807,7 @@ export default function LoginScreen({ navigation }) {
               {/* Error Display */}
               {forceLogoutError && (
                 <View style={styles.forceLogoutErrorContainer}>
-                  <Icon name="error-outline" size={20} color="#ef4444" />
+                  <Icon name="error-outline" size={20} color="#e11d48" />
                   <Text style={styles.forceLogoutErrorText}>{forceLogoutError}</Text>
                 </View>
               )}
@@ -816,7 +821,7 @@ export default function LoginScreen({ navigation }) {
                         <Icon 
                           name="email" 
                           size={20} 
-                          color={forceLogoutEmail ? '#10b981' : '#6b7280'} 
+                          color={forceLogoutEmail ? '#059669' : '#6b7280'} 
                         />
                       </View>
                       <TextInput
@@ -834,9 +839,9 @@ export default function LoginScreen({ navigation }) {
                         selectTextOnFocus={false}
                         theme={{
                           colors: {
-                            primary: '#a855f7',
-                            placeholder: '#6b7280',
-                            text: '#ffffff',
+                            primary: '#1447E6',
+                            placeholder: '#9ca3af',
+                            text: '#1D293D',
                             background: 'transparent',
                           }
                         }}
@@ -896,7 +901,7 @@ export default function LoginScreen({ navigation }) {
                         <Icon 
                           name="confirmation-number" 
                           size={20} 
-                          color={forceLogoutOtp.length === 6 ? '#10b981' : '#6b7280'} 
+                          color={forceLogoutOtp.length === 6 ? '#059669' : '#1447E6'} 
                         />
                       </View>
                       <TextInput
@@ -912,9 +917,9 @@ export default function LoginScreen({ navigation }) {
                         editable={!forceLogoutVerifyingOtp}
                         theme={{
                           colors: {
-                            primary: '#a855f7',
-                            placeholder: '#6b7280',
-                            text: '#ffffff',
+                            primary: '#1447E6',
+                            placeholder: '#9ca3af',
+                            text: '#1D293D',
                             background: 'transparent',
                           }
                         }}
@@ -953,15 +958,15 @@ export default function LoginScreen({ navigation }) {
                         <LinearGradient
                           colors={
                             !forceLogoutVerifyingOtp && forceLogoutOtp.length >= 4
-                              ? ['#22d3ee', '#0ea5e9'] 
-                              : ['#374151', '#4b5563']
+                              ? ['#1447E6', '#1447E6'] 
+                              : ['#e5e7eb', '#e5e7eb']
                           }
                           style={styles.modalConfirmGradient}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
                         >
-                          <Icon name="verified-user" size={24} color="#ffffff" />
-                          <Text style={styles.modalConfirmButtonText}>Verify & Continue</Text>
+                          <Icon name="verified-user" size={22} color={(!forceLogoutVerifyingOtp && forceLogoutOtp.length >= 4) ? '#ffffff' : '#9ca3af'} />
+                          <Text style={[styles.modalConfirmButtonText, (!forceLogoutVerifyingOtp && forceLogoutOtp.length >= 4) ? { color: '#FFFFFF' } : { color: '#9ca3af' }]}>Verify & Continue</Text>
                         </LinearGradient>
                       )}
                     </TouchableOpacity>
@@ -979,7 +984,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#FFFFFF',
   },
   keyboardView: {
     flex: 1,
@@ -997,101 +1002,97 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   
-  // Header Styles
+  // Header / Banner Styles
   header: {
-    marginBottom: isShortScreen ? 24 : 32,
+    marginBottom: isShortScreen ? 24 : 28,
+    marginTop: 8,
     alignItems: 'center',
-    marginTop: 20,
   },
-  headerContent: {
+  bannerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   logoContainer: {
-    width: isSmallScreen ? 56 : 64,
-    height: isSmallScreen ? 56 : 64,
-    marginRight: isSmallScreen ? 16 : -50,
+    width: isSmallScreen ? 48 : 52,
+    height: isSmallScreen ? 48 : 52,
+    marginRight: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-    borderRadius: isSmallScreen ? 28 : 32,
-    borderWidth: 2,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
-    marginLeft: 35,
+    backgroundColor: '#eff6ff',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(20, 71, 230, 0.15)',
   },
-  titleContainer: {
-    flex: 1,
+  titleBlock: {
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   logo: {
-    width: isSmallScreen ? 44 : 52,
-    height: isSmallScreen ? 44 : 52,
+    width: isSmallScreen ? 32 : 36,
+    height: isSmallScreen ? 32 : 36,
   },
   appTitle: {
-    fontSize: isSmallScreen ? 24 : 28,
-    fontWeight: '800',
-    color: '#ffffff',
-    marginBottom: 6,
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    fontSize: isSmallScreen ? 22 : 26,
+    fontWeight: '700',
+    color: '#1D293D',
+    marginBottom: 2,
+    letterSpacing: -0.4,
   },
   subtitle: {
-    fontSize: isSmallScreen ? 13 : 15,
-    color: '#9ca3af',
+    fontSize: isSmallScreen ? 12 : 13,
+    color: '#6b7280',
     fontWeight: '500',
-    textAlign: 'center',
   },
   securityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.12)',
   },
   securityText: {
-    fontSize: 12,
-    color: '#a855f7',
+    fontSize: 11,
+    color: '#1447E6',
     fontWeight: '600',
-    marginLeft: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    marginLeft: 4,
+    letterSpacing: 0.3,
   },
 
   // Card Styles
   loginCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: isSmallScreen ? 20 : 24,
-    padding: isSmallScreen ? 24 : 36,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 32,
-    elevation: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: isSmallScreen ? 24 : 32,
+    shadowColor: '#1D293D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    elevation: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(10px)',
+    borderColor: '#e5e7eb',
   },
   cardHeader: {
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: 28,
   },
   welcomeText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     textAlign: 'center',
-    marginBottom: 10,
-    letterSpacing: -0.5,
+    marginBottom: 8,
+    letterSpacing: -0.4,
   },
   signInText: {
-    fontSize: 16,
-    color: '#9ca3af',
+    fontSize: 15,
+    color: '#6b7280',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 22,
   },
 
   // Error Styles
@@ -1103,10 +1104,10 @@ const styles = StyleSheet.create({
   errorContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(225, 29, 72, 0.1)',
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(225, 29, 72, 0.25)',
     borderRadius: 16,
   },
   errorTextContainer: {
@@ -1114,28 +1115,28 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   errorTitle: {
-    color: '#ef4444',
+    color: '#e11d48',
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 2,
   },
   errorMessage: {
-    color: '#ef4444',
+    color: '#e11d48',
     fontSize: 13,
     lineHeight: 18,
   },
 
   // Form Styles
   formSection: {
-    marginBottom: 36,
+    marginBottom: 28,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 8,
     letterSpacing: 0.3,
   },
@@ -1147,30 +1148,30 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     position: 'relative',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    height: 58,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    height: 56,
     overflow: 'hidden',
   },
   inputContainerFocused: {
-    borderColor: '#a855f7',
-    backgroundColor: 'rgba(168, 85, 247, 0.05)',
-    shadowColor: '#a855f7',
+    borderColor: '#1447E6',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
     elevation: 2,
   },
   inputContainerError: {
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+    borderColor: '#e11d48',
+    backgroundColor: 'rgba(225, 29, 72, 0.04)',
   },
   inputIconContainer: {
     position: 'absolute',
     left: 16,
-    top: 18,
+    top: 17,
     zIndex: 1,
   },
   textInput: {
@@ -1178,37 +1179,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingLeft: 48,
     paddingRight: 16,
-    height: 58,
+    height: 56,
     fontWeight: '500',
-    color: '#ffffff',
+    color: '#1D293D',
   },
   disabledInput: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    color: '#9ca3af',
+    backgroundColor: 'transparent',
+    color: '#1D293D',
   },
   passwordInput: {
     paddingRight: 48,
   },
   inputContent: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 16,
     fontWeight: '500',
   },
   eyeButton: {
     position: 'absolute',
     right: 16,
-    top: 18,
+    top: 17,
     zIndex: 1,
     padding: 4,
   },
   validationIcon: {
     position: 'absolute',
     right: 16,
-    top: 18,
+    top: 17,
     zIndex: 1,
   },
   fieldError: {
-    color: '#ef4444',
+    color: '#e11d48',
     fontSize: 12,
     marginTop: 6,
     marginLeft: 4,
@@ -1218,29 +1219,40 @@ const styles = StyleSheet.create({
   // Button Row Container
   buttonRow: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: 20,
+    gap: 12,
   },
 
   // Button Styles
   loginButton: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
   },
   loginButtonDisabled: {
     shadowOpacity: 0,
     elevation: 0,
   },
   sideButtonGradient: {
-    height: 58,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  signInButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
+  signInButtonTextDisabled: {
+    color: '#9ca3af',
   },
   buttonGradient: {
     height: 58,
@@ -1283,7 +1295,7 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     fontSize: 14,
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
@@ -1294,25 +1306,25 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#e5e7eb',
     marginBottom: 16,
   },
   serverToggle: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#e5e7eb',
   },
   serverToggleContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
   },
   serverText: {
-    fontSize: 13,
-    color: '#9ca3af',
+    fontSize: 14,
+    color: '#1D293D',
     marginLeft: 10,
     flex: 1,
     fontWeight: '500',
@@ -1328,8 +1340,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 11,
-    color: '#10b981',
+    fontSize: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -1352,26 +1363,28 @@ const styles = StyleSheet.create({
   
   // Fingerprint Button Styles
   fingerprintButton: {
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    width: 58,
-    marginRight: 12,
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 6,
+    width: 56,
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
   },
   fingerprintButtonDisabled: {
     shadowOpacity: 0,
     elevation: 0,
   },
   fingerprintButtonGradient: {
-    height: 58,
-    flexDirection: 'row',
+    width: 56,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 28,
+  },
+  fingerprintIconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loginDivider: {
     flexDirection: 'row',
@@ -1410,55 +1423,56 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 400,
-    borderRadius: 24,
+    borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: '#1D293D',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.12,
     shadowRadius: 24,
     elevation: 8,
   },
   modalGradient: {
     padding: 24,
+    backgroundColor: '#FFFFFF',
   },
   modalHeader: {
     alignItems: 'center',
     marginBottom: 24,
   },
   modalIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#fef3c7',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6b7280',
     textAlign: 'center',
     lineHeight: 20,
   },
   forceLogoutErrorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(225, 29, 72, 0.1)',
     padding: 12,
     borderRadius: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(225, 29, 72, 0.25)',
   },
   forceLogoutErrorText: {
-    color: '#ef4444',
+    color: '#e11d48',
     fontSize: 13,
     marginLeft: 8,
     flex: 1,
@@ -1526,22 +1540,22 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   forceLogoutCard: {
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    borderRadius: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: '#e5e7eb',
     padding: 16,
     marginTop: 8,
   },
   sendCodeButton: {
     marginTop: 12,
-    borderRadius: 14,
-    backgroundColor: '#2563eb',
-    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#1447E6',
+    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
   },
   sendCodeButtonText: {
     color: '#ffffff',
@@ -1555,13 +1569,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   otpCardTitle: {
-    color: '#f8fafc',
+    color: '#1D293D',
     fontWeight: '700',
     fontSize: 15,
     marginBottom: 4,
   },
   otpCardSubtitle: {
-    color: '#94a3b8',
+    color: '#6b7280',
     fontSize: 12,
     marginBottom: 12,
   },
@@ -1578,26 +1592,26 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#e5e7eb',
   },
   modalCancelButtonText: {
-    color: '#9ca3af',
+    color: '#1D293D',
     fontSize: 16,
     fontWeight: '600',
   },
   modalConfirmButton: {
     flex: 2,
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#a855f7',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 4,
   },
