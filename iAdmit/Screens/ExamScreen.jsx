@@ -248,11 +248,7 @@ const OptionButton = React.memo(({
       underlayColor="transparent"
     >
       <LinearGradient
-        colors={
-          isSelected 
-            ? ['rgba(168, 85, 247, 0.2)', 'rgba(124, 58, 237, 0.1)']
-            : ['rgba(255, 255, 255, 0.03)', 'rgba(255, 255, 255, 0.01)']
-        }
+        colors={['rgba(20, 71, 230, 0.1)', 'rgba(20, 71, 230, 0.05)']}
         style={[
           styles.optionGradient,
           isSelected && styles.selectedOptionGradient
@@ -280,7 +276,7 @@ const OptionButton = React.memo(({
           </View>
           {isSelected && (
             <View style={styles.selectedIndicator}>
-              <Icon name="check-circle" size={20} color="#a855f7" />
+              <Icon name="check-circle" size={20} color="#1447E6" />
             </View>
           )}
         </View>
@@ -1163,6 +1159,23 @@ export default function ExamScreen({ navigation, route }) {
         }
       }
       console.log('[ExamScreen] Hydrated answers from storage:', restoredCount);
+      
+      // Position at first unanswered question after hydrating from storage
+      if (restoredCount > 0 && (fetchedQuestions || questions).length > 0) {
+        const qList = fetchedQuestions || questions;
+        const firstUnansweredIndex = qList.findIndex(q => !saved[q.questionId]);
+        console.log('[ExamScreen] After storage hydration, first unanswered index:', firstUnansweredIndex);
+        
+        if (firstUnansweredIndex >= 0) {
+          setCurrentQuestionIndex(firstUnansweredIndex);
+          console.log('[ExamScreen] Positioned at first unanswered question after storage hydration:', firstUnansweredIndex);
+        } else {
+          // All answered, go to last question
+          const lastAnsweredIndex = qList.length - 1;
+          setCurrentQuestionIndex(lastAnsweredIndex);
+          console.log('[ExamScreen] All answered after storage hydration, positioned at last:', lastAnsweredIndex);
+        }
+      }
     } catch (e) {
       console.log('[ExamScreen] Failed to hydrate answers:', e?.message);
     }
@@ -1727,8 +1740,28 @@ export default function ExamScreen({ navigation, route }) {
     });
   }, [slideAnim, isAnimating]);
 
+  // Helper functions to find next/previous unanswered questions
+  const getNextUnansweredIndex = useCallback((currentIndex) => {
+    for (let i = currentIndex + 1; i < questions.length; i++) {
+      if (!answers.has(questions[i].questionId)) {
+        return i;
+      }
+    }
+    return -1; // No unanswered questions found
+  }, [questions, answers]);
+
+  const getPreviousUnansweredIndex = useCallback((currentIndex) => {
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (!answers.has(questions[i].questionId)) {
+        return i;
+      }
+    }
+    return -1; // No unanswered questions found
+  }, [questions, answers]);
+
   const handleNextQuestion = useCallback(() => {
-    if (currentQuestionIndex < questions.length - 1) {
+    const nextUnansweredIndex = getNextUnansweredIndex(currentQuestionIndex);
+    if (nextUnansweredIndex >= 0) {
       // Clear immediate selection for next question
       setImmediateSelection({});
       
@@ -1736,17 +1769,18 @@ export default function ExamScreen({ navigation, route }) {
       animateQuestionTransition('next');
       
       // Update question index immediately (animation handles the transition)
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setCurrentQuestionIndex(nextUnansweredIndex);
       // Persist index to route params for resume clarity
       AsyncStorage.setItem('last_route', JSON.stringify({
         name: 'ExamScreen',
-        params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: currentQuestionIndex + 1 }
+        params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: nextUnansweredIndex }
       })).catch(() => {});
     }
-  }, [currentQuestionIndex, questions.length, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, animateQuestionTransition]);
+  }, [currentQuestionIndex, getNextUnansweredIndex, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, animateQuestionTransition]);
 
   const handlePreviousQuestion = useCallback(() => {
-    if (currentQuestionIndex > 0) {
+    const previousUnansweredIndex = getPreviousUnansweredIndex(currentQuestionIndex);
+    if (previousUnansweredIndex >= 0) {
       // Clear immediate selection for previous question
       setImmediateSelection({});
       
@@ -1754,30 +1788,32 @@ export default function ExamScreen({ navigation, route }) {
       animateQuestionTransition('previous');
       
       // Update question index immediately (animation handles the transition)
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setCurrentQuestionIndex(previousUnansweredIndex);
       AsyncStorage.setItem('last_route', JSON.stringify({
         name: 'ExamScreen',
-        params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: currentQuestionIndex - 1 }
+        params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: previousUnansweredIndex }
       })).catch(() => {});
     }
-  }, [currentQuestionIndex, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, animateQuestionTransition]);
+  }, [currentQuestionIndex, getPreviousUnansweredIndex, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, animateQuestionTransition]);
 
   const handleSkipQuestion = useCallback(() => {
     console.log('[ExamScreen] Skip pressed at index:', currentQuestionIndex);
-    // If not last question, move forward; if last, jump to first unanswered if any
-    if (currentQuestionIndex < questions.length - 1) {
+    const nextUnansweredIndex = getNextUnansweredIndex(currentQuestionIndex);
+    
+    if (nextUnansweredIndex >= 0) {
       setImmediateSelection({});
       
       // Animate transition (slide animation like PersonalityTestScreen)
       animateQuestionTransition('next');
       
       // Update question index immediately (animation handles the transition)
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setCurrentQuestionIndex(nextUnansweredIndex);
       AsyncStorage.setItem('last_route', JSON.stringify({
         name: 'ExamScreen',
-        params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: currentQuestionIndex + 1 }
+        params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: nextUnansweredIndex }
       })).catch(() => {});
     } else {
+      // No more unanswered questions, jump to first unanswered if any (for review)
       const idx = getFirstUnansweredQuestionIndex();
       if (idx !== -1) {
         setImmediateSelection({});
@@ -1792,11 +1828,10 @@ export default function ExamScreen({ navigation, route }) {
           params: { examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, resumeIndex: idx }
         })).catch(() => {});
       } else {
-        // All answered and at last question → open review
-        setShowReviewModal(true);
+        console.log('[ExamScreen] No unanswered questions to skip to');
       }
     }
-  }, [currentQuestionIndex, questions.length, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, getFirstUnansweredQuestionIndex, animateQuestionTransition]);
+  }, [currentQuestionIndex, getNextUnansweredIndex, getFirstUnansweredQuestionIndex, examId, examRefNo, timeLimit, examType, examTitle, personalityAnswers, animateQuestionTransition]);
 
   // Persist resume index whenever it changes
   useEffect(() => {
@@ -2025,14 +2060,11 @@ export default function ExamScreen({ navigation, route }) {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
-        <LinearGradient
-          colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-          style={styles.loadingGradient}
-        >
+        <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+        <View style={styles.loadingGradient}>
           <View style={styles.loadingContent}>
             <View style={styles.loadingIconContainer}>
-              <Icon name="quiz" size={60} color="#a855f7" />
+              <Icon name="quiz" size={60} color="#1447E6" />
             </View>
             <Text style={styles.loadingText}>Loading Exam...</Text>
             <View style={styles.loadingDots}>
@@ -2041,7 +2073,7 @@ export default function ExamScreen({ navigation, route }) {
               <View style={[styles.dot, styles.dot3]} />
             </View>
           </View>
-        </LinearGradient>
+        </View>
       </SafeAreaView>
     );
   }
@@ -2052,13 +2084,15 @@ export default function ExamScreen({ navigation, route }) {
       handleStartExam();
       return (
         <SafeAreaView style={styles.loadingContainer}>
-          <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
-          <LinearGradient colors={["#0a0a1a", "#1a1a2e", "#16213e"]} style={styles.loadingGradient}>
+          <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+          <View style={styles.loadingGradient}>
             <View style={styles.loadingContent}>
-              <View style={styles.loadingIconContainer}><Icon name="quiz" size={60} color="#a855f7" /></View>
+              <View style={styles.loadingIconContainer}>
+                <Icon name="quiz" size={60} color="#1447E6" />
+              </View>
               <Text style={styles.loadingText}>Preparing Exam...</Text>
             </View>
-          </LinearGradient>
+          </View>
         </SafeAreaView>
       );
     }
@@ -2069,16 +2103,13 @@ export default function ExamScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       
       {/* Offline Indicator */}
       <OfflineIndicator />
       
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#0a0a1a', '#1a1a2e', '#16213e']}
-        style={StyleSheet.absoluteFillObject}
-      />
+      {/* Background - White */}
+      <View style={StyleSheet.absoluteFillObject} />
 
       {/* Enhanced Header */}
       <View style={styles.examHeader}>
@@ -2101,8 +2132,8 @@ export default function ExamScreen({ navigation, route }) {
         </View>
         <View style={styles.examHeaderRight}>
           <View style={styles.timerContainer}>
-            <Icon name="schedule" size={16} color={getTimeColor()} />
-            <Text style={[styles.timer, { color: getTimeColor() }]}>
+            <Icon name="timer" size={16} color="#1D293D" />
+            <Text style={[styles.timer, timeRemaining <= 300 && styles.timerWarning]}>
               {formatTime(timeRemaining)}
             </Text>
           </View>
@@ -2237,13 +2268,13 @@ export default function ExamScreen({ navigation, route }) {
           <View style={styles.footerToggleContainer}>
             <TouchableOpacity
               onPress={toggleFooter}
-              style={styles.footerToggleButton}
+              style={styles.footerCollapseButton}
               activeOpacity={0.8}
             >
               <Icon 
-                name="keyboard-arrow-down" 
+                name={isFooterCollapsed ? "expand-less" : "expand-more"} 
                 size={20} 
-                color="#9ca3af" 
+                color="#1D293D" 
               />
             </TouchableOpacity>
           </View>
@@ -2283,7 +2314,7 @@ export default function ExamScreen({ navigation, route }) {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={['#a855f7', '#7c3aed']}
+                  colors={['#1447E6', '#0d4ed6']}
                   style={styles.doneButtonGradient}
                 >
                   <View style={styles.doneButtonContent}>
@@ -2338,7 +2369,7 @@ export default function ExamScreen({ navigation, route }) {
           activeOpacity={0.8}
         >
           <LinearGradient
-            colors={['#a855f7', '#7c3aed']}
+            colors={['#1447E6', '#0d4ed6']}
             style={styles.floatingReviewButtonGradient}
           >
             <Icon name="check-circle" size={20} color="#ffffff" />
@@ -2350,15 +2381,15 @@ export default function ExamScreen({ navigation, route }) {
       {/* In-screen Review Modal */}
       {showReviewModal && (
         <View style={styles.modalOverlay}>
-          <LinearGradient colors={['#111827', '#0b1220']} style={styles.reviewModal}>
+          <View style={styles.reviewModal}>
             <View style={styles.reviewHeader}>
               <Text style={styles.reviewTitle}>Review Answers</Text>
               <TouchableOpacity onPress={() => setShowReviewModal(false)} style={styles.closeButton} activeOpacity={0.8}>
-                <Icon name="close" size={20} color="#9ca3af" />
+                <Icon name="close" size={20} color="#1D293D" />
               </TouchableOpacity>
             </View>
 
-            <Text style={{ color: '#9ca3af', marginBottom: 10, lineHeight: 20 }}>
+            <Text style={styles.reviewDescription}>
               Tap any question below to jump and edit your answer. After making changes, use the "Review & Submit" button (always visible at the bottom) to return here or submit your exam.
             </Text>
             <View style={styles.reviewStatsRow}>
@@ -2382,9 +2413,10 @@ export default function ExamScreen({ navigation, route }) {
                 .map((q, idx) => ({ q, idx }))
                 .filter(({ q }) => {
                   const sel = answers.get(q.questionId);
-                  if (reviewFilter === 'unanswered') return !sel;
+                  const answered = !!sel;
+                  if (reviewFilter === 'unanswered') return !answered;
                   if (reviewFilter === 'answered') return !!sel;
-                  return true;
+                  return true; // Show all questions in 'all' and 'answered' filters
                 })
                 .map(({ q, idx }) => {
                   const qid = q.questionId;
@@ -2423,13 +2455,13 @@ export default function ExamScreen({ navigation, route }) {
                 <Text style={styles.modalSecondaryText}>Continue Reviewing</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => { setShowReviewModal(false); handleSubmitExam(); }} style={styles.modalPrimaryBtn} activeOpacity={0.8}>
-                <LinearGradient colors={["#a855f7", "#7c3aed"]} style={styles.modalPrimaryGradient}>
+                <LinearGradient colors={["#1447E6", "#0d4ed6"]} style={styles.modalPrimaryGradient}>
                   <Icon name="send" size={16} color="#ffffff" style={{ marginRight: 6 }} />
                   <Text style={styles.modalPrimaryText}>Submit Exam</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-          </LinearGradient>
+          </View>
         </View>
       )}
 
@@ -2464,13 +2496,15 @@ export default function ExamScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#F8FAFC',
+    paddingBottom: 0, // Remove bottom padding to let footer sit at bottom
+    zIndex: 0, // Background layer to let SafeAreaView handle safe area properly
   },
   
   // Loading Styles
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0a0a1a',
+    backgroundColor: '#F8FAFC',
   },
   loadingGradient: {
     flex: 1,
@@ -2484,17 +2518,16 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    borderWidth: 2,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
   },
   loadingText: {
-    color: '#ffffff',
     fontSize: 18,
     fontWeight: '600',
+    color: '#1D293D',
+    textAlign: 'center',
     marginBottom: 16,
   },
   loadingDots: {
@@ -2505,7 +2538,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#a855f7',
+    backgroundColor: '#1447E6',
   },
   dot1: {
     opacity: 0.4,
@@ -2546,16 +2579,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 21,
   },
-  instructionsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 2,
+  questionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1D293D',
+    lineHeight: 24,
+    marginBottom: 16,
   },
-  instructionsSubtitle: {
+  directionText: {
     fontSize: 14,
-    color: '#9ca3af',
     fontWeight: '500',
+    color: '#6b7280',
+    fontStyle: 'italic',
+    marginBottom: 16,
   },
   headerActions: {
     width: 40,
@@ -2733,8 +2769,9 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? (isShortScreen ? 10 : 20) : 20,
     paddingBottom: isShortScreen ? 16 : 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(29, 41, 61, 0.08)',
     marginTop: 21,
+    backgroundColor: 'rgba(29, 41, 61, 0.01)',
   },
   examHeaderLeft: {
     flex: 1,
@@ -2742,18 +2779,18 @@ const styles = StyleSheet.create({
   questionCounter: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 8,
   },
   progressBar: {
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(29, 41, 61, 0.08)',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#a855f7',
+    backgroundColor: '#1447E6',
     borderRadius: 3,
   },
   categoryContainer: {
@@ -2789,17 +2826,17 @@ const styles = StyleSheet.create({
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   timer: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
     marginLeft: 8,
   },
   timerWarning: {
@@ -2822,7 +2859,7 @@ const styles = StyleSheet.create({
   questionCard: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(29, 41, 61, 0.08)',
     overflow: 'hidden',
   },
   questionHeader: {
@@ -2836,16 +2873,16 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   questionNumber: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#a855f7',
+    color: '#1447E6',
   },
   currentQuestionCategoryContainer: {
     flexDirection: 'row',
@@ -2855,20 +2892,20 @@ const styles = StyleSheet.create({
   },
   currentQuestionCategoryLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
   },
   currentQuestionCategoryBadge: {
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+    backgroundColor: 'rgba(20, 71, 230, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: 'rgba(20, 71, 230, 0.2)',
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
   currentQuestionCategoryText: {
     fontSize: 12,
-    color: '#a855f7',
+    color: '#1447E6',
     fontWeight: '600',
   },
   questionStatus: {
@@ -2912,7 +2949,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 16,
-    color: '#ffffff',
+    color: '#1D293D',
     lineHeight: 24,
     fontWeight: '500',
   },
@@ -2923,7 +2960,7 @@ const styles = StyleSheet.create({
   },
   directionText: {
     fontSize: 14,
-    color: '#a855f7',
+    color: '#6b7280',
     lineHeight: 20,
     fontStyle: 'italic',
     fontWeight: '500',
@@ -2966,59 +3003,58 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(29, 41, 61, 0.08)',
     overflow: 'hidden',
-    // Performance optimizations
-    shouldRasterizeIOS: true,
-    renderToHardwareTextureAndroid: true,
+    marginBottom: 12,
   },
   optionGradient: {
     padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 16,
   },
   selectedOptionGradient: {
-    borderColor: '#a855f7',
     borderWidth: 2,
+    borderColor: 'rgba(20, 71, 230, 0.2)',
   },
   optionContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   optionCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
+    borderWidth: 2,
+    borderColor: 'rgba(29, 41, 61, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   selectedOptionCircle: {
-    backgroundColor: 'rgba(168, 85, 247, 0.2)',
-    borderColor: '#a855f7',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
+    borderColor: 'rgba(20, 71, 230, 0.3)',
   },
   optionLetter: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#9ca3af',
+    color: '#6b7280',
   },
   selectedOptionLetter: {
-    color: '#a855f7',
+    color: '#1447E6',
   },
   optionTextContainer: {
     flex: 1,
   },
   optionText: {
-    fontSize: 15,
-    color: '#ffffff',
-    lineHeight: 22,
+    fontSize: 14,
     fontWeight: '500',
+    color: '#1D293D',
+    flex: 1,
+    lineHeight: 20,
   },
   selectedOptionText: {
-    color: '#ffffff',
+    color: '#1447E6',
     fontWeight: '600',
   },
   selectedIndicator: {
@@ -3056,70 +3092,67 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: Platform.OS === 'ios' ? 0 : 0, // No bottom margin - let SafeAreaView handle it
     left: 0,
     right: 0,
     paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isShortScreen ? 12 : 16,
-    paddingBottom: Platform.OS === 'ios' ? (isShortScreen ? 25 : 34) : 16, // Safe area handling
+    paddingVertical: isShortScreen ? 8 : 10, // Reduced padding to prevent clipping
+    paddingBottom: Platform.OS === 'ios' ? 8 : 8, // Minimal bottom padding
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(10, 10, 26, 0.98)',
-    transition: 'all 0.3s ease-in-out', // Smooth transition
+    borderTopColor: 'rgba(29, 41, 61, 0.08)',
+    backgroundColor: '#F8FAFC',
+    transition: 'all 0.3s ease-in-out',
+    zIndex: 1, // Same as container to prevent overlay issues
   },
   footerToggleContainer: {
     alignItems: 'center',
     marginBottom: 8,
   },
-  footerToggleButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  footerCollapseButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(29, 41, 61, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    zIndex: 2,
   },
-  showFooterButton: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? (isShortScreen ? 20 : 28) : 16,
-    left: 16,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(10, 10, 26, 0.95)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
+  footerStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12, // Reduced margin for better space
+  },
+  footerStat: {
+    fontSize: 14,
+    color: '#1D293D',
+    fontWeight: '500',
+  },
+  footerActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    gap: 12,
+    marginTop: 4, // Reduced top margin for space
   },
-  floatingReviewButton: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? (isShortScreen ? 20 : 28) : 16,
-    right: 16,
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 12,
-  },
-  floatingReviewButtonGradient: {
+  navButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#1447E6',
     paddingHorizontal: 20,
+    paddingVertical: 14, // Increased padding for better touch target
+    borderRadius: 16,
+    flex: 1,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(29, 41, 61, 0.1)',
+    minHeight: 48, // Ensure minimum touch target size
+  },
+  navButtonDisabled: {
+    opacity: 0.3,
+  },
+  navButtonText: {
     paddingVertical: 14,
     gap: 8,
   },
@@ -3148,15 +3181,15 @@ const styles = StyleSheet.create({
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#1447E6',
     paddingHorizontal: 20,
-    paddingVertical: 14, // Increased padding for better touch target
+    paddingVertical: 14,
     borderRadius: 16,
     flex: 1,
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    minHeight: 48, // Ensure minimum touch target size
+    borderColor: 'rgba(29, 41, 61, 0.1)',
+    minHeight: 48,
   },
   navButtonDisabled: {
     opacity: 0.3,
@@ -3190,7 +3223,8 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(29, 41, 61, 0.1)',
+    backgroundColor: '#FFFFFF',
     padding: 16,
   },
   reviewStatsRow: {
@@ -3199,7 +3233,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reviewStatText: {
-    color: '#9ca3af',
+    color: '#1D293D',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -3212,21 +3246,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
+    borderColor: 'rgba(29, 41, 61, 0.1)'
   },
   filterBtnActive: {
-    backgroundColor: 'rgba(168,85,247,0.15)',
-    borderColor: 'rgba(168,85,247,0.35)'
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
+    borderColor: 'rgba(20, 71, 230, 0.3)'
   },
   filterBtnText: {
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '600',
     fontSize: 12,
   },
   filterBtnTextActive: {
-    color: '#a855f7',
+    color: '#1447E6',
   },
   reviewHeader: {
     flexDirection: 'row',
@@ -3235,19 +3269,25 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reviewTitle: {
-    color: '#ffffff',
+    color: '#1D293D',
     fontSize: 16,
     fontWeight: '700',
+  },
+  reviewDescription: {
+    color: '#6b7280',
+    marginBottom: 10,
+    lineHeight: 20,
+    fontSize: 14,
   },
   closeButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
+    borderColor: 'rgba(29, 41, 61, 0.1)'
   },
   reviewRow: {
     flexDirection: 'row',
@@ -3255,7 +3295,7 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)'
+    borderBottomColor: 'rgba(29, 41, 61, 0.06)'
   },
   reviewBadge: {
     width: 28,
@@ -3268,10 +3308,10 @@ const styles = StyleSheet.create({
   reviewBadgeAnswered: { backgroundColor: 'rgba(16,185,129,0.15)', borderWidth: 1, borderColor: 'rgba(16,185,129,0.3)' },
   reviewBadgeUnanswered: { backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.28)' },
   reviewBadgeText: { color: '#ffffff', fontWeight: '700', fontSize: 12 },
-  reviewQuestion: { color: '#ffffff', fontSize: 13, lineHeight: 18, marginBottom: 2 },
+  reviewQuestion: { color: '#1D293D', fontSize: 13, lineHeight: 18, marginBottom: 2 },
   reviewAnswer: { fontSize: 12 },
-  reviewAnswerAnswered: { color: '#9ae6b4' },
-  reviewAnswerUnanswered: { color: '#fca5a5' },
+  reviewAnswerAnswered: { color: '#10b981' },
+  reviewAnswerUnanswered: { color: '#ef4444' },
   reviewFooter: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -3280,14 +3320,14 @@ const styles = StyleSheet.create({
   },
   modalSecondaryBtn: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
+    borderColor: 'rgba(29, 41, 61, 0.1)'
   },
-  modalSecondaryText: { color: '#ffffff', fontWeight: '600' },
+  modalSecondaryText: { color: '#1D293D', fontWeight: '600' },
   modalPrimaryBtn: { flex: 1, borderRadius: 12, overflow: 'hidden' },
   modalPrimaryGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
   modalPrimaryText: { color: '#ffffff', fontWeight: '700' },
@@ -3295,7 +3335,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     flex: 1,
-    shadowColor: '#a855f7',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -3305,9 +3345,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 14, // Increased padding for better touch target
+    paddingVertical: 12, // Reduced padding to prevent clipping
     justifyContent: 'center',
-    minHeight: 48, // Ensure minimum touch target size
+    minHeight: 48, // Standard touch target size
+    borderRadius: 16,
   },
   doneButtonContent: {
     flexDirection: 'row',
@@ -3451,4 +3492,22 @@ const styles = StyleSheet.create({
   },
   uploadTitle: { color: '#ffffff', fontWeight: '700', fontSize: 16, marginBottom: 6 },
   uploadSubtitle: { color: '#9ca3af', fontSize: 12, textAlign: 'center' },
+  showFooterButton: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? (isShortScreen ? 20 : 28) : 16,
+    left: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1447E6',
+    borderWidth: 1,
+    borderColor: 'rgba(29, 41, 61, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#1447E6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
 });
