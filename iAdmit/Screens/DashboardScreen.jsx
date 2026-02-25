@@ -2263,14 +2263,14 @@ export default function DashboardScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.personalityModalContainer}>
             <LinearGradient
-              colors={['#1a1a2e', '#16213e', '#0f172a']}
+              colors={['#F8FAFC', '#FFFFFF', '#F8FAFC']}
               style={styles.personalityModalGradient}
             >
               {/* Modal Header */}
               <View style={styles.personalityModalHeader}>
                 <View style={styles.personalityModalHeaderLeft}>
                   <View style={styles.personalityModalIconContainer}>
-                    <Icon name="psychology" size={24} color="#a855f7" />
+                    <Icon name="psychology" size={24} color="#1447E6" />
                   </View>
                   <View style={styles.personalityModalHeaderText}>
                     <Text style={styles.personalityModalTitle}>Your Personality Type</Text>
@@ -2293,7 +2293,7 @@ export default function DashboardScreen({ navigation }) {
                     {/* Personality Type Badge */}
                     <View style={styles.personalityTypeDisplay}>
                       <LinearGradient
-                        colors={['#a855f7', '#7c3aed']}
+                        colors={['#1447E6', '#0d4ed6']}
                         style={styles.personalityTypeBadge}
                       >
                         <Text style={styles.personalityTypeCode}>{personalityType}</Text>
@@ -2314,13 +2314,13 @@ export default function DashboardScreen({ navigation }) {
                     {/* Additional Info */}
                     <View style={styles.personalityInfoContainer}>
                       <View style={styles.personalityInfoItem}>
-                        <Icon name="info" size={16} color="#059669" />
+                        <Icon name="info" size={16} color="#1447E6" />
                         <Text style={styles.personalityInfoText}>
                           This result is based on your personality assessment responses
                         </Text>
                       </View>
                       <View style={styles.personalityInfoItem}>
-                        <Icon name="school" size={16} color="#3b82f6" />
+                        <Icon name="school" size={16} color="#1447E6" />
                         <Text style={styles.personalityInfoText}>
                           Used for course recommendations and career guidance
                         </Text>
@@ -2345,7 +2345,7 @@ export default function DashboardScreen({ navigation }) {
                   activeOpacity={0.8}
                 >
                   <LinearGradient
-                    colors={['#a855f7', '#7c3aed']}
+                    colors={['#1447E6', '#0d4ed6']}
                     style={styles.personalityButtonGradient}
                   >
                     <Text style={styles.personalityButtonText}>Got it</Text>
@@ -4065,7 +4065,7 @@ const styles = StyleSheet.create({
   // Personality Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(29, 41, 61, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -4084,7 +4084,7 @@ const styles = StyleSheet.create({
   personalityModalGradient: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(29, 41, 61, 0.08)',
   },
   personalityModalHeader: {
     flexDirection: 'row',
@@ -4104,12 +4104,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+    backgroundColor: 'rgba(20, 71, 230, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.2)',
+    borderColor: 'rgba(20, 71, 230, 0.25)',
   },
   personalityModalHeaderText: {
     flex: 1,
@@ -4117,19 +4117,19 @@ const styles = StyleSheet.create({
   personalityModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#1D293D',
     marginBottom: 4,
   },
   personalityModalSubtitle: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#6b7280',
     fontWeight: '500',
   },
   personalityModalCloseButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -4145,7 +4145,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#a855f7',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -4160,7 +4160,7 @@ const styles = StyleSheet.create({
   personalityTypeTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#1D293D',
     textAlign: 'center',
   },
   personalityDescriptionContainer: {
@@ -4169,12 +4169,12 @@ const styles = StyleSheet.create({
   personalityDescriptionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#a855f7',
+    color: '#1447E6',
     marginBottom: 12,
   },
   personalityDescriptionText: {
     fontSize: 15,
-    color: '#e5e7eb',
+    color: '#1D293D',
     lineHeight: 24,
     textAlign: 'justify',
   },
@@ -4184,15 +4184,15 @@ const styles = StyleSheet.create({
   personalityInfoItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(29, 41, 61, 0.02)',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(29, 41, 61, 0.08)',
   },
   personalityInfoText: {
     fontSize: 14,
-    color: '#d1d5db',
+    color: '#1D293D',
     marginLeft: 12,
     flex: 1,
     lineHeight: 20,
@@ -4217,7 +4217,7 @@ const styles = StyleSheet.create({
   personalityModalButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#a855f7',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
