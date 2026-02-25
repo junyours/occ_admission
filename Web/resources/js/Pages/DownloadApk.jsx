@@ -5,7 +5,8 @@ export default function DownloadApk() {
     const [selectedQrCode, setSelectedQrCode] = useState(null);
 
     const GOOGLE_DRIVE_URL = 'https://drive.google.com/drive/folders/14wSm_fuVevOOEMW03YxAo32B9QWWLVI_?usp=drive_linkv';
-    const MEDIAFIRE_URL = 'https://www.mediafire.com/folder/lmbcwiafw4b17/MOBILE+APP';
+    const MEDIAFIRE_URL = 'https://www.mediafire.com/file/p1ddj0xtqiyk47o/E-Admission.apk/file';
+    // Old: https://www.mediafire.com/folder/lmbcwiafw4b17/MOBILE+APP
 
     const handleDownloadClick = (provider = 'drive') => {
         const url = provider === 'mediafire' ? MEDIAFIRE_URL : GOOGLE_DRIVE_URL;
