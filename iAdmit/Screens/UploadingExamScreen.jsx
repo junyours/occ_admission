@@ -91,11 +91,11 @@ export default function UploadingExamScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a1a" />
-      <LinearGradient colors={["#0a0a1a", "#1a1a2e", "#16213e"]} style={StyleSheet.absoluteFillObject} />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <View style={StyleSheet.absoluteFillObject} />
       <View style={styles.center}>
         <View style={styles.iconWrap}>
-          <Icon name="cloud-upload" size={36} color="#a855f7" />
+          <Icon name="cloud-upload" size={36} color="#1447E6" />
         </View>
         <Text style={styles.title}>Uploading Exam…</Text>
         <Text style={styles.subtitle}>Please wait while we securely submit your answers.</Text>
@@ -105,15 +105,15 @@ export default function UploadingExamScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a1a' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
   iconWrap: {
     width: 72, height: 72, borderRadius: 36,
-    backgroundColor: 'rgba(168,85,247,0.1)', borderWidth: 1,
-    borderColor: 'rgba(168,85,247,0.25)', justifyContent: 'center', alignItems: 'center', marginBottom: 16
+    backgroundColor: 'rgba(20,71,230,0.1)', borderWidth: 1,
+    borderColor: 'rgba(20,71,230,0.25)', justifyContent: 'center', alignItems: 'center', marginBottom: 16
   },
-  title: { color: '#ffffff', fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  subtitle: { color: '#9ca3af', fontSize: 13, textAlign: 'center' }
+  title: { color: '#1D293D', fontSize: 18, fontWeight: '700', marginBottom: 8 },
+  subtitle: { color: '#6b7280', fontSize: 13, textAlign: 'center' }
 });
 
 
