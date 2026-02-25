@@ -103,7 +103,7 @@ const QRScannerScreen = ({ navigation, route }) => {
   if (hasPermission === null) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Requesting camera permission...</Text>
         </View>
@@ -114,7 +114,7 @@ const QRScannerScreen = ({ navigation, route }) => {
   if (hasPermission === false) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#000" />
+        <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
         <View style={styles.permissionContainer}>
           <Text style={styles.permissionText}>
             Camera permission is required to scan QR codes
@@ -127,15 +127,14 @@ const QRScannerScreen = ({ navigation, route }) => {
     );
   }
 
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       
       {/* Top Bar */}
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-          <Icon name="arrow-back" size={24} color="#fff" />
+          <Icon name="arrow-back" size={24} color="#1D293D" />
         </TouchableOpacity>
         <Text style={styles.title}>QR Code Scanner</Text>
         <View style={styles.placeholder} />
@@ -164,7 +163,7 @@ const QRScannerScreen = ({ navigation, route }) => {
 
       {/* Instructions */}
       <View style={styles.instructionsContainer}>
-        <Icon name="qr-code-scanner" size={32} color="#10b981" style={styles.scannerIcon} />
+        <Icon name="qr-code-scanner" size={32} color="#1447E6" style={styles.scannerIcon} />
         <Text style={styles.instructionTitle}>Scan QR Code</Text>
         <Text style={styles.instructionText}>
           Position the QR code within the frame above, or enter the code manually below
@@ -199,7 +198,7 @@ const QRScannerScreen = ({ navigation, route }) => {
           <LinearGradient
             colors={
               examCode.trim() && !isSubmitting
-                ? ['#10b981', '#059669']
+                ? ['#1447E6', '#0d4ed6']
                 : ['#374151', '#4b5563']
             }
             style={styles.submitButtonGradient}
@@ -231,7 +230,7 @@ const QRScannerScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#F8FAFC',
   },
   loadingContainer: {
     flex: 1,
@@ -239,7 +238,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 16,
   },
   permissionContainer: {
@@ -249,7 +248,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   permissionText: {
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
@@ -260,21 +259,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(248, 250, 252, 0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(29, 41, 61, 0.08)',
     zIndex: 1000,
   },
   closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(29, 41, 61, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(29, 41, 61, 0.1)',
   },
   title: {
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   placeholder: {
     width: 40,
@@ -304,7 +307,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 30,
     height: 30,
-    borderColor: '#10b981',
+    borderColor: '#1447E6',
     borderWidth: 3,
   },
   topLeft: {
@@ -335,20 +338,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: '#F8FAFC',
   },
   scannerIcon: {
     marginBottom: 8,
   },
   instructionTitle: {
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
     marginBottom: 4,
     textAlign: 'center',
   },
   instructionText: {
-    color: '#9ca3af',
+    color: '#6b7280',
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 16,
@@ -356,15 +359,15 @@ const styles = StyleSheet.create({
   inputSection: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: '#F8FAFC',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(29, 41, 61, 0.08)',
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 16,
@@ -374,14 +377,14 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: '#fff',
+    color: '#1D293D',
     fontSize: 16,
     fontWeight: '500',
   },
   submitButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#10b981',
+    shadowColor: '#1447E6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -412,7 +415,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: '#F8FAFC',
   },
   cancelButton: {
     paddingVertical: 12,
@@ -424,7 +427,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#1447E6',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 8,
