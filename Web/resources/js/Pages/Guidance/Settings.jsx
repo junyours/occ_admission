@@ -513,33 +513,33 @@ const Settings = ({ user }) => {
                                 </div>
                                 <h3 className="font-semibold text-[#1D293D] mb-1">All In Progress</h3>
                                 <p className="text-sm text-slate-500 mb-4">List exams with &quot;In Progress&quot; remarks. Mark as finished or delete selected.</p>
-                                <button onClick={handleCheckAllInProgress} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                <button onClick={handleCheckAllInProgress} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#1447E6] text-white hover:bg-[#1240d0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                     {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
                                     View List
                                 </button>
                             </div>
                             <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 p-6">
-                                <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center mb-4 group-hover:bg-red-500/15 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-4 group-hover:bg-rose-500/15 transition-colors">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                     </svg>
                                 </div>
                                 <h3 className="font-semibold text-[#1D293D] mb-1">Delete Abandoned</h3>
                                 <p className="text-sm text-slate-500 mb-4">Permanently remove started-but-never-finished exams (0 answers). Completed exams are safe.</p>
-                                <button onClick={handleClearInProgressExams} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                <button onClick={handleClearInProgressExams} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                     {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
                                     Delete Abandoned
                                 </button>
                             </div>
                             <div className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-200 p-6">
-                                <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center mb-4 group-hover:bg-orange-500/15 transition-colors">
+                                <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 group-hover:bg-amber-200 transition-colors">
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                 </div>
                                 <h3 className="font-semibold text-[#1D293D] mb-1">Zero Score (0/150)</h3>
                                 <p className="text-sm text-slate-500 mb-4">Find and delete exam results with 0/150 score that may be bugged or failed.</p>
-                                <button onClick={handleCheckZeroScoreExams} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                <button onClick={handleCheckZeroScoreExams} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                     {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
                                     Check Zero Scores
                                 </button>
@@ -567,20 +567,20 @@ const Settings = ({ user }) => {
                         <div className="p-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div className="group bg-white rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-200 p-5">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-500/15 transition-colors">
+                                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-3 group-hover:bg-emerald-500/15 transition-colors">
                                         <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                     </div>
                                     <h3 className="font-semibold text-[#1D293D] mb-2">Completed Registrations</h3>
                                     <p className="text-sm text-slate-500 mb-4">Find and change status of completed registrations to assigned or cancelled.</p>
-                                    <button onClick={handleCheckCompletedRegistrations} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    <button onClick={handleCheckCompletedRegistrations} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                         {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
                                         Check Completed
                                     </button>
                                 </div>
                                 <div className="group bg-white rounded-xl border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-200 p-5">
-                                    <div className="w-9 h-9 rounded-xl bg-slate-500/10 text-slate-600 flex items-center justify-center mb-3 group-hover:bg-slate-500/15 transition-colors">
+                                    <div className="w-9 h-9 rounded-xl bg-[#1D293D]/10 text-[#1D293D] flex items-center justify-center mb-3 group-hover:bg-[#1D293D]/15 transition-colors">
                                         <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                                         </svg>
@@ -596,7 +596,7 @@ const Settings = ({ user }) => {
                                             <option value={168}>1 week</option>
                                         </select>
                                     </div>
-                                    <button onClick={handleDryRun} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-700 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                    <button onClick={handleDryRun} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#1D293D] text-white hover:bg-[#2a3245] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                         {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
                                         Check Incomplete
                                     </button>
