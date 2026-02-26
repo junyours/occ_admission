@@ -723,5 +723,365 @@ class SettingsController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Check exam results with 0/150 score that may be bugged
+     * Returns list of exams where correct = 0 and total_items = 150
+     * Also includes exams with status 'failed' or 'done' that have 0 score
+     */
+    public function checkZeroScoreExams(Request $request)
+    {
+        try {
+            // Get exam results where correct = 0 and total_items = 150
+            // Also include exams with status 'failed' or 'done' that have 0 score
+            $zeroScoreExams = ExamResult::where('correct', 0)
+                ->where(function($query) {
+                    // Either total_items is 150 (full exam) or status is failed/done
+                    $query->where('total_items', 150)
+                          ->orWhereIn('remarks', ['failed', 'done']);
+                })
+                ->with('examinee:id,lname,fname,mname')
+                ->get();
+            
+            $examsData = $zeroScoreExams->map(function($exam) {
+                // Build full name from lname, fname, mname
+                $fullName = 'Unknown';
+                if ($exam->examinee) {
+                    $fullName = trim(
+                        $exam->examinee->fname . ' ' . 
+                        ($exam->examinee->mname ? $exam->examinee->mname . ' ' : '') . 
+                        $exam->examinee->lname
+                    );
+                }
+                
+                return [
+                    'id' => $exam->resultId,
+                    'examinee_name' => $fullName,
+                    'correct' => $exam->correct,
+                    'total_items' => $exam->total_items,
+                    'status' => $exam->remarks,
+                    'finished_at' => $exam->finished_at ? $exam->finished_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'found_count' => $examsData->count(),
+                'exams' => $examsData
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error checking zero score exams', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error checking zero score exams: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete selected exam results with 0/150 score
+     * Permanently removes bugged exam records from the database
+     */
+    public function deleteZeroScoreExams(Request $request)
+    {
+        try {
+            $examIds = $request->get('exam_ids', []);
+            
+            if (empty($examIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No exams selected for deletion'
+                ], 400);
+            }
+            
+            // Get selected exams that match zero score criteria
+            $examsToDelete = ExamResult::whereIn('resultId', $examIds)
+                ->where('correct', 0)
+                ->where(function($query) {
+                    $query->where('total_items', 150)
+                          ->orWhereIn('remarks', ['failed', 'done']);
+                })
+                ->get();
+            
+            $deletedCount = 0;
+            $errors = [];
+            
+            // Log details before deletion
+            $examDetails = $examsToDelete->map(function($exam) {
+                return [
+                    'result_id' => $exam->resultId,
+                    'examinee_id' => $exam->examineeId,
+                    'exam_id' => $exam->examId,
+                    'correct' => $exam->correct,
+                    'total_items' => $exam->total_items,
+                    'remarks' => $exam->remarks,
+                    'finished_at' => $exam->finished_at,
+                    'created_at' => $exam->created_at
+                ];
+            })->toArray();
+            
+            // Delete the selected exams
+            foreach ($examsToDelete as $exam) {
+                try {
+                    $exam->delete();
+                    $deletedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Failed to delete exam result ID {$exam->resultId}: {$e->getMessage()}";
+                    Log::error('[Delete Zero Score] Failed to delete exam result', [
+                        'result_id' => $exam->resultId,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            $message = "Successfully deleted {$deletedCount} zero score exam result(s)";
+            if (!empty($errors)) {
+                $message .= ". Errors: " . implode(', ', $errors);
+            }
+            
+            Log::info('[Delete Zero Score] Manually deleted zero score exam results', [
+                'deleted_count' => $deletedCount,
+                'requested_count' => count($examIds),
+                'deleted_by' => Auth::user()->email,
+                'deleted_at' => now(),
+                'exam_details' => $examDetails
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+                'errors' => $errors
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error deleting zero score exams', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting zero score exams: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check examinee registrations with "completed" status
+     * Returns list of examinees who have completed status
+     */
+    public function checkCompletedRegistrations(Request $request)
+    {
+        try {
+            // Get examinee registrations with "completed" status
+            // Join with examinee table to get name information
+            $completedRegistrations = DB::table('examinee_registrations')
+                ->where('examinee_registrations.status', 'completed')
+                ->leftJoin('examinee', 'examinee_registrations.examinee_id', '=', 'examinee.id')
+                ->select(
+                    'examinee_registrations.id',
+                    'examinee_registrations.examinee_id',
+                    'examinee_registrations.status',
+                    'examinee_registrations.created_at',
+                    'examinee_registrations.registration_date',
+                    'examinee_registrations.school_year',
+                    'examinee_registrations.semester',
+                    'examinee.fname',
+                    'examinee.mname',
+                    'examinee.lname'
+                )
+                ->get();
+            
+            Log::info('Query executed successfully', ['count' => $completedRegistrations->count()]);
+            
+            $registrationsData = $completedRegistrations->map(function($registration) {
+                $fullName = 'Unknown';
+                if ($registration->fname || $registration->lname) {
+                    $fullName = trim($registration->fname . ' ' . ($registration->mname ? $registration->mname . ' ' : '') . $registration->lname);
+                }
+                
+                return [
+                    'id' => $registration->id,
+                    'examinee_id' => $registration->examinee_id,
+                    'examinee_name' => $fullName,
+                    'email' => 'N/A', // Email not available in current table structure
+                    'status' => $registration->status,
+                    'registration_date' => $registration->registration_date,
+                    'school_year' => $registration->school_year,
+                    'semester' => $registration->semester,
+                    'created_at' => $registration->created_at,
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'found_count' => $registrationsData->count(),
+                'registrations' => $registrationsData
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error checking completed registrations', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error checking completed registrations: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Search examinee registrations with "completed" status
+     * Returns filtered list based on search query
+     */
+    public function searchCompletedRegistrations(Request $request)
+    {
+        try {
+            $query = $request->get('query', '');
+            
+            if (empty($query)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Search query is required'
+                ], 400);
+            }
+            
+            // Search examinee registrations with "completed" status
+            $completedRegistrations = DB::table('examinee_registrations')
+                ->where('examinee_registrations.status', 'completed')
+                ->leftJoin('examinee', 'examinee_registrations.examinee_id', '=', 'examinee.id')
+                ->where(function($q) use ($query) {
+                    $q->where('examinee.fname', 'like', '%' . $query . '%')
+                      ->orWhere('examinee.mname', 'like', '%' . $query . '%')
+                      ->orWhere('examinee.lname', 'like', '%' . $query . '%')
+                      ->orWhere('examinee_registrations.id', 'like', '%' . $query . '%')
+                      ->orWhere('examinee_registrations.examinee_id', 'like', '%' . $query . '%')
+                      ->orWhere('examinee_registrations.school_year', 'like', '%' . $query . '%')
+                      ->orWhere('examinee_registrations.semester', 'like', '%' . $query . '%');
+                })
+                ->select(
+                    'examinee_registrations.id',
+                    'examinee_registrations.examinee_id',
+                    'examinee_registrations.status',
+                    'examinee_registrations.created_at',
+                    'examinee_registrations.registration_date',
+                    'examinee_registrations.school_year',
+                    'examinee_registrations.semester',
+                    'examinee.fname',
+                    'examinee.mname',
+                    'examinee.lname'
+                )
+                ->get();
+            
+            $registrationsData = $completedRegistrations->map(function($registration) {
+                $fullName = 'Unknown';
+                if ($registration->fname || $registration->lname) {
+                    $fullName = trim($registration->fname . ' ' . ($registration->mname ? $registration->mname . ' ' : '') . $registration->lname);
+                }
+                
+                return [
+                    'id' => $registration->id,
+                    'examinee_id' => $registration->examinee_id,
+                    'examinee_name' => $fullName,
+                    'email' => 'N/A', // Email not available in current table structure
+                    'status' => $registration->status,
+                    'registration_date' => $registration->registration_date,
+                    'school_year' => $registration->school_year,
+                    'semester' => $registration->semester,
+                    'created_at' => $registration->created_at,
+                ];
+            });
+            
+            return response()->json([
+                'success' => true,
+                'found_count' => $registrationsData->count(),
+                'registrations' => $registrationsData
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error searching completed registrations', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error searching completed registrations: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Change status of examinee registration from "completed" to "assigned" or "cancelled"
+     * Requires confirmation string verification
+     */
+    public function changeRegistrationStatus(Request $request)
+    {
+        try {
+            $registrationId = $request->get('registration_id');
+            $newStatus = $request->get('new_status');
+            
+            if (empty($registrationId) || empty($newStatus)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registration ID and new status are required'
+                ], 400);
+            }
+            
+            if (!in_array($newStatus, ['assigned', 'cancelled'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid status. Must be "assigned" or "cancelled"'
+                ], 400);
+            }
+            
+            // Find the registration
+            $registration = DB::table('examinee_registrations')
+                ->where('id', $registrationId)
+                ->where('status', 'completed')
+                ->first();
+            
+            if (!$registration) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registration not found or not in "completed" status'
+                ], 404);
+            }
+            
+            // Update the status
+            $updated = DB::table('examinee_registrations')
+                ->where('id', $registrationId)
+                ->update([
+                    'status' => $newStatus,
+                    'updated_at' => now()
+                ]);
+            
+            if ($updated) {
+                Log::info('[Registration Status Change] Updated registration status', [
+                    'registration_id' => $registrationId,
+                    'examinee_id' => $registration->examinee_id,
+                    'old_status' => 'completed',
+                    'new_status' => $newStatus,
+                    'changed_by' => Auth::user()->email,
+                    'changed_at' => now()
+                ]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully changed status to {$newStatus}"
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update registration status'
+                ], 500);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Error changing registration status', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error changing registration status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 

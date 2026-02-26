@@ -356,6 +356,15 @@ Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancel
         Route::post('/exam-results/delete-selected-in-progress', [SettingsController::class, 'deleteSelectedInProgressExams'])->name('exam-results.delete-selected-in-progress');
         Route::post('/exam-results/mark-selected-as-finished', [SettingsController::class, 'markSelectedExamsAsFinished'])->name('exam-results.mark-selected-as-finished');
         Route::post('/exam-results/fix-in-progress-remarks', [SettingsController::class, 'fixInProgressRemarks'])->name('exam-results.fix-in-progress-remarks');
+        
+        // Zero Score Exam Management
+        Route::get('/exam-results/check-zero-score', [SettingsController::class, 'checkZeroScoreExams'])->name('exam-results.check-zero-score');
+        Route::post('/exam-results/delete-zero-score', [SettingsController::class, 'deleteZeroScoreExams'])->name('exam-results.delete-zero-score');
+        
+        // Completed Registrations Management
+        Route::get('/registrations/check-completed', [SettingsController::class, 'checkCompletedRegistrations'])->name('registrations.check-completed');
+        Route::get('/registrations/search-completed', [SettingsController::class, 'searchCompletedRegistrations'])->name('registrations.search-completed');
+        Route::post('/registrations/change-status', [SettingsController::class, 'changeRegistrationStatus'])->name('registrations.change-status');
     });
 });
 
