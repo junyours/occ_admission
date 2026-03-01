@@ -211,6 +211,34 @@ const Settings = ({ user }) => {
         );
     };
 
+    const handleMarkSelectedAsFinished = async () => {
+        if (selectedInProgressExams.length === 0) {
+            window?.showAlert?.('Please select at least one exam to mark as finished', 'error');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await axios.post('/guidance/exam-results/mark-selected-as-finished', {
+                exam_ids: selectedInProgressExams
+            });
+            if (response.data.success) {
+                window?.showAlert?.(response.data.message, 'success');
+                setSelectedInProgressExams([]);
+                setShowAllInProgressModal(false);
+                // Refresh the data
+                handleCheckAllInProgress();
+            } else {
+                window?.showAlert?.('Failed to mark exams as finished: ' + response.data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error marking exams as finished:', error);
+            window?.showAlert?.('Error marking exams as finished: ' + (error.response?.data?.message || error.message), 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const toggleSelectAllInProgressExams = async () => {
         // Filter exams based on search query
         const filteredExams = allInProgressData.exams.filter(exam => 
