@@ -480,6 +480,34 @@ const Settings = ({ user }) => {
         }
     };
 
+    const handleDeleteSelectedInProgress = async () => {
+        if (selectedInProgressExams.length === 0) {
+            window?.showAlert?.('Please select at least one exam to delete', 'error');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await axios.post('/guidance/exam-results/delete-selected-in-progress', {
+                exam_ids: selectedInProgressExams
+            });
+            if (response.data.success) {
+                window?.showAlert?.(`Successfully deleted ${response.data.deleted_count} in-progress exam result(s)!`, 'success');
+                setShowDeleteInProgressModal(false);
+                setSelectedInProgressExams([]);
+                // Refresh the data
+                handleCheckAllInProgress();
+            } else {
+                window?.showAlert?.('Delete failed: ' + response.data.message, 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting in-progress exams:', error);
+            window?.showAlert?.('Error deleting in-progress exams: ' + (error.response?.data?.message || error.message), 'error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <Layout user={user}>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/80">
