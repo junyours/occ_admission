@@ -311,8 +311,8 @@ const Settings = ({ user }) => {
             setZeroScoreData(response.data);
             setShowZeroScoreModal(true);
         } catch (error) {
-            console.error('Error checking zero score exams:', error);
-            window?.showAlert?.('Error checking zero score exams: ' + (error.response?.data?.message || error.message), 'error');
+            console.error('Error checking invalid exam results:', error);
+            window?.showAlert?.('Error checking invalid exam results: ' + (error.response?.data?.message || error.message), 'error');
         } finally {
             setIsLoading(false);
         }
@@ -351,7 +351,7 @@ const Settings = ({ user }) => {
                 exam_ids: selectedZeroScoreExams
             });
             if (response.data.success) {
-                window?.showAlert?.(`Successfully deleted ${response.data.deleted_count} zero score exam result(s)!`, 'success');
+                window?.showAlert?.(`Successfully deleted ${response.data.deleted_count} invalid exam result(s)!`, 'success');
                 setShowDeleteConfirmation(false);
                 setShowZeroScoreModal(false);
                 setSelectedZeroScoreExams([]);
@@ -362,8 +362,8 @@ const Settings = ({ user }) => {
                 window?.showAlert?.('Delete failed: ' + response.data.message, 'error');
             }
         } catch (error) {
-            console.error('Error deleting zero score exams:', error);
-            window?.showAlert?.('Error deleting zero score exams: ' + (error.response?.data?.message || error.message), 'error');
+            console.error('Error deleting invalid exam results:', error);
+            window?.showAlert?.('Error deleting invalid exam results: ' + (error.response?.data?.message || error.message), 'error');
         } finally {
             setIsLoading(false);
         }
@@ -593,11 +593,11 @@ const Settings = ({ user }) => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                     </svg>
                                 </div>
-                                <h3 className="font-semibold text-[#1D293D] mb-1">Zero Score (0/150)</h3>
-                                <p className="text-sm text-slate-500 mb-4">Find and delete exam results with 0/150 score that may be bugged or failed.</p>
+                                <h3 className="font-semibold text-[#1D293D] mb-1">Invalid Exam Results</h3>
+                                <p className="text-sm text-slate-500 mb-4">Find and delete exam results with invalid data: correct=0, total_items=0, or empty category_breakdown [{}]</p>
                                 <button onClick={handleCheckZeroScoreExams} disabled={isLoading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                                     {isLoading ? <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> : null}
-                                    Check Zero Scores
+                                    Check Invalid Results
                                 </button>
                             </div>
                         </div>
@@ -1351,8 +1351,8 @@ const Settings = ({ user }) => {
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-white">Zero Score Exams (0/150)</h3>
-                                        <p className="text-sm text-white/80">Exam results with 0 correct answers that may be bugged</p>
+                                        <h3 className="text-lg font-semibold text-white">Invalid Exam Results</h3>
+                                        <p className="text-sm text-white/80">Exam results with invalid data that should be deleted</p>
                                     </div>
                                 </div>
                                 <button onClick={() => setShowZeroScoreModal(false)} className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200">
@@ -1368,7 +1368,7 @@ const Settings = ({ user }) => {
                                     <div className="p-6">
                                         <div className="mb-6">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h4 className="text-lg font-semibold text-[#1D293D]">Zero Score Exams Found</h4>
+                                                <h4 className="text-lg font-semibold text-[#1D293D]">Invalid Exam Results Found</h4>
                                                 <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold border border-orange-300">
                                                     {zeroScoreData.exams.length} found
                                                 </span>
@@ -1388,7 +1388,9 @@ const Settings = ({ user }) => {
                                                             </th>
                                                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">ID</th>
                                                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Examinee</th>
-                                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Score</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Correct</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Total Items</th>
+                                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Category Breakdown</th>
                                                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Status</th>
                                                             <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-[0.18em]">Finished At</th>
                                                         </tr>
@@ -1407,8 +1409,24 @@ const Settings = ({ user }) => {
                                                                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-[#1D293D]">{exam.id}</td>
                                                                 <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{exam.examinee_name || 'N/A'}</td>
                                                                 <td className="px-4 py-3 whitespace-nowrap text-sm">
-                                                                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full border bg-red-100 text-red-700 border-red-300">
-                                                                        {exam.correct || 0}/{exam.total_items || 150}
+                                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
+                                                                        exam.correct === 0 ? 'bg-red-100 text-red-700 border-red-300' : 'bg-slate-100 text-slate-700 border-slate-300'
+                                                                    }`}>
+                                                                        {exam.correct || 0}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
+                                                                        exam.total_items === 0 ? 'bg-red-100 text-red-700 border-red-300' : 'bg-slate-100 text-slate-700 border-slate-300'
+                                                                    }`}>
+                                                                        {exam.total_items || 0}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 whitespace-nowrap text-sm">
+                                                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
+                                                                        (!exam.category_breakdown || exam.category_breakdown === '[{}]' || exam.category_breakdown === '"[{}]"') ? 'bg-red-100 text-red-700 border-red-300' : 'bg-green-100 text-green-700 border-green-300'
+                                                                    }`}>
+                                                                        {(!exam.category_breakdown || exam.category_breakdown === '[{}]' || exam.category_breakdown === '"[{}]"') ? 'Empty [{}]' : 'Has Data'}
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-4 py-3 whitespace-nowrap text-sm">
@@ -1510,7 +1528,7 @@ const Settings = ({ user }) => {
 
                         <div className="mb-6">
                             <p className="text-sm text-slate-700 mb-4">
-                                You are about to permanently delete <strong>{selectedZeroScoreExams.length}</strong> zero score exam result(s). This action cannot be undone.
+                                You are about to permanently delete <strong>{selectedZeroScoreExams.length}</strong> invalid exam result(s). This action cannot be undone.
                             </p>
                             
                             <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">

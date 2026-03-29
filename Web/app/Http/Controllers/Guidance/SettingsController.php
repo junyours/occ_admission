@@ -725,25 +725,54 @@ class SettingsController extends Controller
     }
 
     /**
-     * Check exam results with 0/150 score that may be bugged
-     * Returns list of exams where correct = 0 and total_items = 150
-     * Also includes exams with status 'failed' or 'done' that have 0 score
+     * Check exam results with invalid data that should be deleted
+     * Returns list of exams where correct=0, total_items=0, or category_breakdown='[{}]'
      */
     public function checkZeroScoreExams(Request $request)
     {
         try {
-            // Get exam results where correct = 0 and total_items = 150
-            // Also include exams with status 'failed' or 'done' that have 0 score
-            $zeroScoreExams = ExamResult::where('correct', 0)
-                ->where(function($query) {
-                    // Either total_items is 150 (full exam) or status is failed/done
-                    $query->where('total_items', 150)
-                          ->orWhereIn('remarks', ['failed', 'done']);
-                })
-                ->with('examinee:id,lname,fname,mname')
-                ->get();
+            // Debug: Let's specifically check Result ID 10
+            $exam10 = ExamResult::where('resultId', 10)->first();
+            if ($exam10) {
+                Log::info('Debug Result ID 10', [
+                    'result_id' => $exam10->resultId,
+                    'correct' => $exam10->correct,
+                    'total_items' => $exam10->total_items,
+                    'category_breakdown' => $exam10->category_breakdown,
+                    'category_breakdown_raw' => var_export($exam10->category_breakdown, true),
+                    'category_breakdown_length' => strlen($exam10->category_breakdown ?? ''),
+                    'matches_correct_0' => $exam10->correct == 0,
+                    'matches_total_items_0' => $exam10->total_items == 0,
+                    'matches_null_category' => is_null($exam10->category_breakdown),
+                    'matches_empty_category' => $exam10->category_breakdown == '',
+                    'matches_braces_category' => $exam10->category_breakdown == '[{}]',
+                    'matches_trim_braces' => trim($exam10->category_breakdown ?? '') == '[{}]',
+                ]);
+            }
             
-            $examsData = $zeroScoreExams->map(function($exam) {
+            // Get exam results where any of the three conditions are met:
+            // 1. correct = 0
+            // 2. total_items = 0  
+            // 3. category_breakdown is empty, null, or contains only [{}]
+            $invalidExams = ExamResult::where(function($query) {
+                $query->where('correct', 0)
+                      ->orWhere('total_items', 0)
+                      ->orWhereNull('category_breakdown')
+                      ->orWhere('category_breakdown', '')
+                      ->orWhere('category_breakdown', '[{}]')
+                      ->orWhere('category_breakdown', '"[{}]"')  // Double quotes version
+                      ->orWhere('category_breakdown', '[]')
+                      ->orWhere('category_breakdown', '"[]"')  // Double quotes version
+                      ->orWhere('category_breakdown', '{}')
+                      ->orWhere('category_breakdown', '"{}"')  // Double quotes version
+                      ->orWhereRaw("TRIM(category_breakdown) = '[{}]'")
+                      ->orWhereRaw("TRIM(category_breakdown) = '\"[{}\"'")  // Double quotes with escaping
+                      ->orWhereRaw("TRIM(category_breakdown) = ''");
+            })
+            ->with('examinee:id,lname,fname,mname')
+            ->get();
+            
+            $examsData = $invalidExams->transform(function($exam) {
                 // Build full name from lname, fname, mname
                 $fullName = 'Unknown';
                 if ($exam->examinee) {
@@ -759,6 +788,7 @@ class SettingsController extends Controller
                     'examinee_name' => $fullName,
                     'correct' => $exam->correct,
                     'total_items' => $exam->total_items,
+                    'category_breakdown' => $exam->category_breakdown,
                     'status' => $exam->remarks,
                     'finished_at' => $exam->finished_at ? $exam->finished_at->format('Y-m-d H:i:s') : null,
                 ];
@@ -771,17 +801,17 @@ class SettingsController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            Log::error('Error checking zero score exams', ['error' => $e->getMessage()]);
+            Log::error('Error checking invalid exam results', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error checking zero score exams: ' . $e->getMessage()
+                'message' => 'Error checking invalid exam results: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Delete selected exam results with 0/150 score
-     * Permanently removes bugged exam records from the database
+     * Delete selected exam results with invalid data
+     * Permanently removes exam records where correct=0, total_items=0, or category_breakdown='[{}]'
      */
     public function deleteZeroScoreExams(Request $request)
     {
@@ -795,12 +825,22 @@ class SettingsController extends Controller
                 ], 400);
             }
             
-            // Get selected exams that match zero score criteria
+            // Get selected exams that match any of the three invalid conditions
             $examsToDelete = ExamResult::whereIn('resultId', $examIds)
-                ->where('correct', 0)
                 ->where(function($query) {
-                    $query->where('total_items', 150)
-                          ->orWhereIn('remarks', ['failed', 'done']);
+                    $query->where('correct', 0)
+                          ->orWhere('total_items', 0)
+                          ->orWhereNull('category_breakdown')
+                          ->orWhere('category_breakdown', '')
+                          ->orWhere('category_breakdown', '[{}]')
+                          ->orWhere('category_breakdown', '"[{}]"')  // Double quotes version
+                          ->orWhere('category_breakdown', '[]')
+                          ->orWhere('category_breakdown', '"[]"')  // Double quotes version
+                          ->orWhere('category_breakdown', '{}')
+                          ->orWhere('category_breakdown', '"{}"')  // Double quotes version
+                          ->orWhereRaw("TRIM(category_breakdown) = '[{}]'")
+                          ->orWhereRaw("TRIM(category_breakdown) = '\"[{}\"'")  // Double quotes with escaping
+                          ->orWhereRaw("TRIM(category_breakdown) = ''");
                 })
                 ->get();
             
@@ -808,24 +848,25 @@ class SettingsController extends Controller
             $errors = [];
             
             // Log details before deletion
-            $examDetails = $examsToDelete->map(function($exam) {
-                return [
-                    'result_id' => $exam->resultId,
-                    'examinee_id' => $exam->examineeId,
-                    'exam_id' => $exam->examId,
-                    'correct' => $exam->correct,
-                    'total_items' => $exam->total_items,
-                    'remarks' => $exam->remarks,
-                    'finished_at' => $exam->finished_at,
-                    'created_at' => $exam->created_at
-                ];
-            })->toArray();
+            $examDetails = [];
             
-            // Delete the selected exams
-            foreach ($examsToDelete as $exam) {
+            $examsToDelete->each(function($exam) use (&$deletedCount, &$errors, &$examDetails) {
                 try {
+                    $examDetails[] = [
+                        'result_id' => $exam->resultId,
+                        'examinee_id' => $exam->examineeId,
+                        'exam_id' => $exam->examId,
+                        'correct' => $exam->correct,
+                        'total_items' => $exam->total_items,
+                        'category_breakdown' => $exam->category_breakdown,
+                        'remarks' => $exam->remarks,
+                        'finished_at' => $exam->finished_at,
+                        'created_at' => $exam->created_at
+                    ];
+                    
                     $exam->delete();
                     $deletedCount++;
+                    
                 } catch (\Exception $e) {
                     $errors[] = "Failed to delete exam result ID {$exam->resultId}: {$e->getMessage()}";
                     Log::error('[Delete Zero Score] Failed to delete exam result', [
@@ -833,7 +874,7 @@ class SettingsController extends Controller
                         'error' => $e->getMessage()
                     ]);
                 }
-            }
+            });
             
             $message = "Successfully deleted {$deletedCount} zero score exam result(s)";
             if (!empty($errors)) {
