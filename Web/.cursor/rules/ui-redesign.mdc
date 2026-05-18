@@ -1,0 +1,45 @@
+---
+description: UI redesign standards — analyze full frontend code; reorder only; no backend changes
+globs: "**/resources/js/Pages/**/*.{jsx,tsx}"
+alwaysApply: false
+---
+
+# UI Redesign Rules
+
+## Goals
+
+- **Cleaner layout**, same product: same props, routes, actions, and displayed data.
+- **Easier navigation**: clear sections, one primary path per screen.
+- **Less cognitive load**: fewer equal-weight blocks above the fold.
+
+## Frontend only (default)
+
+Redesign tasks **do not change backend** (controllers, models, routes, migrations). See `frontend-redesign-only.mdc`.
+
+Read the **entire page file** and key imports before editing. Map every prop and handler — then reorder JSX and Tailwind only.
+
+## Do
+
+- Group into **3–4 sections** (e.g. Overview → Analytics → Recent).
+- Show each metric **once**; remove duplicate UI only (not duplicate data sources).
+- Use **tabs / collapsibles** when 3+ charts compete for attention.
+- Simplify list rows; keep one status indicator.
+- **View all** links to existing routes only.
+- Keep `#1D293D` / `#1447E6`; more space **between** sections.
+
+## Don't
+
+- Edit PHP controllers or add Inertia props during a redesign.
+- Remove features, handlers, or prop usages without tracing the full file.
+- Rename server fields in JSX (`exam-ref-no`, `full_name`, etc.).
+- Add npm packages for cosmetic changes.
+- Stack 10+ same-weight cards on one screen.
+
+## Quick checklist
+
+1. Read whole file + imports → inventory props, state, routes, empty states.
+2. Visualize current vs proposed section order.
+3. Implement JSX/layout only → `ReadLints`.
+4. Confirm links, props, and empty states still work.
+
+Skill: `.cursor/skills/ui-redesign/SKILL.md`

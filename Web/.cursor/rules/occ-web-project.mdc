@@ -1,0 +1,48 @@
+---
+description: OCC Admission Web app stack, paths, and agent defaults
+alwaysApply: true
+---
+
+# OCC Web — Project Context
+
+## Read entire files (always)
+
+For **any** file the user sends or references: read it **completely** (imports → export), plus linked components when relevant. Applies to every page, not only Dashboard. See `read-entire-files.mdc`.
+
+## Paths
+
+- Pages: `Web/resources/js/Pages/`
+- Components: `Web/resources/js/Components/`
+- Controllers: `Web/app/Http/Controllers/`
+- Migrations: `Web/database/migrations/` (modify existing; avoid new migrations unless necessary)
+- Web routes: `Web/routes/web.php`
+
+## Implementation defaults
+
+- Match existing file style (imports, naming, Tailwind patterns).
+- Add `console.log` for meaningful state/props during development/debug.
+- Do not commit `.env` or secrets.
+- Do not run drive-by refactors outside the task scope.
+- User validations and clear error feedback when adding forms or destructive actions.
+
+## Fullstack order (new features / API / data bugs)
+
+Use when adding features or fixing server-side data — **not** for UI-only redesigns:
+
+1. Read relevant **migration** for table columns.
+2. Check **model** relationships and fillable fields.
+3. Implement or update **controller** + Inertia props.
+4. Build or update **React page** using existing `Layout` / `Sidebar`.
+
+## UI redesign order (frontend only)
+
+When the user says redesign / reorganize / cleaner UI / easier navigation:
+
+1. Read the **entire** target page under `resources/js/Pages/` and related **Components** imports.
+2. Document props, handlers, routes, and empty states — **do not change backend**.
+3. Reorder and restyle JSX only (`frontend-redesign-only.mdc`, `ui-redesign.mdc`).
+4. Run `ReadLints` on edited frontend files.
+
+## User approval for large UI work
+
+For redesigns or multi-section pages: summarize the plan first; implement after explicit **go** / **proceed** unless the user says to skip review.

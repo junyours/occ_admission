@@ -1,0 +1,48 @@
+---
+description: Always read every file the user sends or references in full before editing
+alwaysApply: true
+---
+
+# Read entire files (mandatory — all tasks)
+
+When the user **@mentions**, **pastes**, or **points to any file** in this project — read the **complete file** before changing code or giving implementation advice.
+
+This applies to **every page and every file**, not only Dashboard:
+
+- `resources/js/Pages/**` (Guidance, Evaluator, auth, etc.)
+- `resources/js/Components/**`
+- Controllers, models, migrations — when the task includes them
+- Any path the user attaches or pastes in chat
+
+## Required steps
+
+1. **Read the full file** with the `Read` tool (line 1 through the last line). Do not rely on partial snippets, memory, or grep-only context for the file you will edit.
+2. If the user sends **multiple files**, read **each file in full** before editing any of them.
+3. **Follow imports**: when a page uses `Layout`, modals, hooks, or local components, read those files too if they affect behavior, props, or layout you are changing.
+4. **Understand structure first**: props, state, handlers, routes, conditions, empty states, list keys — then implement.
+5. **Do not skip** reading because the file is long; use offset/limit only to read in sequential chunks until the whole file is covered.
+
+## What “understand the structure” means
+
+Before editing, you should know:
+
+- What the component exports and what props it receives
+- Where data is displayed and which fields are used
+- What user actions exist (clicks, forms, navigation)
+- What must stay the same for the app to keep working
+
+## Redesign vs other work
+
+| Task type | Read full file | Backend edits |
+|-----------|----------------|---------------|
+| Redesign / reorganize UI | Yes | No (unless user asks) |
+| Bug fix on a page | Yes | Only if needed and user agrees |
+| New feature | Yes | Follow fullstack order |
+
+## Do not
+
+- Edit a file you have only partially read
+- Assume Dashboard patterns apply to another page without reading that page
+- Replace display logic without finding every use in the full file
+
+User expectation: **“Read the entire code, understand the structure, then work.”**

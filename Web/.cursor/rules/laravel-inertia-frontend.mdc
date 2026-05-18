@@ -1,0 +1,44 @@
+---
+description: Inertia page props, forms, and safe frontend-only changes
+globs: "**/resources/js/Pages/**/*.{jsx,tsx}"
+alwaysApply: false
+---
+
+# Inertia + React Pages
+
+## Props
+
+- Use props exactly as passed from controllers; do not rename server fields in redesigns.
+- Optional chaining for nested data: `stats?.active_exams`, `result.examinee?.full_name`.
+
+## Navigation & forms
+
+```jsx
+import { Link, router } from '@inertiajs/react';
+
+<Link href="/guidance/exam-results">View all</Link>
+
+router.post('/guidance/exams', formData, {
+  onSuccess: () => setSubmitting(false),
+  onError: (errors) => setSubmitting(false),
+});
+```
+
+## Frontend-only redesign (default for “redesign” requests)
+
+**Read the full page file first** — imports through export — and list every prop and handler before moving UI.
+
+| Allowed | Not allowed |
+|---------|-------------|
+| Section order, grids, spacing, typography | `*Controller.php`, models, migrations |
+| Tabs/collapsibles via `useState` | New Inertia props or renamed server keys |
+| Presentational helpers in the same `.jsx` file | New routes or API calls |
+| Same `Link` / `router` URLs and form payloads | Deleting empty states or actions |
+
+If data looks wrong, compare with the **original** prop path in the file and sibling pages — do not change the backend unless the user asks.
+
+## Accessibility
+
+- `aria-labelledby` on `<section>` with visible headings.
+- Buttons for tabs: `type="button"`, clear active state (e.g. `bg-[#1447E6] text-white`).
+- Sufficient contrast on navy/blue backgrounds (`text-white/80` for secondary text).

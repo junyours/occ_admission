@@ -49,7 +49,15 @@ class GuidanceController extends Controller
         ];
 
         $recent_exams = Exam::with('results')->latest()->take(5)->get();
-        $recent_results = ExamResult::with(['examinee', 'exam'])->latest()->take(10)->get();
+        // Only include results whose examinee row still exists (avoids "Unknown Student" from orphaned examineeId)
+        $recent_results = ExamResult::with([
+            'examinee:id,accountId,lname,fname,mname',
+            'exam:examId,exam-ref-no',
+        ])
+            ->whereHas('examinee')
+            ->latest()
+            ->take(10)
+            ->get();
 
         return Inertia::render('Guidance/Dashboard', [
             'user' => $user,

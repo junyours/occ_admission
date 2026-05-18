@@ -1,0 +1,49 @@
+---
+description: OCC Admission Web color, typography, and component tokens
+globs: "**/resources/js/**/*.{jsx,tsx,css}"
+alwaysApply: false
+---
+
+# OCC Design Tokens
+
+## Colors
+
+| Role | Value | Usage |
+|------|--------|--------|
+| Navy (brand dark) | `#1D293D` | Headers, sidebar, primary text |
+| Blue (brand accent) | `#1447E6` | CTAs, active states, charts, links |
+| Muted text | `text-slate-500` | Labels, subtitles |
+| Borders | `border-slate-200` | Cards, dividers |
+| Page background | `bg-gray-50` | Via `Layout` wrapper |
+
+Semantic: `emerald` pass/success, `amber` warning, `rose` danger — use sparingly.
+
+## Typography
+
+- Page title: `text-2xl`–`text-3xl font-bold text-[#1D293D]` (or white on navy header)
+- Section title: `text-lg font-semibold text-[#1D293D]` — **sentence case**, not all-caps
+- KPI number: `text-2xl font-semibold tabular-nums`
+- Avoid excessive `uppercase tracking-[0.2em]` on every label; it adds visual noise
+
+## Cards & sections
+
+```jsx
+// Section wrapper
+<section aria-labelledby="section-id" className="space-y-4">
+  <h2 id="section-id" className="text-lg font-semibold text-[#1D293D]">Overview</h2>
+  {/* content */}
+</section>
+
+// Standard card
+<div className="rounded-xl border border-slate-200 bg-white shadow-sm" />
+```
+
+## Reuse before inventing
+
+- `Layout`, `Sidebar`, `Topbar`, `ChartCard`
+- Inertia `Link` for navigation; `router.post` for forms
+- Existing page patterns under `Pages/Guidance/` and `Pages/Evaluator/`
+
+## Modals
+
+Overlay: `fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50`

@@ -1,0 +1,61 @@
+---
+description: Frontend-only UI redesign — read full page code first; never change backend unless asked
+globs: "**/resources/js/**/*.{jsx,tsx}"
+alwaysApply: false
+---
+
+# Frontend-only redesign (mandatory)
+
+When the user asks to **redesign**, **reorganize**, **declutter**, or **improve navigation** on **any page they send** — treat it as **frontend-only** unless they explicitly request backend or API changes.
+
+**First:** read the **entire** pasted or @mentioned file(s) and understand structure (`read-entire-files.mdc`). Not Dashboard-only — **every** Guidance/Evaluator/auth page the user provides.
+
+## Scope
+
+| Allowed | Not allowed (without explicit user request) |
+|---------|-------------------------------------------|
+| Reorder JSX sections | Edit controllers (`*Controller.php`) |
+| Tailwind / layout / spacing | New or changed Inertia props |
+| Tabs, collapsibles, `useState` for UI | Migrations, models, routes in `web.php` |
+| Same `Link` / `router.post` URLs | New API endpoints |
+| Extract small presentational helpers in the same file | Rename or remap server field names in JSX |
+
+**Goal:** Easier to understand and navigate — **not** a new feature or data pipeline.
+
+## Before changing any JSX
+
+1. **Read the entire target file** from first import to last export (use `Read` on the full file, not snippets).
+2. **Read every import** used by that page (`Layout`, `ChartCard`, modals, child components) when they affect layout or props.
+3. **Build a mental map** (write it in the plan or a short comment to the user):
+
+   - Inertia **props** and how each is used
+   - **Local state** (`useState`, `useEffect`)
+   - **Derived values** (averages, filters, chart datasets)
+   - **Event handlers** and **routes** (`Link href`, `router.post`)
+   - **Empty / error states**
+   - **Keys** on lists (`resultId`, `examId`, etc.)
+
+4. **Do not remove or rename** a prop access until you confirm it is unused (search the file).
+5. **Do not replace** a display expression (e.g. `result.examinee?.full_name`) with a different path without checking the same pattern on a working page (e.g. `ExamResults.jsx`).
+
+## Understand, then rearrange
+
+- Redesign = **reorder**, **group**, **simplify chrome** — same data on screen.
+- If something displays wrong, **read how the original code read the prop** first. Prefer fixing JSX (fallbacks, helpers) over changing the backend.
+- Only suggest a backend change to the user; do not implement it during a frontend-only redesign.
+
+## Imports and contracts
+
+- Keep the component signature: same destructured props from Inertia.
+- Keep calculations that feed charts and KPIs unless moving them is a pure refactor with identical output.
+- Preserve `console.log` for debugging when adding new UI interactions.
+
+## Verification after edit
+
+- [ ] Full file still compiles; run `ReadLints` on edited paths
+- [ ] Every original prop is still referenced somewhere meaningful
+- [ ] All links and form actions unchanged
+- [ ] Empty states still render
+- [ ] No backend files in the diff
+
+Skill: `.cursor/skills/ui-redesign/SKILL.md`
