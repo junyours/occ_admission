@@ -4,8 +4,6 @@ import Layout from '../../Components/Layout';
 
 const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilters }) => {
     const [editingQuestion, setEditingQuestion] = useState(null);
-    const [showUploadModal, setShowUploadModal] = useState(false);
-    const [showDownloadModal, setShowDownloadModal] = useState(false);
     const [showImagePreviewModal, setShowImagePreviewModal] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(currentFilters?.category || '');
@@ -20,6 +18,7 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
         return saved ? JSON.parse(saved) : false;
     });
     const [highlightedQuestionId, setHighlightedQuestionId] = useState(null);
+    const [importToolsTab, setImportToolsTab] = useState('download');
 
     // Handle questionId query parameter - scroll to and highlight the question
     useEffect(() => {
@@ -114,7 +113,7 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
 
         router.post('/guidance/questions/upload', formData, {
             onSuccess: () => {
-                setShowUploadModal(false);
+                console.log('[QuestionBank] Upload success');
                 window.showAlert('Questions uploaded successfully', 'success');
             },
             onError: (errors) => {
@@ -339,313 +338,233 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
         return relevantOptions;
     };
 
+    const withImagesCount = questions.data ? questions.data.filter((q) => q.image).length : 0;
+    const visibleCount = questions.data ? questions.data.length : 0;
+    const todayLabel = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+    });
+
+    console.log('[QuestionBank] Render', {
+        total: questions.total,
+        visible: visibleCount,
+        category: selectedCategory,
+        filtersActive: hasActiveFilters,
+    });
+
     return (
         <Layout user={user}>
-            <div className="min-h-screen bg-slate-50 animate-up" style={{ animationDelay: '60ms' }}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-up" style={{ animationDelay: '120ms' }}>
-                    {/* Modern Header Section */}
-                    <div className="mb-8 animate-up" style={{ animationDelay: '180ms' }}>
-                        <div className="rounded-3xl border border-[#1D293D] bg-[#1D293D] text-white shadow-sm overflow-hidden">
-                            <div className="px-8 py-8">
-                                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
-                                            <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h1 className="text-3xl font-bold tracking-tight">Question Bank</h1>
-                                            <p className="mt-2 text-sm text-white/75">
-                                                Manage admission exam questions, categories, and supporting assets in one place.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <a
-                                            href="/guidance/questions/builder"
-                                            className="inline-flex items-center gap-2 rounded-xl border border-[#1447E6]/30 bg-[#1447E6] px-5 py-3 text-sm font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-[#1240d0]"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-                                            </svg>
-                                            Create Question
-                                        </a>
-                                        <a
-                                            href="/guidance/archived-questions"
-                                            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-white/20"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8l6 6m-6 0l6-6m2-3h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2z" />
-                                            </svg>
-                                            Archived
-                                        </a>
-                                        <a
-                                            href="/guidance/question-analysis-page"
-                                            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 hover:bg-white/20"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                            </svg>
-                                            Question Analysis
-                                        </a>
-                                    </div>
-                                </div>
-                                <div className="mt-6 flex flex-wrap items-center gap-3">
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/80">
-                                        Updated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                    </span>
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-[#1447E6]/30 bg-[#1447E6]/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-                                        {questions.total || 0} Questions
-                                    </span>
-                                </div>
+            <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
+                    <header className="rounded-2xl border border-[#1D293D] bg-[#1D293D] text-white shadow-sm">
+                        <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 sm:py-6 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <p className="text-sm text-white/70">{todayLabel}</p>
+                                <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Question Bank</h1>
+                                <p className="mt-2 max-w-xl text-sm text-white/75">
+                                    Manage exam questions, categories, and media in one place.
+                                </p>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Stats Cards */}
-                    <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Total Questions</p>
-                                    <p className="mt-3 text-3xl font-semibold text-[#1D293D]">{questions.total || 0}</p>
-                                    <p className="mt-2 text-xs font-medium text-[#1447E6]">Across all categories</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                    <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Categories</p>
-                                    <p className="mt-3 text-3xl font-semibold text-[#1D293D]">{categories.length}</p>
-                                    <p className="mt-2 text-xs font-medium text-[#1447E6]">Active classification tags</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                    <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M19 11H5m14-4H3m16 8H9m-2 2l3-3-3-3" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">With Images</p>
-                                    <p className="mt-3 text-3xl font-semibold text-[#1D293D]">
-                                        {questions.data ? questions.data.filter(q => q.image).length : 0}
-                                    </p>
-                                    <p className="mt-2 text-xs font-medium text-[#1447E6]">Questions containing media</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-200 border-t-[6px] border-t-[#1447E6] bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Current Page</p>
-                                    <p className="mt-3 text-3xl font-semibold text-[#1D293D]">{questions.data ? questions.data.length : 0}</p>
-                                    <p className="mt-2 text-xs font-medium text-[#1447E6]">Visible records</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                    {/* Modern Templates & Upload Section */}
-                    <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div className="mb-6 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-semibold text-[#1D293D]">Templates & Upload</h2>
-                                    <p className="text-sm text-slate-500">Download standardized formats or upload your curated questions.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            {/* Download Templates Card */}
-                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
-                                <div className="mb-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
-                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-[#1D293D]">Download Templates</h3>
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Ready-made formats</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowDownloadModal(!showDownloadModal)}
-                                        className="rounded-lg border border-[#1447E6]/20 bg-white px-3 py-2 text-xs font-semibold text-[#1447E6] transition-colors duration-200 hover:bg-[#1447E6]/10"
-                                    >
-                                        <svg className={`h-4 w-4 transition-transform ${showDownloadModal ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {showDownloadModal && (
-                                    <div className="space-y-3 animate-fadeIn">
-                                        <button
-                                            onClick={() => {
-                                                window.open('/guidance/questions/template', '_blank');
-                                                setShowDownloadModal(false);
-                                            }}
-                                            className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors duration-200 hover:border-[#1447E6]/30 hover:bg-[#1447E6]/5"
-                                        >
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
-                                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-[#1D293D]">Excel Template</p>
-                                                <p className="text-xs text-slate-500">Download .xlsx format</p>
-                                            </div>
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                window.open('/sample_questions_template.csv', '_blank');
-                                                setShowDownloadModal(false);
-                                            }}
-                                            className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors duration-200 hover:border-[#1447E6]/30 hover:bg-[#1447E6]/5"
-                                        >
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
-                                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-[#1D293D]">CSV Template</p>
-                                                <p className="text-xs text-slate-500">Download .csv format</p>
-                                            </div>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Upload Questions Card */}
-                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
-                                <div className="mb-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
-                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-[#1D293D]">Upload Questions</h3>
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Bulk import</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowUploadModal(!showUploadModal)}
-                                        className="rounded-lg border border-[#1447E6]/20 bg-white px-3 py-2 text-xs font-semibold text-[#1447E6] transition-colors duration-200 hover:bg-[#1447E6]/10"
-                                    >
-                                        <svg className={`h-4 w-4 transition-transform ${showUploadModal ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {showUploadModal && (
-                                    <div className="animate-fadeIn">
-                                        <div className="rounded-xl border border-slate-200 bg-white p-4">
-                                            <label className="mb-2 block text-sm font-semibold text-[#1D293D]">
-                                                Supported Formats
-                                            </label>
-                                            <p className="mb-3 text-xs text-slate-500">
-                                                CSV, Excel (.xlsx, .xls)
-                                            </p>
-                                            <p className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
-                                                CSV Format: question,option1,option2,option3,option4,correct_answer,category,image
-                                            </p>
-                                            <input
-                                                type="file"
-                                                accept=".csv,.xlsx,.xls"
-                                                onChange={handleFileUpload}
-                                                className="block w-full rounded-lg border border-slate-200 text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-[#1447E6]/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#1447E6] hover:file:bg-[#1447E6]/15"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Modern Filters & Questions Container */}
-                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        {/* Header with Filters and Minimize Toggle */}
-                        <div className="border-b border-slate-200 bg-slate-50 px-8 py-6">
-                            <div className="mb-6 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.5a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-semibold text-[#1D293D]">Filters & Questions</h2>
-                                        <p className="text-sm text-slate-500">Locate, filter, and curate exam questions quickly.</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={toggleTableMinimized}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#1447E6] hover:text-[#1447E6]"
+                            <div className="flex flex-wrap gap-2">
+                                <a
+                                    href="/guidance/questions/builder"
+                                    className="inline-flex items-center gap-2 rounded-lg bg-[#1447E6] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1039c4]"
                                 >
-                                    {isTableMinimized ? (
-                                        <>
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                            Show Table
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                            </svg>
-                                            Hide Table
-                                        </>
-                                    )}
+                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
+                                    </svg>
+                                    Create question
+                                </a>
+                                <a
+                                    href="/guidance/archived-questions"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
+                                >
+                                    Archived
+                                </a>
+                                <a
+                                    href="/guidance/question-analysis-page"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
+                                >
+                                    Question analysis
+                                </a>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section aria-labelledby="qb-overview-heading">
+                        <h2 id="qb-overview-heading" className="mb-4 text-lg font-semibold text-[#1D293D]">
+                            Overview
+                        </h2>
+                        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                            <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                                <p className="text-xs font-medium text-slate-500">Total questions</p>
+                                <p className="mt-1 text-2xl font-semibold tabular-nums text-[#1D293D]">{questions.total || 0}</p>
+                            </div>
+                            <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                                <p className="text-xs font-medium text-slate-500">Categories</p>
+                                <p className="mt-1 text-2xl font-semibold tabular-nums text-[#1D293D]">{categories.length}</p>
+                            </div>
+                            <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                                <p className="text-xs font-medium text-slate-500">With images (this page)</p>
+                                <p className="mt-1 text-2xl font-semibold tabular-nums text-[#1D293D]">{withImagesCount}</p>
+                            </div>
+                            <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                                <p className="text-xs font-medium text-slate-500">Showing now</p>
+                                <p className="mt-1 text-2xl font-semibold tabular-nums text-[#1D293D]">{visibleCount}</p>
+                            </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm">
+                            <span className="text-slate-500">
+                                Filtered total: <span className="font-semibold text-[#1D293D]">{currentCategoryCount}</span>
+                            </span>
+                            {searchQuery && (
+                                <>
+                                    <span className="hidden h-4 w-px bg-slate-200 sm:inline-block" aria-hidden="true" />
+                                    <span className="text-slate-500">
+                                        Search: <span className="font-semibold text-[#1447E6]">&quot;{searchQuery}&quot;</span>
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </section>
+
+                    <section aria-labelledby="qb-import-heading">
+                        <h2 id="qb-import-heading" className="mb-4 text-lg font-semibold text-[#1D293D]">
+                            Import tools
+                        </h2>
+                        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <div className="flex border-b border-slate-200">
+                                <button
+                                    type="button"
+                                    onClick={() => { setImportToolsTab('download'); console.log('[QuestionBank] Import tab: download'); }}
+                                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${importToolsTab === 'download' ? 'border-b-2 border-[#1447E6] text-[#1447E6]' : 'text-slate-500 hover:text-[#1D293D]'}`}
+                                >
+                                    Download templates
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setImportToolsTab('upload'); console.log('[QuestionBank] Import tab: upload'); }}
+                                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${importToolsTab === 'upload' ? 'border-b-2 border-[#1447E6] text-[#1447E6]' : 'text-slate-500 hover:text-[#1D293D]'}`}
+                                >
+                                    Upload questions
                                 </button>
                             </div>
+                            <div className="p-5">
+                                {importToolsTab === 'download' ? (
+                                    <div className="space-y-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                console.log('[QuestionBank] Download Excel template');
+                                                window.open('/guidance/questions/template', '_blank');
+                                            }}
+                                            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm transition-colors hover:border-[#1447E6]/30 hover:bg-[#1447E6]/5"
+                                        >
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
+                                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </span>
+                                            <span className="min-w-0 flex-1 font-semibold text-[#1D293D]">Excel template</span>
+                                            <span className="shrink-0 text-slate-500">.xlsx</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                console.log('[QuestionBank] Download CSV template');
+                                                window.open('/sample_questions_template.csv', '_blank');
+                                            }}
+                                            className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm transition-colors hover:border-[#1447E6]/30 hover:bg-[#1447E6]/5"
+                                        >
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
+                                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                            </span>
+                                            <span className="min-w-0 flex-1 font-semibold text-[#1D293D]">CSV template</span>
+                                            <span className="shrink-0 text-slate-500">.csv</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <p className="text-xs text-slate-500">
+                                            CSV or Excel (.xlsx, .xls). Columns: question, option1–4, correct_answer, category, image
+                                        </p>
+                                        <input
+                                            type="file"
+                                            accept=".csv,.xlsx,.xls"
+                                            onChange={handleFileUpload}
+                                            className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-[#1447E6]/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#1447E6] hover:file:bg-[#1447E6]/15"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </section>
 
-                            {/* Search Bar Section */}
-                            <div className="px-8 pt-6 pb-2">
-                                <form onSubmit={handleSearchSubmit} className="relative">
-                                    <div className="flex items-center gap-3">
+                    <section aria-labelledby="qb-questions-heading">
+                        <h2 id="qb-questions-heading" className="mb-4 text-lg font-semibold text-[#1D293D]">
+                            Questions
+                        </h2>
+                        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                            <div className="border-b border-slate-200 px-5 py-4">
+                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={toggleTableMinimized}
+                                            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-[#1447E6] hover:text-[#1447E6]"
+                                        >
+                                            {isTableMinimized ? 'Show table' : 'Hide table'}
+                                        </button>
+                                        {hasActiveFilters && (
+                                            <button
+                                                type="button"
+                                                onClick={clearFilters}
+                                                className="rounded-lg border border-[#1447E6] bg-[#1447E6] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1039c4]"
+                                            >
+                                                Clear filters
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="relative flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectAll}
+                                            onChange={handleSelectAll}
+                                            className="h-4 w-4 rounded border-slate-300 text-[#1447E6] focus:ring-[#1447E6]"
+                                        />
+                                        <span className="text-sm font-medium text-[#1D293D]">Select all</span>
+                                        {selectedQuestions.length > 0 && (
+                                            <div className="absolute right-0 top-full z-20 mt-2 min-w-64 rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
+                                                <p className="text-sm font-semibold text-[#1D293D]">
+                                                    {selectedQuestions.length} selected
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleBulkArchive}
+                                                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#1D293D] px-4 py-2 text-sm font-medium text-white hover:bg-[#142033]"
+                                                >
+                                                    Archive selected
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedQuestions([])}
+                                                    className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                                                >
+                                                    Clear selection
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="mt-4">
+                                    <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                         <div className="relative flex-1">
-                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                                <svg className="h-5 w-5 text-[#1447E6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                 </svg>
                                             </div>
@@ -653,16 +572,17 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
                                                 type="text"
                                                 value={searchQuery}
                                                 onChange={(e) => handleSearchChange(e.target.value)}
-                                                placeholder="Search questions, options, categories..."
-                                                className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-12 pr-4 text-sm font-medium text-[#1D293D] shadow-sm transition-colors duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/40"
+                                                placeholder="Search questions, options, categories…"
+                                                className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-10 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
                                             />
                                             {searchQuery && (
                                                 <button
                                                     type="button"
                                                     onClick={clearSearch}
-                                                    className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors duration-200 hover:text-slate-600"
+                                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
                                                 >
-                                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <span className="sr-only">Clear search</span>
+                                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                                     </svg>
                                                 </button>
@@ -670,178 +590,70 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
                                         </div>
                                         <button
                                             type="submit"
-                                            className="inline-flex items-center gap-2 rounded-xl border border-[#1447E6] bg-[#1447E6] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1240d0]"
+                                            className="rounded-lg bg-[#1447E6] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#1039c4]"
                                         >
-                                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
                                             Search
                                         </button>
-                                    </div>
-                                    {searchQuery && (
-                                        <div className="mt-3 flex items-center gap-2 text-sm">
-                                            <span className="inline-flex items-center gap-2 rounded-lg border border-[#1447E6]/30 bg-[#1447E6]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#1447E6]">
-                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                </svg>
-                                                Searching for: "{searchQuery}"
-                                            </span>
-                                        </div>
-                                    )}
-                                </form>
-                            </div>
+                                    </form>
+                                </div>
 
-                            {/* Modern Filters Section */}
-                            <div className="grid grid-cols-1 gap-6 px-8 pt-4 md:grid-cols-3">
-                                {/* Category Filter */}
-                                <div className="space-y-3">
-                                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Category Filter</label>
-                                    <select
-                                        value={selectedCategory}
-                                        onChange={(e) => handleCategoryChange(e.target.value)}
-                                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-[#1D293D] shadow-sm transition-colors duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/40"
-                                    >
-                                        <option value="">All Categories ({questions.total})</option>
-                                        {categories.map((category) => {
-                                            const categoryCount = categoryCounts[category] || 0;
-                                            return (
-                                                <option key={category} value={category}>
-                                                    {category} ({categoryCount})
+                                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-500">Category</label>
+                                        <select
+                                            value={selectedCategory}
+                                            onChange={(e) => handleCategoryChange(e.target.value)}
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                        >
+                                            <option value="">All categories ({questions.total})</option>
+                                            {categories.map((category) => {
+                                                const categoryCount = categoryCounts[category] || 0;
+                                                return (
+                                                    <option key={category} value={category}>
+                                                        {category} ({categoryCount})
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-500">Sort</label>
+                                        <select
+                                            value={sortOrder}
+                                            onChange={(e) => handleSortChange(e.target.value)}
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                        >
+                                            <option value="latest">Latest first</option>
+                                            <option value="oldest">Oldest first</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="mb-1 block text-xs font-medium text-slate-500">Per page</label>
+                                        <select
+                                            value={itemsPerPage}
+                                            onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
+                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-[#1D293D] focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/30"
+                                        >
+                                            {getDynamicItemsPerPageOptions().map((option) => (
+                                                <option key={option} value={option}>
+                                                    {option === -1 ? 'Show all' : `${option} per page`}
                                                 </option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-
-                                {/* Sort Order */}
-                                <div className="space-y-3">
-                                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Sort Order</label>
-                                    <select
-                                        value={sortOrder}
-                                        onChange={(e) => handleSortChange(e.target.value)}
-                                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-[#1D293D] shadow-sm transition-colors duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/40"
-                                    >
-                                        <option value="latest">Latest First</option>
-                                        <option value="oldest">Oldest First</option>
-                                    </select>
-                                </div>
-
-                                {/* Items per page */}
-                                <div className="space-y-3">
-                                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Items Per Page</label>
-                                    <select
-                                        value={itemsPerPage}
-                                        onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
-                                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-[#1D293D] shadow-sm transition-colors duration-200 focus:border-[#1447E6] focus:outline-none focus:ring-2 focus:ring-[#1447E6]/40"
-                                    >
-                                        {getDynamicItemsPerPageOptions().map((option) => (
-                                            <option key={option} value={option}>
-                                                {option === -1 ? 'Show All' : `${option} per page`}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Modern Results Summary */}
-                            <div className="border-t border-slate-200 pt-6">
-                                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                                    <div className="inline-flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
-                                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <span className="text-sm font-semibold text-[#1D293D]">
-                                                {questions.data ? questions.data.length : 0} of {currentCategoryCount} questions
-                                            </span>
-                                            <p className="text-xs text-slate-500">Currently displayed in this table</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        {hasActiveFilters && (
-                                            <button
-                                                onClick={clearFilters}
-                                                className="inline-flex items-center gap-2 rounded-xl border border-[#1447E6] bg-[#1447E6] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#1240d0]"
-                                            >
-                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                                Clear Filters
-                                            </button>
-                                        )}
+                                            ))}
+                                        </select>
                                     </div>
                                 </div>
+
+                                <p className="mt-4 text-sm text-slate-600">
+                                    <span className="font-semibold text-[#1D293D]">{visibleCount}</span>
+                                    {' '}of{' '}
+                                    <span className="font-semibold text-[#1D293D]">{currentCategoryCount}</span>
+                                    {' '}questions on this page
+                                </p>
                             </div>
-                        </div>
 
                         {/* Modern Questions Table - Conditionally Rendered */}
                         {!isTableMinimized && (
                             <>
-                                {/* Table Header */}
-                                <div className="border-b border-slate-200 bg-slate-50 px-8 py-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1447E6]/10 text-[#1447E6]">
-                                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-lg font-semibold text-[#1D293D]">Questions Table</h3>
-                                                <p className="text-sm text-slate-500">Manage and organize exam questions</p>
-                                            </div>
-                                        </div>
-                                        <div className="relative flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectAll}
-                                                onChange={handleSelectAll}
-                                                className="h-4 w-4 rounded border-slate-300 text-[#1447E6] focus:ring-[#1447E6]"
-                                            />
-                                            <span className="text-sm font-semibold text-[#1D293D]">Select All</span>
-
-                                            {/* Bulk Operations Modal */}
-                                            {selectedQuestions.length > 0 && (
-                                                <div className="absolute right-0 top-full z-10 mt-3 min-w-72 animate-fadeIn rounded-2xl border border-slate-200 bg-white shadow-lg">
-                                                    <div className="border-b border-slate-200 p-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1447E6]/10 text-[#1447E6]">
-                                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                </svg>
-                                                            </div>
-                                                            <div>
-                                                                <span className="text-sm font-semibold text-[#1D293D]">
-                                                                    {selectedQuestions.length} questions selected
-                                                                </span>
-                                                                <p className="text-xs text-slate-500">Choose an action below</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-3 p-4">
-                                                        <button
-                                                            onClick={handleBulkArchive}
-                                                            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#1D293D] bg-[#1D293D] px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#142033]"
-                                                        >
-                                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6m-6 0l6-6m2-3h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2z" />
-                                                            </svg>
-                                                            Archive Selected
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setSelectedQuestions([])}
-                                                            className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-200"
-                                                        >
-                                                            Clear Selection
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
                                 <div className="overflow-x-auto max-w-full">
                                     <table className="w-full divide-y divide-slate-200">
                                         <thead className="bg-slate-50">
@@ -1038,11 +850,10 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
                                 </div>
                             </>
                         )}
-                    </div>
 
-                    {/* Modern Pagination */}
-                    {questions.links && (
-                        <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
+                        {/* Pagination */}
+                        {questions.links && (
+                            <div className="border-t border-slate-200 px-5 py-4">
                             <div className="flex-1 flex justify-between sm:hidden">
                                 {questions.prev_page_url && (
                                     <a
@@ -1141,8 +952,9 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
+                        )}
+                        </div>
+                    </section>
             </div>
 
             <style>{`
@@ -1156,7 +968,7 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
             `}</style>
             {/* Modern Edit Question Modal */}
             {editingQuestion && (
-                <div className="fixed inset-0 bg-clear bg-opacity-20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="bg-[#1D293D] px-8 py-6 rounded-t-2xl">
                             <div className="flex items-center justify-between">
@@ -1435,7 +1247,7 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
 
             {/* Modern Image Preview Modal */}
             {showImagePreviewModal && previewImage && (
-                <div className="fixed inset-0 bg-clear bg-opacity-20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="bg-[#1D293D] px-8 py-6 rounded-t-2xl">
                             <div className="flex items-center justify-between">
@@ -1488,7 +1300,7 @@ const QuestionBank = ({ user, questions, categories, categoryCounts, currentFilt
 
             {/* Modern Archive Confirmation Modal */}
             {showArchiveModal && (
-                <div className="fixed inset-0 bg-clear bg-opacity-20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
                         <div className="bg-[#1D293D] px-8 py-6 rounded-t-2xl">
                             <div className="flex items-center space-x-3">
