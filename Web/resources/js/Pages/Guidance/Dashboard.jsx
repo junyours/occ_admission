@@ -221,7 +221,7 @@ const GuidanceDashboard = ({ user, guidanceCounselor, stats, recent_exams, recen
                             <p className="mt-1 text-2xl font-semibold tabular-nums text-[#1D293D]">
                                 {stats?.total_questions || 0}
                             </p>
-                        </div>
+                        </div>  
                         <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
                             <p className="text-xs font-medium text-slate-500">Active exams</p>
                             <p className="mt-1 text-2xl font-semibold tabular-nums text-[#1D293D]">

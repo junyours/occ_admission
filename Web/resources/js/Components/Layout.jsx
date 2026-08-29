@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Topbar from './Topbar';
 import Sidebar from './Sidebar';
+import { Head, usePage } from '@inertiajs/react';
 
-const Layout = ({ user, children, routes }) => {
+const Layout = ({ children, routes, title }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { user } = usePage().props.auth;
 
     // Add global alert function to window
     useEffect(() => {
@@ -11,11 +13,11 @@ const Layout = ({ user, children, routes }) => {
             window.showAlert = (message, type = 'info') => {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
-                
-                const bgColor = type === 'success' ? 'bg-green-500' : 
-                               type === 'error' ? 'bg-red-500' : 
-                               type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
-                
+
+                const bgColor = type === 'success' ? 'bg-green-500' :
+                    type === 'error' ? 'bg-red-500' :
+                        type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+
                 alertDiv.className += ` ${bgColor} text-white`;
                 alertDiv.innerHTML = `
                     <div class="flex items-center">
@@ -48,14 +50,15 @@ const Layout = ({ user, children, routes }) => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Head title={title || ''} />
             <Topbar user={user} />
-            
+
             <div className="pt-16 flex flex-1 min-h-0">
                 {/* Desktop Sidebar */}
                 <div className="hidden md:block md:sticky md:top-16 md:h-[calc(100vh-4rem)]">
                     <Sidebar user={user} routes={routes} />
                 </div>
-                
+
                 {/* Mobile Sidebar Overlay */}
                 {isMobileMenuOpen && (
                     <div className="fixed inset-0 z-40 md:hidden">
@@ -77,7 +80,7 @@ const Layout = ({ user, children, routes }) => {
                         </div>
                     </div>
                 )}
-                
+
                 {/* Mobile menu button */}
                 <div className="md:hidden fixed top-16 left-4 z-30">
                     <button
@@ -89,7 +92,7 @@ const Layout = ({ user, children, routes }) => {
                         </svg>
                     </button>
                 </div>
-                
+
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col min-h-0">
                     <main className="flex-1 p-4 md:p-6 overflow-auto min-h-0">

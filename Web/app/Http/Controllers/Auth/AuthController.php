@@ -30,42 +30,57 @@ class AuthController extends Controller
         if (Auth::check()) {
             return $this->redirectToDashboard(Auth::user());
         }
-        
+
         return Inertia::render('auth/Login');
     }
 
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'email' => [
+                'required',
+                'email',
+            ],
+            'password' => [
+                'required',
+                'string',
+            ],
+        ], [
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+            'password.required' => 'Please enter your password.',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        // Check if email exists
+        $user = User::where('email', $request->email)->first();
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $user = Auth::user();
-            
-            // Check user role and redirect accordingly
-            switch ($user->role) {
-                case 'evaluator':
-                    return redirect()->route('evaluator.dashboard');
-                case 'guidance':
-                    return redirect()->route('guidance.dashboard');
-                case 'student':
-                    // Students will be redirected to a student dashboard or exam page
-                    // For now, redirect to login with a message
-                    Auth::logout();
-                    return back()->withErrors(['email' => 'Student login is not available on the web. Please use the mobile app.']);
-                default:
-                    Auth::logout();
-                    return back()->withErrors(['email' => 'Invalid user role.']);
-            }
+        if (!$user) {
+            return back()
+                ->withErrors([
+                    'email' => 'Email address not found.',
+                ])
+                ->withInput($request->only('email', 'remember'));
         }
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
+        // Check password
+        if (!Auth::attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+        ], $request->boolean('remember'))) {
+
+            return back()
+                ->withErrors([
+                    'password' => 'Password is incorrect.',
+                ])
+                ->withInput($request->only('email', 'remember'));
+        }
+
+        // Regenerate session after successful login
+        $request->session()->regenerate();
+
+        $user = Auth::user();
+
+        return redirect()->route('/');
     }
 
     public function logout(Request $request)
@@ -73,7 +88,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         return redirect()->route('login');
     }
 
@@ -88,8 +103,8 @@ class AuthController extends Controller
                 return response()->json([
                     'authenticated' => true,
                     'role' => $user->role,
-                    'redirect_url' => $user->role === 'evaluator' 
-                        ? route('evaluator.dashboard') 
+                    'redirect_url' => $user->role === 'evaluator'
+                        ? route('evaluator.dashboard')
                         : route('guidance.dashboard')
                 ]);
             } else {
@@ -99,7 +114,7 @@ class AuthController extends Controller
                 ], 401);
             }
         }
-        
+
         // For non-AJAX requests, redirect based on auth status
         if (Auth::check()) {
             return $this->redirectToDashboard(Auth::user());
@@ -202,9 +217,9 @@ class AuthController extends Controller
         if (Auth::check()) {
             return $this->redirectToDashboard(Auth::user());
         }
-        
+
         $settings = ExamRegistrationSetting::getCurrentSettings();
-        
+
         if (!$settings->registration_open) {
             return Inertia::render('auth/Register', [
                 'registrationOpen' => false,
@@ -311,7 +326,7 @@ class AuthController extends Controller
             if (!empty($request->mname)) {
                 $fullName = $request->fname . ' ' . $request->mname . ' ' . $request->lname;
             }
-            
+
             $user = User::create([
                 'username' => $fullName, // Use full name as username
                 'email' => $request->email,
@@ -352,7 +367,7 @@ class AuthController extends Controller
 
             // Get current registration settings for academic year and semester
             $settings = ExamRegistrationSetting::getCurrentSettings();
-            
+
             // Create examinee registration record (only exam assignment data)
             $registration = ExamineeRegistration::create([
                 'examinee_id' => $examinee->id,
@@ -368,10 +383,9 @@ class AuthController extends Controller
             DB::commit();
 
             return redirect()->route('login')->with('success', 'Registration successful! Please login to the mobile app to see your exam schedule.');
-
         } catch (\Exception $e) {
             DB::rollback();
-            
+
             // Log the error for debugging
             Log::error('Registration failed: ' . $e->getMessage(), [
                 'user_email' => $request->email,
@@ -410,7 +424,11 @@ class AuthController extends Controller
         }
 
         if ($existingUser && !$existingUser->email_verified_at && $existingUser->created_at->lt(now()->subMinutes(20))) {
-            try { $existingUser->delete(); } catch (\Exception $e) { Log::warning('Failed to delete expired unverified user', ['email' => $emailInput]); }
+            try {
+                $existingUser->delete();
+            } catch (\Exception $e) {
+                Log::warning('Failed to delete expired unverified user', ['email' => $emailInput]);
+            }
             $existingUser = null;
         }
 
@@ -419,7 +437,10 @@ class AuthController extends Controller
             'fname' => 'required|string|max:255',
             'mname' => 'nullable|string|max:255',
             'email' => [
-                'required', 'string', 'email', 'max:255',
+                'required',
+                'string',
+                'email',
+                'max:255',
                 $existingUser ? Rule::unique('users', 'email')->ignore($existingUser->id) : Rule::unique('users', 'email')
             ],
             'password' => 'required|string|min:8|confirmed',
@@ -475,7 +496,7 @@ class AuthController extends Controller
                     'role' => 'student',
                     'email_verified_at' => null,
                 ]);
-                
+
                 // Log successful user creation
                 Log::info('[Registration] User created successfully', [
                     'user_id' => $existingUser->id,
@@ -484,7 +505,7 @@ class AuthController extends Controller
                 ]);
             } catch (\Exception $e) {
                 Log::error('[Registration] Failed creating temp user', [
-                    'email' => $email, 
+                    'email' => $email,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
                 ]);
@@ -496,7 +517,7 @@ class AuthController extends Controller
                     'username' => $fullName,
                     'password' => Hash::make($validated['password']),
                 ]);
-                
+
                 Log::info('[Registration] User updated successfully', [
                     'user_id' => $existingUser->id,
                     'email' => $email,
@@ -616,7 +637,10 @@ class AuthController extends Controller
         }
 
         if ($user->created_at->lt(now()->subMinutes(20))) {
-            try { $user->delete(); } catch (\Exception $e) {}
+            try {
+                $user->delete();
+            } catch (\Exception $e) {
+            }
             return back()->withErrors(['registration' => 'Verification expired. Please restart registration.']);
         }
 
@@ -670,7 +694,7 @@ class AuthController extends Controller
             if (!empty($pending['mname'])) {
                 $fullName = $pending['fname'] . ' ' . $pending['mname'] . ' ' . $pending['lname'];
             }
-            
+
             Mail::to($email)->send(new RegistrationVerificationCode($code, $fullName));
         } catch (\Exception $e) {
             Log::error('Failed to resend registration verification email', [
@@ -743,7 +767,7 @@ class AuthController extends Controller
                 ]);
                 throw new \RuntimeException('Pending user not found.');
             }
-            
+
             // Log pending data validation
             Log::info('[Registration] Pending data validation', [
                 'email' => $email,
@@ -799,7 +823,7 @@ class AuthController extends Controller
                     'parent_phone' => $pending['parent_phone'],
                     'Profile' => $pending['profile_data'],
                 ]);
-                
+
                 Log::info('[Registration] Examinee created successfully', [
                     'examinee_id' => $examinee->id,
                     'user_id' => $user->id,
@@ -887,13 +911,13 @@ class AuthController extends Controller
     {
         try {
             $settings = ExamRegistrationSetting::getCurrentSettings();
-            
+
             // If no settings configured, use default values for assignment
             $studentsPerDay = $settings->students_per_day ?? 40;
-            
+
             // Calculate assignment date (2 days after registration, skipping weekends)
             $assignmentDate = \Carbon\Carbon::parse($registration->registration_date)->addDays(2);
-            
+
             // Skip weekends (Saturday = 6, Sunday = 0)
             while ($assignmentDate->dayOfWeek == 0 || $assignmentDate->dayOfWeek == 6) {
                 $assignmentDate->addDay();
@@ -903,7 +927,7 @@ class AuthController extends Controller
             if ($settings->exam_start_date && $settings->exam_end_date) {
                 $examStartDate = \Carbon\Carbon::parse($settings->exam_start_date);
                 $examEndDate = \Carbon\Carbon::parse($settings->exam_end_date);
-                
+
                 if ($assignmentDate->lt($examStartDate)) {
                     $assignmentDate = $examStartDate;
                     // Skip weekends for exam start date too
@@ -1055,4 +1079,28 @@ class AuthController extends Controller
             Log::error('Auto-assignment failed: ' . $e->getMessage());
         }
     }
-} 
+
+    public function homeDirector()
+    {
+        if (Auth::check()) {
+            $user = Auth::user();
+            switch ($user->role) {
+                case 'evaluator':
+                    return redirect()->route('evaluator.dashboard');
+                case 'guidance':
+                    return redirect()->route('guidance.dashboard');
+                case 'admin':
+                    return redirect()->route('admin.manage-password');
+                case 'student':
+                    // Students should use mobile app
+                    Auth::logout();
+                    return redirect()->route('login')->with('info', 'Students should use the mobile application.');
+                default:
+                    Auth::logout();
+                    return redirect()->route('login')->with('error', 'Invalid user role. Please contact administrator.');
+            }
+        }
+
+        return redirect()->route('login');
+    }
+}

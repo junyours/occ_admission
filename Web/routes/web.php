@@ -20,25 +20,7 @@ use App\Http\Controllers\Guidance\AI\CourseDescriptionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', function () {
-    if (Auth::check()) {
-        $user = Auth::user();
-        switch ($user->role) {
-            case 'evaluator':
-                return redirect()->route('evaluator.dashboard');
-            case 'guidance':
-                return redirect()->route('guidance.dashboard');
-            case 'student':
-                // Students should use mobile app
-                Auth::logout();
-                return redirect()->route('login')->with('info', 'Students should use the mobile application.');
-            default:
-                Auth::logout();
-                return redirect()->route('login')->with('error', 'Invalid user role. Please contact administrator.');
-        }
-    }
-    return Inertia::render('auth/Login');
-});
+Route::get('/', [AuthController::class, 'homeDirector'])->name('/');
 
 // Sample file routes
 Route::get('/sample_questions.csv', function () {
@@ -79,6 +61,7 @@ Route::get('/download-apk', function () {
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware(['guest', 'prevent.back', 'auth.validator']);
 Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware(['guest', 'prevent.back', 'auth.validator']);
+;
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/auth-check', [AuthController::class, 'checkAuthStatus'])->name('auth.check');
 
@@ -368,3 +351,5 @@ Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancel
     });
 });
 
+require __DIR__ . '/AdminRoute.php';
+require __DIR__ . '/UserRoute.php';

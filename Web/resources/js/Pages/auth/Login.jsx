@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useForm, usePage } from '@inertiajs/react';
-
-const LOADING_MESSAGES = [
-    'Validating your credentials...',
-    'Securing your session...',
-    'Preparing your dashboard...',
-];
-
+    
 export default function Login() {
     const { props } = usePage();
     const { data, setData, post, processing, errors } = useForm({
@@ -16,28 +10,11 @@ export default function Login() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [currentLoadingMessageIndex, setCurrentLoadingMessageIndex] = useState(0);
-
-    useEffect(() => {
-        if (!isLoading) return;
-        const interval = setInterval(() => {
-            setCurrentLoadingMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-        }, 2200);
-        return () => clearInterval(interval);
-    }, [isLoading]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setIsLoading(true);
-        const startTime = Date.now();
-        post('/login', {
-            onFinish: () => {
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, 8000 - elapsed);
-                setTimeout(() => setIsLoading(false), remaining);
-            },
-        });
+
+        post('/login');
     };
 
     return (
@@ -57,7 +34,7 @@ export default function Login() {
             `}} />
 
             {/* Loading overlay */}
-            {isLoading && (
+            {/* {processing && (
                 <div className="fixed inset-0 z-[9999] bg-slate-900/95 backdrop-blur-sm flex items-center justify-center">
                     <div className="text-center px-6">
                         <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
@@ -65,10 +42,9 @@ export default function Login() {
                         </div>
                         <div className="w-10 h-10 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5" />
                         <p className="text-white font-medium text-lg">Signing you in</p>
-                        <p className="text-slate-400 text-sm mt-1">{LOADING_MESSAGES[currentLoadingMessageIndex]}</p>
                     </div>
                 </div>
-            )}
+            )} */}
 
             <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
                 <div className="w-full max-w-[420px]">
