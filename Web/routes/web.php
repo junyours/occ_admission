@@ -60,8 +60,7 @@ Route::get('/download-apk', function () {
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware(['guest', 'prevent.back', 'auth.validator']);
-Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware(['guest', 'prevent.back', 'auth.validator']);
-;
+Route::post('/login', [AuthController::class, 'login'])->name('login.post')->middleware(['guest', 'prevent.back', 'auth.validator']);;
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/auth-check', [AuthController::class, 'checkAuthStatus'])->name('auth.check');
 
@@ -90,7 +89,7 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
     Route::prefix('evaluator')->name('evaluator.')->group(function () {
         // Question Analysis (Evaluator)
         Route::get('/question-analysis', [\App\Http\Controllers\Evaluator\QuestionAnalysisController::class, 'getQuestionDifficultyAnalysis'])->name('question-analysis');
-        Route::get('/question-analysis-page', function() {
+        Route::get('/question-analysis-page', function () {
             return Inertia::render('Evaluator/QuestionAnalysis', [
                 'user' => Auth::user()
             ]);
@@ -100,7 +99,7 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::get('/profile', [EvaluatorController::class, 'profile'])->name('profile');
         Route::put('/profile', [EvaluatorController::class, 'updateProfile'])->name('profile.update');
         Route::put('/profile/password', [EvaluatorController::class, 'updatePassword'])->name('profile.password');
-        
+
         // Department exam management
         Route::get('/exam-builder', [DepartmentExamController::class, 'builder'])->name('exam-builder');
         Route::get('/department-exams', [DepartmentExamController::class, 'index'])->name('department-exams');
@@ -109,7 +108,7 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::get('/department-exams/{id}/pdf', [DepartmentExamController::class, 'downloadExamPdf'])->name('department-exams.pdf');
         Route::put('/department-exams/{id}', [DepartmentExamController::class, 'update'])->name('department-exams.update');
         Route::delete('/department-exams/{id}', [DepartmentExamController::class, 'destroy'])->name('department-exams.delete');
-        
+
         // Department Exam Results
         Route::get('/exam-results', [DepartmentExamController::class, 'examResults'])->name('exam-results');
         Route::get('/exam-results/{id}', [DepartmentExamController::class, 'showExamResult'])->name('exam-results.show');
@@ -117,11 +116,13 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::get('/exam-results/{id}/export', [DepartmentExamController::class, 'exportSinglePdf'])->name('exam-results.single-export');
 
         // Exam Monitoring (departmental-only view for evaluators)
-        Route::get('/exam-monitoring', function () { return Inertia::render('Evaluator/ExamMonitoring', ['user' => Auth::user()]); })->name('exam-monitoring');
+        Route::get('/exam-monitoring', function () {
+            return Inertia::render('Evaluator/ExamMonitoring', ['user' => Auth::user()]);
+        })->name('exam-monitoring');
         Route::get('/exam-monitoring/status', [GuidanceController::class, 'getDepartmentalExamStatuses'])->name('exam-monitoring.status');
-        
+
         // Debug route
-        Route::get('/debug-exam-results', function() {
+        Route::get('/debug-exam-results', function () {
             $count = \App\Models\DepartmentExamResult::count();
             $results = \App\Models\DepartmentExamResult::all();
             return response()->json([
@@ -129,19 +130,19 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
                 'results' => $results->toArray()
             ]);
         });
-        
+
         // Debug question bank counts
-        Route::get('/debug-question-bank', function() {
+        Route::get('/debug-question-bank', function () {
             $totalQuestions = \App\Models\DepartmentExamBank::count();
             $testerTotal = \App\Models\DepartmentExamBank::where('department', 'TESTER')->count();
             $testerActive = \App\Models\DepartmentExamBank::where('department', 'TESTER')->where('status', 1)->count();
             $testerArchived = \App\Models\DepartmentExamBank::where('department', 'TESTER')->where('status', 0)->count();
-            
+
             $statusBreakdown = \App\Models\DepartmentExamBank::where('department', 'TESTER')
                 ->selectRaw('status, COUNT(*) as count')
                 ->groupBy('status')
                 ->get();
-            
+
             return response()->json([
                 'total_questions' => $totalQuestions,
                 'tester_total' => $testerTotal,
@@ -151,7 +152,7 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
                 'explanation' => 'The QuestionBank shows only active questions (status=1). Archived questions (status=0) are filtered out.'
             ]);
         });
-        
+
         // Question bank management
         Route::get('/question-bank', [QuestionBankController::class, 'index'])->name('question-bank');
         Route::get('/question-builder', [QuestionBankController::class, 'builder'])->name('question-builder');
@@ -164,21 +165,21 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::get('/archived-questions', [QuestionBankController::class, 'archivedQuestions'])->name('archived-questions');
         Route::put('/question-bank/{id}/restore', [QuestionBankController::class, 'restore'])->name('question-bank.restore');
         Route::post('/question-bank/bulk-restore', [QuestionBankController::class, 'bulkRestore'])->name('question-bank.bulk-restore');
-        
+
         // Question import
         Route::get('/question-import', [EvaluatorQuestionImportController::class, 'index'])->name('question-import');
         Route::post('/question-import', [EvaluatorQuestionImportController::class, 'import'])->name('question-import.store');
         Route::get('/question-import/template', [EvaluatorQuestionImportController::class, 'generateTemplate'])->name('question-import.template');
-        
+
         // [Fixed] Departmental Exam Results (handled by DepartmentExamController)
         // Removed legacy ExamResultsController routes that shadowed the departmental results page
-        
+
         // Student results
         Route::get('/student-results', [StudentResultsController::class, 'index'])->name('student-results');
         Route::get('/student-results/{id}', [StudentResultsController::class, 'show'])->name('student-results.show');
         Route::get('/student-results/{id}/verify', [StudentResultsController::class, 'verifyStudent'])->name('student-results.verify');
         Route::get('/student-results/export', [StudentResultsController::class, 'export'])->name('student-results.export');
-        
+
         // Legacy routes for backward compatibility
         Route::get('/exams', [EvaluatorController::class, 'exams'])->name('exams');
         Route::get('/results', [EvaluatorController::class, 'results'])->name('results');
@@ -188,17 +189,17 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
     // Guidance Counselor routes
     Route::prefix('guidance')->name('guidance.')->group(function () {
 
-        
+
         Route::get('/dashboard', [GuidanceController::class, 'dashboard'])->name('dashboard');
         Route::get('/profile', [GuidanceController::class, 'profile'])->name('profile');
         Route::get('/students', [GuidanceController::class, 'students'])->name('students');
         Route::get('/recommendations', [GuidanceController::class, 'recommendations'])->name('recommendations');
         Route::get('/reports', [GuidanceController::class, 'reports'])->name('reports');
         Route::get('/preferred-courses', [PreferredCourseController::class, 'index'])->name('preferred-courses');
-        
+
         // Personality type lookup API for popovers
         Route::get('/personality-types/{type}', [GuidanceController::class, 'getPersonalityType'])->name('personality-types.show');
-        
+
         // Question Bank Management
         Route::get('/question-bank', [GuidanceController::class, 'questionBank'])->name('question-bank');
         Route::get('/questions/builder', [GuidanceController::class, 'questionBuilder'])->name('questions.builder');
@@ -213,28 +214,28 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::post('/questions/bulk-restore', [GuidanceController::class, 'bulkRestore'])->name('questions.bulk-restore');
         Route::put('/questions/{id}/archive', [GuidanceController::class, 'archiveQuestion'])->name('questions.archive');
         Route::put('/questions/{id}/restore', [GuidanceController::class, 'restoreQuestion'])->name('questions.restore');
-        
+
         // Exam Management
         Route::get('/exam-management', [GuidanceController::class, 'examManagement'])->name('exam-management');
         Route::post('/exams', [\App\Http\Controllers\Guidance\ExamCreationController::class, 'createExam'])->name('exams.store');
         Route::put('/exams/{examId}/toggle-status', [GuidanceController::class, 'toggleExamStatus'])->name('exams.toggle-status');
-        
+
         // Personality Test Management
         Route::get('/personality-test-management', [GuidanceController::class, 'personalityTestManagement'])->name('personality-test-management');
         Route::post('/personality-questions', [GuidanceController::class, 'createPersonalityQuestion'])->name('personality.store');
         Route::post('/personality-questions/upload', [GuidanceController::class, 'uploadPersonalityQuestions'])->name('personality.upload');
         Route::put('/personality-questions/{id}', [GuidanceController::class, 'updatePersonalityQuestion'])->name('personality.update');
         Route::delete('/personality-questions/{id}', [GuidanceController::class, 'deletePersonalityQuestion'])->name('personality.delete');
-        
+
         // Profile Management
         Route::put('/profile', [GuidanceController::class, 'updateProfile'])->name('profile.update');
-        
+
         // Course Management
         Route::get('/course-management', [GuidanceController::class, 'courseManagement'])->name('course-management');
         Route::post('/courses', [GuidanceController::class, 'createCourse'])->name('courses.store');
         Route::put('/courses/{id}', [GuidanceController::class, 'updateCourse'])->name('courses.update');
         Route::delete('/courses/{id}', [GuidanceController::class, 'deleteCourse'])->name('courses.delete');
-        
+
         // Course Description Management
         Route::post('/course-descriptions/generate', [CourseDescriptionController::class, 'generateDescription'])->name('course-descriptions.generate');
         Route::post('/course-descriptions/store', [CourseDescriptionController::class, 'storeDescription'])->name('course-descriptions.store');
@@ -242,16 +243,16 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::get('/course-descriptions/stats', [CourseDescriptionController::class, 'getStats'])->name('course-descriptions.stats');
         Route::put('/course-descriptions/{id}', [CourseDescriptionController::class, 'update'])->name('course-descriptions.update');
         Route::delete('/course-descriptions/{id}', [CourseDescriptionController::class, 'destroy'])->name('course-descriptions.delete');
-        
+
         // Recommendation Rules Management
-Route::get('/recommendation-rules-management', [RecommendationRulesController::class, 'index'])->name('recommendation-rules-management');
-Route::post('/recommendation-rules', [RecommendationRulesController::class, 'store'])->name('recommendation-rules.store');
-Route::put('/recommendation-rules/{id}', [RecommendationRulesController::class, 'update'])->name('recommendation-rules.update');
-Route::delete('/recommendation-rules/{id}', [RecommendationRulesController::class, 'destroy'])->name('recommendation-rules.delete');
-Route::post('/generate-all-rules', [RecommendationRulesController::class, 'generateAllRules'])->name('generate-all-rules');
-// Exam Result Details (Guidance)
-Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getExamResultDetails'])->name('exam-results.details');
-        
+        Route::get('/recommendation-rules-management', [RecommendationRulesController::class, 'index'])->name('recommendation-rules-management');
+        Route::post('/recommendation-rules', [RecommendationRulesController::class, 'store'])->name('recommendation-rules.store');
+        Route::put('/recommendation-rules/{id}', [RecommendationRulesController::class, 'update'])->name('recommendation-rules.update');
+        Route::delete('/recommendation-rules/{id}', [RecommendationRulesController::class, 'destroy'])->name('recommendation-rules.delete');
+        Route::post('/generate-all-rules', [RecommendationRulesController::class, 'generateAllRules'])->name('generate-all-rules');
+        // Exam Result Details (Guidance)
+        Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getExamResultDetails'])->name('exam-results.details');
+
         // Exam Results
         Route::get('/exam-results', [GuidanceController::class, 'examResults'])->name('exam-results');
         Route::get('/exam-results/{id}/preview', [GuidanceController::class, 'examResultPreview'])->name('exam-results.preview');
@@ -265,17 +266,17 @@ Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getE
         Route::post('/exam-results/{id}/unarchive', [GuidanceController::class, 'unarchiveResult'])->name('exam-results.unarchive');
         Route::get('/examinee/{id}/profile-image', [GuidanceController::class, 'getExamineeProfileImage'])->name('examinee.profile-image');
         Route::get('/question-analysis', [GuidanceController::class, 'getQuestionDifficultyAnalysis'])->name('question-analysis');
-        Route::get('/question-analysis-page', function() {
+        Route::get('/question-analysis-page', function () {
             return Inertia::render('Guidance/QuestionAnalysis', [
                 'user' => Auth::user()
             ]);
         })->name('question-analysis-page');
-        
+
         // Exam Monitoring
         Route::get('/exam-monitoring', [GuidanceController::class, 'examMonitoring'])->name('exam-monitoring');
         Route::get('/exam-monitoring/status', [GuidanceController::class, 'getExamStatuses'])->name('exam-monitoring.status');
         Route::get('/exam-monitoring/departmental-status', [GuidanceController::class, 'getDepartmentalExamStatuses'])->name('exam-monitoring.departmental-status');
-        
+
         // Exam Registration Management
         Route::get('/exam-registration-management', [GuidanceController::class, 'examRegistrationManagement'])->name('exam-registration-management');
         Route::get('/exam-date-selection', [GuidanceController::class, 'examDateSelection'])->name('exam-date-selection');
@@ -289,7 +290,7 @@ Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getE
         Route::post('/bulk-reschedule-registrations', [GuidanceController::class, 'bulkRescheduleRegistrations'])->name('bulk-reschedule-registrations');
         Route::get('/exams/{id}/pdf', [GuidanceController::class, 'downloadExamPdf'])->name('guidance.exams.pdf');
         Route::get('/closed-exam-schedules', [GuidanceController::class, 'closedExamSchedules'])->name('closed-exam-schedules');
-        
+
         // Summarized Report
         Route::post('/summarized-report', [GuidanceController::class, 'generateSummarizedReport'])->name('summarized-report');
         Route::post('/summarized-report/batch', [GuidanceController::class, 'generateSummarizedReportBatch'])->name('summarized-report.batch');
@@ -301,12 +302,12 @@ Route::get('/exam-results/{resultId}/details', [GuidanceController::class, 'getE
         Route::put('/update-exam-schedule/{id}', [GuidanceController::class, 'updateExamSchedule'])->name('update-exam-schedule');
         Route::post('/sync-schedule-counts', [GuidanceController::class, 'syncScheduleCounts'])->name('sync-schedule-counts');
         Route::post('/reschedule-examinees', [GuidanceController::class, 'rescheduleExaminees'])->name('reschedule-examinees');
-Route::post('/close-completed-schedules', [GuidanceController::class, 'closeCompletedSchedules'])->name('close-completed-schedules');
-Route::post('/archive-completed-registrations', [GuidanceController::class, 'archiveCompletedRegistrations'])->name('archive-completed-registrations');
-Route::post('/bulk-archive-registrations', [GuidanceController::class, 'bulkArchiveRegistrations'])->name('bulk-archive-registrations');
-Route::post('/unarchive-registration/{id}', [GuidanceController::class, 'unarchiveRegistration'])->name('unarchive-registration');
-Route::post('/bulk-unarchive-registrations', [GuidanceController::class, 'bulkUnarchiveRegistrations'])->name('bulk-unarchive-registrations');
-Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancelNoShowRegistrations'])->name('cancel-no-show-registrations');
+        Route::post('/close-completed-schedules', [GuidanceController::class, 'closeCompletedSchedules'])->name('close-completed-schedules');
+        Route::post('/archive-completed-registrations', [GuidanceController::class, 'archiveCompletedRegistrations'])->name('archive-completed-registrations');
+        Route::post('/bulk-archive-registrations', [GuidanceController::class, 'bulkArchiveRegistrations'])->name('bulk-archive-registrations');
+        Route::post('/unarchive-registration/{id}', [GuidanceController::class, 'unarchiveRegistration'])->name('unarchive-registration');
+        Route::post('/bulk-unarchive-registrations', [GuidanceController::class, 'bulkUnarchiveRegistrations'])->name('bulk-unarchive-registrations');
+        Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancelNoShowRegistrations'])->name('cancel-no-show-registrations');
         Route::post('/generate-schedule-code', [GuidanceController::class, 'generateScheduleExamCode'])->name('generate-schedule-code');
         Route::post('/bulk-generate-schedule-codes', [GuidanceController::class, 'bulkGenerateScheduleExamCodes'])->name('bulk-generate-schedule-codes');
         Route::get('/exams/summaries', [GuidanceController::class, 'getExamSummaries'])->name('exams.summaries');
@@ -314,23 +315,23 @@ Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancel
         Route::post('/close-exam-schedules', [GuidanceController::class, 'closeExamSchedules'])->name('close-exam-schedules');
         Route::post('/update-registration-message', [GuidanceController::class, 'updateRegistrationMessage'])->name('update-registration-message');
         Route::put('/profile/password', [GuidanceController::class, 'updatePassword'])->name('profile.password');
-        
+
         // Results Processing
         Route::post('/process-results', [GuidanceController::class, 'processResults'])->name('results.process');
-        
+
         // Evaluator Management
         Route::get('/evaluator-management', [GuidanceController::class, 'evaluatorManagement'])->name('evaluator-management');
         Route::post('/evaluators', [GuidanceController::class, 'createEvaluator'])->name('evaluators.store');
         Route::delete('/evaluators/{id}', [GuidanceController::class, 'deleteEvaluator'])->name('evaluators.delete');
-        
+
         // Settings
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-        
+
         // Registration Management
         Route::get('/registration-management/dry-run', [SettingsController::class, 'registrationDryRun'])->name('registration.dry-run');
         Route::post('/registration-management/cleanup', [SettingsController::class, 'registrationCleanup'])->name('registration.cleanup');
         Route::post('/registration-management/fix', [SettingsController::class, 'fixIncompleteRegistrations'])->name('registration.fix');
-        
+
         // Exam Progress Management
         Route::post('/exam-progress/clear', [SettingsController::class, 'clearExamProgress'])->name('exam-progress.clear');
         Route::post('/exam-results/clear-in-progress', [SettingsController::class, 'clearInProgressExams'])->name('exam-results.clear-in-progress');
@@ -339,11 +340,11 @@ Route::post('/cancel-no-show-registrations', [GuidanceController::class, 'cancel
         Route::post('/exam-results/delete-selected-in-progress', [SettingsController::class, 'deleteSelectedInProgressExams'])->name('exam-results.delete-selected-in-progress');
         Route::post('/exam-results/mark-selected-as-finished', [SettingsController::class, 'markSelectedExamsAsFinished'])->name('exam-results.mark-selected-as-finished');
         Route::post('/exam-results/fix-in-progress-remarks', [SettingsController::class, 'fixInProgressRemarks'])->name('exam-results.fix-in-progress-remarks');
-        
+
         // Zero Score Exam Management
         Route::get('/exam-results/check-zero-score', [SettingsController::class, 'checkZeroScoreExams'])->name('exam-results.check-zero-score');
         Route::post('/exam-results/delete-zero-score', [SettingsController::class, 'deleteZeroScoreExams'])->name('exam-results.delete-zero-score');
-        
+
         // Completed Registrations Management
         Route::get('/registrations/check-completed', [SettingsController::class, 'checkCompletedRegistrations'])->name('registrations.check-completed');
         Route::get('/registrations/search-completed', [SettingsController::class, 'searchCompletedRegistrations'])->name('registrations.search-completed');

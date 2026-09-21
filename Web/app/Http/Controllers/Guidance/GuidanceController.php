@@ -4784,7 +4784,7 @@ class GuidanceController extends Controller
         try {
             $payload = $request->validate([
                 'items' => 'required|array|min:1',
-                'items.*.studentName' => 'required|string',
+                'items.*.studentName' => 'required|string','items.*.last_name' => 'required|string',
                 'items.*.studentAddress' => 'required|string',
                 'items.*.examDate' => 'required|string',
                 'items.*.englishScore' => 'required|integer',
@@ -4798,6 +4798,15 @@ class GuidanceController extends Controller
                 // New: optional semester information per examinee
                 'items.*.semester' => 'nullable|string',
             ]);
+
+            // Sort by last name (format: "Dela Cruz, Juan").
+            // usort($payload['items'], function ($a, $b) {
+            //     $nameA = trim($a['last_name'] ?? '') ?: trim($a['studentName']);
+            //     $nameB = trim($b['last_name'] ?? '') ?: trim($b['studentName']);
+
+            //     return strnatcasecmp($nameA, $nameB)
+            //         ?: strnatcasecmp($a['studentName'], $b['studentName']);
+            // });
 
             $pageBreakCss = '@media print { .page-break { page-break-after: always; } }';
 

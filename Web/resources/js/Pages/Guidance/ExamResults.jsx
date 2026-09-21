@@ -17,6 +17,7 @@ import {
     Legend,
     Filler,
 } from 'chart.js';
+import * as XLSX from 'xlsx';
 
 ChartJS.register(
     CategoryScale,
@@ -484,6 +485,77 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
         setShowDownloadModal(false);
     };
 
+    const handleExcelDownloadReport = () => {
+        if (!allFilteredResults || allFilteredResults.length === 0) {
+            alert("No data available to download");
+            return;
+        }
+
+        // 1. Format and map the data exactly as requested
+        const excelData = allFilteredResults.map((row) => {
+            // Parse the stringified category breakdown to get subject scores
+            let subjectScores = {};
+            try {
+                const breakdown = JSON.parse(row.category_breakdown || "[]");
+                breakdown.forEach((subject) => {
+                    // Creates dynamic columns like "English Score", "Math Score", etc.
+                    subjectScores[`${subject.category} Score`] = subject.correct;
+                });
+            } catch (error) {
+                console.error("Error parsing category_breakdown", error);
+            }
+
+            // Extract and format recommended courses as a comma-separated list
+            const qualifiedPrograms = row.recommended_courses && row.recommended_courses.length > 0
+                ? row.recommended_courses.map(course => course.course_code).join(", ")
+                : "None";
+
+            // Format Date of Exam
+            const dateOfExam = row.started_at
+                ? new Date(row.started_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                })
+                : "N/A";
+
+            // 2. Return the structured row object
+            return {
+                "Last Name": row.examinee?.lname || "",
+                "First Name": row.examinee?.fname || "",
+                "Date of Exam": dateOfExam,
+                "Preferred Course": row.examinee?.preferred_course || "",
+                ...subjectScores, // Spreads out the dynamically generated subject scores
+                "Program Qualified to Enroll": qualifiedPrograms
+            };
+        });
+
+        // 3. Create a worksheet from the formatted data
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+        // 4. Create a new workbook and append the worksheet
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Summarized Report");
+
+        // 5. Adjust column widths (Optional for better readability)
+        const columnWidths = [
+            { wch: 15 }, // Last Name
+            { wch: 15 }, // First Name
+            { wch: 15 }, // Date
+            { wch: 20 }, // Preferred Course
+            { wch: 15 }, // English
+            { wch: 15 }, // Filipino
+            { wch: 15 }, // Math
+            { wch: 15 }, // Science
+            { wch: 20 }, // Abstract Reasoning
+            { wch: 30 }, // Programs Qualified
+        ];
+        worksheet['!cols'] = columnWidths;
+
+        // 6. Generate and download the Excel file
+        XLSX.writeFile(workbook, "Summarized_Exam_Report.xlsx");
+    }
+
     const handleDownloadReport = (reportType) => {
         setShowDownloadModal(false);
         if (reportType === 'summarized') {
@@ -540,6 +612,8 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                 const semester = it.semester || '';
 
                 return {
+                    first_name: it.examinee?.fname || 'UNKNOWN',
+                    last_name: it.examinee?.lname || 'UNKNOWN',
                     studentName: it.examinee?.full_name || 'Unknown Student',
                     studentAddress: it.examinee?.address || 'Address not provided',
                     semester,
@@ -615,10 +689,10 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
             const schoolYear = (result.school_year || '').toLowerCase();
             const semester = (result.semester || '').toLowerCase();
             const personalityType = (result.personality_type || result.personality?.type || '').toLowerCase();
-            
-            if (!studentName.includes(searchLower) && 
-                !examRef.includes(searchLower) && 
-                !schoolYear.includes(searchLower) && 
+
+            if (!studentName.includes(searchLower) &&
+                !examRef.includes(searchLower) &&
+                !schoolYear.includes(searchLower) &&
                 !semester.includes(searchLower) &&
                 !personalityType.includes(searchLower)) {
                 return false;
@@ -1076,13 +1150,13 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                             </select>
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <button onClick={() => { 
-                                                setSelectedDate(''); 
-                                                let s = startDate || ''; 
-                                                let e = endDate || ''; 
+                                            <button onClick={() => {
+                                                setSelectedDate('');
+                                                let s = startDate || '';
+                                                let e = endDate || '';
                                                 if (s && e && s > e) { const tmp = s; s = e; e = tmp; }
                                                 console.log('[ExamResults] Applying date range', { year: selectedYear, includeArchived, start: s || undefined, end: e || undefined });
-                                                applyServerFilters(selectedYear, includeArchived, s, e); 
+                                                applyServerFilters(selectedYear, includeArchived, s, e);
                                             }} className="border border-[#1447E6] bg-[#1447E6] text-white px-2.5 py-1.5 rounded-lg hover:bg-[#1240d0] text-xs font-semibold transition-colors shadow-sm">Apply</button>
                                             <button onClick={() => { setStartDate(''); setEndDate(''); setSelectedDate(''); applyServerFilters(selectedYear, includeArchived, '', ''); }} className="border border-slate-300 bg-white text-slate-600 px-2.5 py-1.5 rounded-lg hover:border-[#1447E6] hover:text-[#1447E6] text-xs font-semibold transition-colors shadow-sm">Clear</button>
                                         </div>
@@ -1110,7 +1184,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                         <div className="space-y-2">
                                                             <button
                                                                 onClick={() => handleDownloadReport('summarized')}
-                                                                className="w-full border border-[#1447E6] bg-[#1447E6] text-white px-4 py-3 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
+                                                                className="cursor-pointer w-full border border-[#1447E6] bg-[#1447E6] text-white px-4 py-3 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
                                                             >
                                                                 <span className="flex items-center gap-2">
                                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -1119,8 +1193,20 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                                                             </button>
                                                             <button
+                                                                onClick={() => handleExcelDownloadReport('summarized')}
+                                                                className="cursor-pointer w-full border-2 border-[#1447E6] bg-white text-[#1447E6] px-4 py-3 rounded-xl hover:bg-[#F0F4FF] text-sm font-bold transition-colors duration-200 flex items-center justify-between shadow-sm"
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                    Download Summarized Report
+                                                                </span>
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                                                            </button>
+                                                            <button
                                                                 onClick={() => handleDownloadReport('detailed')}
-                                                                className="w-full bg-[#1D293D] text-white px-4 py-3 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
+                                                                className="cursor-pointer w-full bg-[#1D293D] text-white px-4 py-3 rounded-xl hover:bg-[#1240d0] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
                                                             >
                                                                 <span className="flex items-center gap-2">
                                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
@@ -1130,7 +1216,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDownloadReport('examinee_info')}
-                                                                className="w-full border border-[#217346] bg-[#217346] text-white px-4 py-3 rounded-xl hover:bg-[#1a5c38] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
+                                                                className="cursor-pointer w-full border border-[#217346] bg-[#217346] text-white px-4 py-3 rounded-xl hover:bg-[#1a5c38] text-sm font-semibold transition-colors duration-200 flex items-center justify-between"
                                                             >
                                                                 <span className="flex items-center gap-2">
                                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -1182,7 +1268,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                             <p className="text-sm text-slate-600">Visual insights into exam results and trends</p>
                                         </div>
                                     </div>
-                                   
+
                                 </div>
                             </div>
                             <div className="p-6 animate-up" style={{ animationDelay: '420ms' }}>
@@ -1242,7 +1328,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                         <p className="text-xs text-slate-500">Filtered view</p>
                                     </div>
                                 </div>
-                                
+
                                 {/* Live Search Bar */}
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1684,18 +1770,17 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                         <button
                                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                             disabled={currentPage === 1}
-                                            className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${
-                                                currentPage === 1
+                                            className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentPage === 1
                                                     ? 'border-slate-300 bg-white text-slate-400 cursor-not-allowed'
                                                     : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
-                                            }`}
+                                                }`}
                                         >
                                             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                                             </svg>
                                             Previous
                                         </button>
-                                        
+
                                         <div className="flex items-center gap-1">
                                             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                                 let pageNum;
@@ -1708,16 +1793,15 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                 } else {
                                                     pageNum = currentPage - 2 + i;
                                                 }
-                                                
+
                                                 return (
                                                     <button
                                                         key={pageNum}
                                                         onClick={() => setCurrentPage(pageNum)}
-                                                        className={`min-w-[40px] px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${
-                                                            currentPage === pageNum
+                                                        className={`min-w-[40px] px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentPage === pageNum
                                                                 ? 'border-[#1447E6] bg-[#1447E6] text-white'
                                                                 : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {pageNum}
                                                     </button>
@@ -1728,11 +1812,10 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                         <button
                                             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                             disabled={currentPage === totalPages}
-                                            className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${
-                                                currentPage === totalPages
+                                            className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentPage === totalPages
                                                     ? 'border-slate-300 bg-white text-slate-400 cursor-not-allowed'
                                                     : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
-                                            }`}
+                                                }`}
                                         >
                                             Next
                                             <svg className="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
