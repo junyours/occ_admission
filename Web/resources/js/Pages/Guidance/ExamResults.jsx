@@ -491,14 +491,21 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
             return;
         }
 
-        // 1. Format and map the data exactly as requested
-        const excelData = allFilteredResults.map((row) => {
+        // 1. Sort the results by Last Name (A-Z)
+        const sortedResults = [...allFilteredResults].sort((a, b) => {
+            const lastNameA = (a.examinee?.lname || "").toLowerCase();
+            const lastNameB = (b.examinee?.lname || "").toLowerCase();
+            return lastNameA.localeCompare(lastNameB);
+        });
+
+        // 2. Format and map the sorted data
+        const excelData = sortedResults.map((row) => {
             // Parse the stringified category breakdown to get subject scores
             let subjectScores = {};
             try {
                 const breakdown = JSON.parse(row.category_breakdown || "[]");
                 breakdown.forEach((subject) => {
-                    // Creates dynamic columns like "English Score", "Math Score", etc.
+                    // Creates dynamic columns like "English Score", "Mathematics Score", etc.
                     subjectScores[`${subject.category} Score`] = subject.correct;
                 });
             } catch (error) {
@@ -519,7 +526,7 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                 })
                 : "N/A";
 
-            // 2. Return the structured row object
+            // Return the structured row object
             return {
                 "Last Name": row.examinee?.lname || "",
                 "First Name": row.examinee?.fname || "",
@@ -1771,8 +1778,8 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                             disabled={currentPage === 1}
                                             className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentPage === 1
-                                                    ? 'border-slate-300 bg-white text-slate-400 cursor-not-allowed'
-                                                    : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
+                                                ? 'border-slate-300 bg-white text-slate-400 cursor-not-allowed'
+                                                : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
                                                 }`}
                                         >
                                             <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1799,8 +1806,8 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                                         key={pageNum}
                                                         onClick={() => setCurrentPage(pageNum)}
                                                         className={`min-w-[40px] px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentPage === pageNum
-                                                                ? 'border-[#1447E6] bg-[#1447E6] text-white'
-                                                                : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
+                                                            ? 'border-[#1447E6] bg-[#1447E6] text-white'
+                                                            : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -1813,8 +1820,8 @@ const ExamResults = ({ user, results, allResults, years = [], filters = {} }) =>
                                             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                             disabled={currentPage === totalPages}
                                             className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors duration-150 ${currentPage === totalPages
-                                                    ? 'border-slate-300 bg-white text-slate-400 cursor-not-allowed'
-                                                    : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
+                                                ? 'border-slate-300 bg-white text-slate-400 cursor-not-allowed'
+                                                : 'border-slate-300 bg-white text-slate-600 hover:border-[#1447E6] hover:text-[#1447E6]'
                                                 }`}
                                         >
                                             Next
