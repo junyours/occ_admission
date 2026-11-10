@@ -310,11 +310,13 @@ const OptionButton = React.memo(({
   );
 }, (prevProps, nextProps) => {
   // Optimized comparison for memo - reduce unnecessary re-renders
-  return prevProps.option === nextProps.option &&
-         prevProps.optionText === nextProps.optionText &&
-         prevProps.isSelected === nextProps.isSelected &&
-         prevProps.hasImage === nextProps.hasImage &&
-         prevProps.optionImage === nextProps.optionImage;
+    return prevProps.option === nextProps.option &&
+        prevProps.optionText === nextProps.optionText &&
+        prevProps.isSelected === nextProps.isSelected &&
+        prevProps.hasImage === nextProps.hasImage &&
+        prevProps.optionImage === nextProps.optionImage &&
+        prevProps.onPress === nextProps.onPress &&
+        prevProps.onImagePress === nextProps.onImagePress;
 });
 
 export default function ExamScreen({ navigation, route }) {
