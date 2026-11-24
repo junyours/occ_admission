@@ -276,6 +276,7 @@ Route::middleware(['auth', 'prevent.back', 'auth.validator'])->group(function ()
         Route::get('/exam-monitoring', [GuidanceController::class, 'examMonitoring'])->name('exam-monitoring');
         Route::get('/exam-monitoring/status', [GuidanceController::class, 'getExamStatuses'])->name('exam-monitoring.status');
         Route::get('/exam-monitoring/departmental-status', [GuidanceController::class, 'getDepartmentalExamStatuses'])->name('exam-monitoring.departmental-status');
+        Route::post('/exam-monitoring/reset', [GuidanceController::class, 'resetExamineeExam'])->name('exam-monitoring.reset');
 
         // Exam Registration Management
         Route::get('/exam-registration-management', [GuidanceController::class, 'examRegistrationManagement'])->name('exam-registration-management');

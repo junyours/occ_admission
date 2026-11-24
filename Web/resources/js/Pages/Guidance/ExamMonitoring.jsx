@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Head } from '@inertiajs/react';
+import axios from 'axios';
 import Layout from '../../Components/Layout';
 
 export default function ExamMonitoring({ user, flash }) {
@@ -8,6 +9,27 @@ export default function ExamMonitoring({ user, flash }) {
     const [isPolling, setIsPolling] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [liveTick, setLiveTick] = useState(0); // trigger re-render for live timeago
+    const [resetTarget, setResetTarget] = useState(null); // row awaiting reset confirmation
+    const [isResetting, setIsResetting] = useState(false);
+
+    const handleConfirmReset = async () => {
+        if (!resetTarget) return;
+        setIsResetting(true);
+        try {
+            const response = await axios.post('/guidance/exam-monitoring/reset', {
+                examinee_id: resetTarget.examinee_id,
+                exam_id: resetTarget.exam_id,
+            });
+            window?.showAlert?.(response.data.message || 'Exam reset successfully.', 'success');
+            setResetTarget(null);
+            await fetchExamStatuses();
+        } catch (error) {
+            console.error('[ExamMonitoring] Reset error:', error);
+            window?.showAlert?.(error.response?.data?.message || 'Failed to reset the exam.', 'error');
+        } finally {
+            setIsResetting(false);
+        }
+    };
 
     // Fetch exam statuses from API
     const fetchExamStatuses = async () => {
@@ -253,13 +275,14 @@ export default function ExamMonitoring({ user, flash }) {
                             <div className="overflow-x-auto animate-up" style={{ animationDelay: '340ms' }}>
                                 <div className="min-w-[980px]">
                                 {/* Header row - added Phase column */}
-                                <div className="grid grid-cols-2 md:grid-cols-6 items-center px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border border-slate-200 rounded-lg animate-up" style={{ animationDelay: '360ms' }}>
+                                <div className="grid grid-cols-3 md:grid-cols-7 items-center px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border border-slate-200 rounded-lg animate-up" style={{ animationDelay: '360ms' }}>
                                     <div className="md:col-span-1">Name</div>
                                     <div className="hidden md:block">Time</div>
                                     <div className="hidden md:block">Exam Code</div>
                                     <div className="hidden md:block">Phase</div>
                                     <div className="hidden md:block">Exam Type</div>
                                     <div className="text-left md:text-right">Status</div>
+                                    <div className="text-right">Action</div>
                                 </div>
 
                                 {/* Data rows */}
@@ -269,7 +292,7 @@ export default function ExamMonitoring({ user, flash }) {
                                         return (
                                             <div
                                                 key={`regular-${status.examinee_id}-${index}`}
-                                                className="grid grid-cols-2 md:grid-cols-6 items-center px-5 py-4 hover:bg-[#1447E6]/10 transition-colors duration-150 animate-up"
+                                                className="grid grid-cols-3 md:grid-cols-7 items-center px-5 py-4 hover:bg-[#1447E6]/10 transition-colors duration-150 animate-up"
                                                 style={{ animationDelay: `${160 + index * 80}ms` }}
                                             >
                                                 {/* Name */}
@@ -310,6 +333,19 @@ export default function ExamMonitoring({ user, flash }) {
                                                         {status.status === 'taking' ? 'Currently Taking' : 'Done'}
                                                     </span>
                                                 </div>
+
+                                                {/* Action */}
+                                                <div className="text-right">
+                                                    {status.status === 'taking' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setResetTarget(status)}
+                                                            className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-300 text-red-700 bg-white hover:bg-red-50 transition-colors duration-150"
+                                                        >
+                                                            Reset
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}
@@ -321,6 +357,47 @@ export default function ExamMonitoring({ user, flash }) {
                 </div>
 
             </div>
+
+            {/* Reset confirmation modal */}
+            {resetTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+                    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-200">
+                            <h3 className="text-lg font-semibold text-[#1D293D]">Reset exam?</h3>
+                        </div>
+                        <div className="px-6 py-5 space-y-3 text-sm text-slate-700">
+                            <p>
+                                This resets <span className="font-semibold text-[#1D293D]">{resetTarget.examinee_name}</span>'s
+                                {' '}exam <span className="font-semibold text-[#1D293D]">{resetTarget.exam_title}</span>.
+                            </p>
+                            <ul className="list-disc pl-5 space-y-1">
+                                <li>Deletes the answers they have saved so far. They will start the exam over.</li>
+                                <li>Signs them out of the mobile app on every device.</li>
+                                <li>Lets them log in again. This fixes the "Currently Taking an Exam on another device" error.</li>
+                            </ul>
+                            <p className="text-red-700 font-medium">This cannot be undone.</p>
+                        </div>
+                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setResetTarget(null)}
+                                disabled={isResetting}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 text-slate-700 bg-white hover:bg-slate-100 disabled:opacity-60"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmReset}
+                                disabled={isResetting}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60"
+                            >
+                                {isResetting ? 'Resetting...' : 'Reset exam'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style>{`
                 @keyframes fadeIn {

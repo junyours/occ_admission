@@ -4326,6 +4326,98 @@ class GuidanceController extends Controller
     }
 
     /**
+     * Reset an unfinished entrance exam for one examinee.
+     *
+     * Used when a student is stuck behind the mobile login check
+     * ("Currently Taking an Exam on another device"), e.g. after clearing
+     * the app's data mid-exam. Deletes the unfinished exam_results row, the
+     * answers saved so far, and the resume progress, then signs the student
+     * out of every mobile device so they can log in and start over.
+     */
+    public function resetExamineeExam(Request $request)
+    {
+        $data = $request->validate([
+            'examinee_id' => 'required|integer',
+            'exam_id' => 'required|integer',
+        ]);
+
+        try {
+            $examResult = ExamResult::where('examineeId', $data['examinee_id'])
+                ->where('examId', $data['exam_id'])
+                ->whereNull('finished_at')
+                ->first();
+
+            if (!$examResult) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No unfinished exam found for this examinee. It may have already been submitted or reset.',
+                ], 404);
+            }
+
+            $examinee = Examinee::find($data['examinee_id']);
+            $examRefNo = optional(Exam::find($data['exam_id']))->{'exam-ref-no'};
+
+            $summary = DB::transaction(function () use ($examResult, $examinee, $examRefNo, $data) {
+                $deletedAnswers = \App\Models\ExamineeAnswer::where('examineeId', $data['examinee_id'])
+                    ->where('examId', $data['exam_id'])
+                    ->delete();
+
+                $deletedProgress = $examRefNo
+                    ? DB::table('exam_progress')
+                        ->where('examinee_id', $data['examinee_id'])
+                        ->where('exam_ref_no', $examRefNo)
+                        ->delete()
+                    : 0;
+
+                $previousRemarks = $examResult->remarks;
+                $examResult->delete();
+
+                // Sign the student out everywhere so the old device stops saving
+                // answers and the new device isn't blocked by ALREADY_LOGGED_IN.
+                $revokedTokens = 0;
+                if ($examinee && $examinee->accountId) {
+                    $revokedTokens = DB::table('oauth_access_tokens')
+                        ->where('user_id', $examinee->accountId)
+                        ->where('revoked', false)
+                        ->update(['revoked' => true]);
+                }
+
+                return [
+                    'previous_remarks' => $previousRemarks,
+                    'deleted_answers' => $deletedAnswers,
+                    'deleted_progress' => $deletedProgress,
+                    'revoked_tokens' => $revokedTokens,
+                ];
+            });
+
+            Log::info('[ExamMonitoring] Exam reset by guidance', array_merge([
+                'examinee_id' => $data['examinee_id'],
+                'exam_id' => $data['exam_id'],
+                'exam_ref_no' => $examRefNo,
+                'reset_by' => optional(Auth::user())->email,
+            ], $summary));
+
+            $name = $examinee ? trim($examinee->fname . ' ' . $examinee->lname) : 'The examinee';
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$name}'s exam was reset. They can now log in again and start the exam over.",
+                'data' => $summary,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[ExamMonitoring] Error resetting exam: ' . $e->getMessage(), [
+                'examinee_id' => $data['examinee_id'],
+                'exam_id' => $data['exam_id'],
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reset the exam. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
      * Get current exam statuses for departmental exams
      */
     public function getDepartmentalExamStatuses()
