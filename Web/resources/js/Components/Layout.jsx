@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react';
 import Topbar from './Topbar';
 import Sidebar from './Sidebar';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 
 const Layout = ({ children, routes, title }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { user } = usePage().props.auth;
+    const [isLeavingImpersonation, setIsLeavingImpersonation] = useState(false);
+    const { user, impersonator } = usePage().props.auth;
+
+    const stopImpersonating = () => {
+        router.post('/impersonate/stop', {}, {
+            onStart: () => setIsLeavingImpersonation(true),
+            onFinish: () => setIsLeavingImpersonation(false),
+        });
+    };
 
     // Add global alert function to window
     useEffect(() => {
@@ -95,11 +103,32 @@ const Layout = ({ children, routes, title }) => {
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col min-h-0">
-                    <main className="flex-1 p-4 md:p-6 overflow-auto min-h-0">
+                    <main className={`flex-1 p-4 md:p-6 overflow-auto min-h-0 ${impersonator ? 'pb-20' : ''}`}>
                         {children}
                     </main>
                 </div>
             </div>
+
+            {/* Shown while an admin is signed in as another user */}
+            {impersonator && (
+                <div className="fixed inset-x-0 bottom-0 z-[60] bg-amber-500 text-amber-950 shadow-lg">
+                    <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm">
+                            You are signed in as <span className="font-semibold">{user?.username || user?.email}</span>
+                            {user?.role ? ` (${user.role})` : ''}. Your admin account:{' '}
+                            <span className="font-semibold">{impersonator.username || impersonator.email}</span>.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={stopImpersonating}
+                            disabled={isLeavingImpersonation}
+                            className="self-start sm:self-auto px-4 py-1.5 rounded-lg text-sm font-semibold bg-amber-950 text-white hover:bg-amber-900 disabled:opacity-60"
+                        >
+                            {isLeavingImpersonation ? 'Returning...' : 'Return to admin'}
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

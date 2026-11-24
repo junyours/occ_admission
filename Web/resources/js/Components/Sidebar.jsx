@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, FileText, BarChart3, Users, Eye, HelpCircle, BookOpen, Archive, Calendar, Brain, ChevronRight, ChevronLeft, User, Key, } from 'lucide-react';
+import { LayoutDashboard, FileText, BarChart3, Users, Eye, HelpCircle, BookOpen, Archive, Calendar, Brain, ChevronRight, ChevronLeft, User, Key, LogIn, } from 'lucide-react';
 import { capitalizeWords } from '../Utils/string';
 
 const MENU_CONFIG = {
@@ -157,6 +157,11 @@ const MENU_CONFIG = {
                     name: 'Password',
                     href: '/manage-password',
                     icon: Key,
+                },
+                {
+                    name: 'Sign in as User',
+                    href: '/impersonate',
+                    icon: LogIn,
                 },
             ],
         },

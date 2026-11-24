@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'prevent.back' => \App\Http\Middleware\PreventBackHistory::class,
         'auth.validator' => \App\Http\Middleware\AuthenticationStateValidator::class,
+        'role' => \App\Http\Middleware\EnsureUserHasRole::class,
     ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

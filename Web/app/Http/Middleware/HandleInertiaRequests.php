@@ -51,6 +51,15 @@ class HandleInertiaRequests extends Middleware
                     'role' => $request->user()->role,
                     'username' => $request->user()->username,
                 ] : null,
+                // Set while an admin is signed in as another user (see ImpersonationController)
+                'impersonator' => function () use ($request) {
+                    $adminId = $request->session()->get(\App\Http\Controllers\Admin\ImpersonationController::SESSION_KEY);
+                    if (!$adminId) {
+                        return null;
+                    }
+                    $admin = \App\Models\User::select('id', 'name', 'username', 'email')->find($adminId);
+                    return $admin ? $admin->only(['id', 'name', 'username', 'email']) : null;
+                },
             ],
             'routes' => [
                 'evaluator.dashboard' => route('evaluator.dashboard'),
