@@ -57,8 +57,13 @@ class HandleInertiaRequests extends Middleware
                     if (!$adminId) {
                         return null;
                     }
-                    $admin = \App\Models\User::select('id', 'name', 'username', 'email')->find($adminId);
-                    return $admin ? $admin->only(['id', 'name', 'username', 'email']) : null;
+                    // No column list: the production users table has no `name` column
+                    $admin = \App\Models\User::find($adminId);
+                    return $admin ? [
+                        'id' => $admin->id,
+                        'username' => $admin->username,
+                        'email' => $admin->email,
+                    ] : null;
                 },
             ],
             'routes' => [
